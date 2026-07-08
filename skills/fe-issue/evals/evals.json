@@ -1,0 +1,82 @@
+{
+  "skill_name": "fe-issue",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "幫我把這個 PM Issue 轉成前端技術 Issue（簡單的新功能：通知偏好設定頁）",
+      "expected_output": "結構化的前端技術 Issue，使用「實作範圍」模式（扁平清單），API 依賴表有標示",
+      "files": [],
+      "expectations": [
+        "輸出使用繁體中文",
+        "包含「前端技術 Issue」標題",
+        "包含「關聯需求」區塊且引用 PM Issue 連結",
+        "包含 ⚠️ 規格疑問警語（提醒回 PM Issue 提問）",
+        "包含「驗收條件」且分為功能面、資料顯示、既有功能、測試品質四個區塊",
+        "測試品質區塊包含 Coverage ≥ 80% 要求",
+        "包含「API 依賴」表格且使用 ✅/⚠️ 標示狀態",
+        "使用「實作範圍」模式（扁平編號清單），而非 Subtask 拆解",
+        "不包含 Labels 區塊在 Issue body 中（Labels 僅作為 GitLab metadata）",
+        "Phase 1.3 由 AI 主動探索 codebase 而非詢問用戶",
+        "Phase 1.5 自動從 PM Issue API 回應擷取 labels"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "幫我把這個 PM Issue 轉成前端技術 Issue（複雜功能：訂單管理頁面重構，含 Tab 架構、多 API 串接）",
+      "expected_output": "完整技術 Issue，Subtask 4-6 個，有結構樹、影響範圍分析、預估工時",
+      "files": [],
+      "expectations": [
+        "輸出使用繁體中文",
+        "包含「前端技術 Issue」標題",
+        "包含「功能描述」且用前端技術語言描述（非複製 PM 原文）",
+        "包含結構概覽（樹狀圖呈現 Tab 或頁面架構）",
+        "包含「API 依賴」表格且區分既有 API 和需新 API",
+        "包含「Subtask 拆解」且至少 4 個 Subtask，每個預估不超過 2 天",
+        "包含「預估總工時」",
+        "包含「影響範圍 / 風險」區塊",
+        "不包含 Labels 區塊在 Issue body 中",
+        "Phase 1.3 由 AI 主動探索 codebase",
+        "Phase 1.5 自動從 PM Issue API 回應擷取 labels"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "幫我把這個 PM Issue 轉成前端技術 Issue（Bug 修復：表單驗證和 API 錯誤處理問題）",
+      "expected_output": "Bug 修復的技術 Issue，根據複雜度決定使用實作範圍或 Subtask 模式",
+      "files": [],
+      "expectations": [
+        "輸出使用繁體中文",
+        "包含「前端技術 Issue」標題",
+        "包含「功能描述」且從技術角度描述問題根因",
+        "包含「驗收條件」且包含測試品質區塊",
+        "根據複雜度使用「實作範圍」或「Subtask 拆解」模式",
+        "包含修復驗證和回歸測試相關內容",
+        "不包含 Labels 區塊在 Issue body 中",
+        "Labels 包含 # type::bug 但僅在 GitLab metadata 中",
+        "直接輸出 Markdown，不用 code block 包裹整份文件",
+        "Phase 1.3 由 AI 主動探索 codebase",
+        "Phase 1.5 自動從 PM Issue API 回應擷取 labels"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "幫我把這個 PM Issue 轉成前端技術 Issue（修正首頁訂閱按鈕錯字「定閱」→「訂閱」）",
+      "expected_output": "極簡三段格式：關聯、實作範圍、預估一行",
+      "files": [],
+      "expectations": [
+        "輸出使用繁體中文",
+        "包含「前端技術 Issue」標題",
+        "包含 PM Issue 關聯連結（單行 **關聯**：[...]，非完整『關聯需求』區塊）",
+        "包含「實作範圍」且為扁平編號清單、白話動詞開頭、含檔案路徑",
+        "包含預估工時一行（如『**預估**：約 0.5 天』），非獨立『預估工時』section",
+        "不包含「功能描述」section",
+        "不包含「驗收條件」section",
+        "不包含「API 依賴」表格",
+        "不包含「技術備註」、「影響範圍 / 風險」、「Subtask 拆解」",
+        "不包含 ⚠️ 規格疑問警語",
+        "Phase 1.1.5 主動判斷為 micro 並詢問用戶確認",
+        "Micro fast-path 跳過 Phase 1.2 Figma 與 1.4 API 狀態"
+      ]
+    }
+  ]
+}

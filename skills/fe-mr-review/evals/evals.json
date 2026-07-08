@@ -1,0 +1,86 @@
+{
+  "skill_name": "fe-mr-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "幫我審查這個 MR（簡單的 feature MR：新增通知偏好設定頁面，約 150 行變更）",
+      "expected_output": "資深工程師視角的審查：導讀比喻 + 風險對照表 + 需要修正(配程式碼) + 人工 Review 四欄 + 名詞小辭典，MR 類型判定為 feature",
+      "files": [],
+      "expectations": [
+        "輸出使用繁體中文",
+        "包含「MR Review:」標題與 MR 類型判定為 feature",
+        "包含「🧭 這個 MR 在做什麼」導讀，且比喻版（就像…）與技術版並存",
+        "包含「風險評估」並以「拉低風險 / 拉高風險」對照表呈現（非整段散文）",
+        "「需要修正」每個 finding 緊鄰處貼關鍵 3–5 行程式碼，並附 GitLab 行號連結",
+        "「需要修正（要動作）」與「技術觀察（不需動作）」明確分開",
+        "包含「👤 人工 Review 需特別關注」且為四欄檢查項（動作 / 預期 / 為什麼重要 / 驗證方式），並標註需資深經驗或新手可略過",
+        "報告最後包含「📖 名詞小辭典」集中解釋術語；內文維持專業用詞、不逐句插括號白話",
+        "不包含「👤 Human Review Checklist」「🧭 TL 視角」「💡 值得學習的模式」「正面回饋」區塊",
+        "包含「📋 Summary」統計表格與「🔜 後續行動」區塊；後續行動提供三選項（回覆 comment / 執行修復 / Codex 作者視角回答），且 Codex 選項為選用、不自動觸發",
+        "透過 mr-context.sh 取得 MR context（不逐一呼叫個別 GitLab API 取 meta / discussions / diffs）"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "幫我審查這個 MR（複雜的 bugfix MR：修復表單驗證與 API 錯誤處理，超過 500 行變更，有未解決的討論串）",
+      "expected_output": "大型 MR 審查，含變更摘要、高風險區域重點審查、未解決討論標示",
+      "files": [],
+      "expectations": [
+        "輸出使用繁體中文",
+        "包含「MR Review:」標題",
+        "包含 MR 類型判定為 bugfix",
+        "因超過 500 行變更，mr-context.sh 輸出為 stat 預覽（非 full diff），AI 按需用 mr-load-file.sh 補抓",
+        "包含各模組變更摘要",
+        "包含拆分 MR 的建議（若合理）",
+        "包含未解決討論的 ⚠️ 標示",
+        "依 review-focus.md 的 bugfix 焦點審查：檢查是治本或治標、同類問題別處是否也有",
+        "「需要修正」finding 配關鍵程式碼 + GitLab 行號連結；人工 Review 為四欄檢查項；報告最後有名詞小辭典",
+        "包含「📋 Summary」統計表格",
+        "技術審查針對高風險區域重點審查"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "MR 上有 review comments 幫我看一下要怎麼回覆（MR 有 5 條 review 建議，涵蓋命名規範、效能優化、型別安全）",
+      "expected_output": "回覆評估模式：每條 comment 分類為 Accept/Dismiss/Discuss，附具體專案脈絡解釋",
+      "files": [],
+      "expectations": [
+        "正確判定為回覆評估模式（Reply Mode）",
+        "輸出使用繁體中文",
+        "每條 review comment 都有對應的回覆，無遺漏",
+        "分類為 ✅ 採納、⏭️ 不採納、💬 需討論三種",
+        "採納項目包含修正說明和 commit hash",
+        "不採納項目引用具體專案脈絡（如 CLAUDE.md 規定、既有 pattern）",
+        "需討論項目提供兩方觀點",
+        "包含「📊 總覽」統計表格",
+        "依照 references/reply-template.md 格式產出",
+        "產出後提醒用戶確認回覆內容和修正程式碼"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "這個 MR 幫我 review 一下（模糊意圖，未明確指出要審查還是回覆 review comments）",
+      "expected_output": "模式判定時主動詢問用戶意圖",
+      "files": [],
+      "expectations": [
+        "未直接執行審查或回覆，而是先詢問用戶意圖",
+        "詢問內容包含兩個選項：(A) 審查 MR 或 (B) 處理 review comments",
+        "透過 mr-context.sh 取得 MR 基本資訊以輔助判斷"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "幫我審查這個 refactor MR（重構共用元件庫，MR 描述為空）",
+      "expected_output": "審查模式，MR 類型為 refactor，額外提示補充 MR 描述",
+      "files": [],
+      "expectations": [
+        "輸出使用繁體中文",
+        "包含 MR 類型判定為 refactor",
+        "依 review-focus.md 的 refactor 焦點審查：重點檢查對外行為是否一致、介面相容性、是否過度設計",
+        "因 MR 描述不完整，導讀開頭標示「變更目的不明，以下審查基於程式碼推測」，並在導讀的設計判斷（⚖️）列出請作者補充背景",
+        "因重構共用元件庫，「🔗 一致性與共用」與風險評估涵蓋對使用端的影響",
+        "包含「📋 Summary」統計表格與報告最後的「📖 名詞小辭典」"
+      ]
+    }
+  ]
+}

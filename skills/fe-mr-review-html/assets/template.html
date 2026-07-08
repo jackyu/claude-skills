@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MR Review · {{mr_title}}</title>
+<style>
+  :root {
+    --bg-page: #f8fafc;
+    --bg-card: #ffffff;
+    --fg-text: #0f172a;
+    --fg-muted: #64748b;
+    --border: #e2e8f0;
+    --accent: #2563eb;
+
+    --sev-critical-bg: #fef2f2; --sev-critical-fg: #dc2626;
+    --sev-high-bg:     #fff7ed; --sev-high-fg:     #ea580c;
+    --sev-medium-bg:   #fefce8; --sev-medium-fg:   #ca8a04;
+    --sev-low-bg:      #eff6ff; --sev-low-fg:      #2563eb;
+    --sev-info-bg:     #f9fafb; --sev-info-fg:     #6b7280;
+    --sev-good-bg:     #f0fdf4; --sev-good-fg:     #16a34a;
+
+    --added-bg: #ecfdf5; --added-fg: #047857;
+    --removed-bg: #fef2f2; --removed-fg: #b91c1c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-page: #0b1220;
+      --bg-card: #111827;
+      --fg-text: #e5e7eb;
+      --fg-muted: #94a3b8;
+      --border: #1f2937;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg-page);
+    color: var(--fg-text);
+    font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans TC", sans-serif;
+  }
+  main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1, h2, h3, h4 { line-height: 1.3; margin: 0 0 12px; }
+  code, pre { font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 13px; }
+  a { color: var(--accent); }
+
+  /* ── Header ─────────────────────────────────────── */
+  .mr-header {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; margin-bottom: 20px;
+  }
+  .mr-meta { display: flex; gap: 12px; align-items: center; color: var(--fg-muted); font-size: 13px; }
+  .mr-type-badge { padding: 2px 10px; border-radius: 999px; font-weight: 600; letter-spacing: 0.5px; font-size: 11px; }
+  .mr-type-badge.type-feature  { background: #dbeafe; color: #1d4ed8; }
+  .mr-type-badge.type-bugfix   { background: #fee2e2; color: #b91c1c; }
+  .mr-type-badge.type-refactor { background: #fef3c7; color: #92400e; }
+  .mr-type-badge.type-unknown  { background: #e5e7eb; color: #374151; }
+  .mr-title { font-size: 22px; margin-top: 12px; }
+  .mr-stats { display: flex; gap: 12px; color: var(--fg-muted); font-size: 13px; margin-top: 8px; }
+  .mr-stats .additions { color: var(--added-fg); }
+  .mr-stats .deletions { color: var(--removed-fg); }
+  .mr-description-summary { color: var(--fg-muted); margin-top: 12px; }
+
+  /* ── Merge Verdict hero（頂部一眼定生死）──────────── */
+  .merge-verdict {
+    border-radius: 12px; padding: 20px 24px; margin-bottom: 20px;
+    border: 1px solid var(--vfg); border-left: 6px solid var(--vfg);
+    background: var(--vbg); color: #0f172a;  /* 淺色橫幅底，文字釘深色 */
+  }
+  .merge-verdict.verdict-approve    { --vbg: var(--sev-good-bg);   --vfg: var(--sev-good-fg); }
+  .merge-verdict.verdict-conditional{ --vbg: var(--sev-medium-bg); --vfg: var(--sev-medium-fg); }
+  .merge-verdict.verdict-reject     { --vbg: var(--sev-critical-bg); --vfg: var(--sev-critical-fg); }
+  .merge-verdict .verdict-line { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .merge-verdict .verdict-chip { font-size: 20px; font-weight: 800; color: var(--vfg); }
+  .merge-verdict .verdict-reason { margin: 8px 0 0; font-size: 15px; }
+
+  .severity-counts { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+  .severity-counts .count {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 8px;
+    background: var(--bg); color: var(--fg);
+    border: 1px solid currentColor;
+    cursor: pointer; font: inherit;
+  }
+  .severity-counts .count strong { font-size: 18px; }
+  .severity-counts .count.zero { opacity: 0.4; }
+  .focus-badge {
+    display: inline-block; margin-top: 10px;
+    padding: 6px 12px; border-radius: 999px;
+    background: #fff7ed; color: #c2410c; font-weight: 600; font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* ── Severity tokens ───────────────────────────── */
+  .severity-critical { --bg: var(--sev-critical-bg); --fg: var(--sev-critical-fg); }
+  .severity-high     { --bg: var(--sev-high-bg);     --fg: var(--sev-high-fg); }
+  .severity-medium   { --bg: var(--sev-medium-bg);   --fg: var(--sev-medium-fg); }
+  .severity-low      { --bg: var(--sev-low-bg);      --fg: var(--sev-low-fg); }
+  .severity-info     { --bg: var(--sev-info-bg);     --fg: var(--sev-info-fg); }
+
+  /* ── Banners ───────────────────────────────────── */
+  .banner { padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; }
+  .banner-warning { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+  .banner-info    { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+
+  /* ── Focus deep dive ───────────────────────────── */
+  .focus-deep-dive {
+    background: linear-gradient(180deg, #fff7ed 0%, var(--bg-card) 100%);
+    border: 2px solid #fed7aa; border-radius: 12px;
+    padding: 24px; margin-bottom: 20px;
+  }
+  .focus-deep-dive h2 { color: #9a3412; }
+  .concept-explainer { background: var(--bg-card); padding: 16px; border-radius: 8px; margin-bottom: 16px; }
+  .flow-diagram { width: 100%; max-width: 720px; height: auto; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: block; margin: 0 auto; }
+  .flow-diagram .node rect { fill: var(--bg-card); stroke: var(--border); stroke-width: 1.5; }
+  .flow-diagram .node text { font: 600 12px ui-sans-serif, system-ui, sans-serif; fill: var(--fg-text); text-anchor: middle; dominant-baseline: middle; }
+  .flow-diagram .edge { stroke: var(--fg-muted); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+  .code-excerpt { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+  .code-excerpt figcaption { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; font-size: 13px; color: var(--fg-muted); }
+  .code-excerpt figcaption code { background: var(--bg-page); padding: 2px 6px; border-radius: 4px; }
+  .code-excerpt .role { font-style: italic; }
+  .code-excerpt pre { margin: 0; padding: 12px; background: #0f172a; color: #e2e8f0; border-radius: 6px; overflow-x: auto; }
+  .code-excerpt .explanation { margin: 8px 0 0; font-size: 14px; }
+  .pitfalls-list { list-style: none; padding: 0; }
+  .pitfalls-list .pitfall { background: var(--bg-card); border-left: 4px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 8px; }
+  .pitfall .status { display: inline-block; font-weight: 600; margin-right: 8px; }
+  .pitfall.handled { border-left-color: var(--sev-good-fg); }
+  .pitfall.partial { border-left-color: var(--sev-medium-fg); }
+  .pitfall.missing { border-left-color: var(--sev-critical-fg); }
+  .pitfall.na      { border-left-color: var(--fg-muted); opacity: 0.7; }
+  .pitfall p { margin: 4px 0; }
+  .pitfall .cross-ref { font-size: 13px; }
+  .glossary { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; }
+  .glossary dt { font-weight: 600; }
+  .glossary dd { margin: 0; color: var(--fg-muted); }
+
+  /* ── File diff ────────────────────────────────── */
+  .findings-toolbar {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px;
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    position: sticky; top: 0; z-index: 5; margin-bottom: 12px;
+  }
+  .findings-toolbar label { display: inline-flex; gap: 4px; align-items: center; }
+  .findings-toolbar button { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-page); cursor: pointer; }
+
+  .file-diff {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; margin-bottom: 16px; overflow: hidden;
+  }
+  .file-diff-header {
+    display: flex; gap: 12px; align-items: center; justify-content: space-between;
+    padding: 12px 16px; background: var(--bg-page); border-bottom: 1px solid var(--border);
+  }
+  .file-diff-header .file-path { font-family: ui-monospace, monospace; font-weight: 600; }
+  .file-diff-header .file-stats { color: var(--fg-muted); font-size: 13px; margin-left: 8px; }
+  .file-badge { padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--bg); color: var(--fg); border: 1px solid currentColor; }
+
+  /* 單欄：diff 與 inline 註解同欄交錯（PR 風格）*/
+  .file-diff-body { padding: 12px; }
+  .diff { overflow-x: auto; background: #0f172a; border-radius: 6px; padding: 12px 0; }
+  .diff-line { display: block; padding: 0 12px 0 8px; color: #cbd5e1; border-left: 4px solid transparent; white-space: pre; }
+  .diff-line.context  { color: #94a3b8; }
+  .diff-line.added    { background: rgba(4, 120, 87, 0.18); color: #6ee7b7; }
+  .diff-line.removed  { background: rgba(185, 28, 28, 0.18); color: #fca5a5; }
+  .diff-line.hunk-header { color: #fbbf24; background: rgba(120, 53, 15, 0.3); margin: 6px 0; }
+  .diff-line[data-finding-id] { border-left-color: var(--fg, #fbbf24); }
+  .diff-line .line-flag { float: right; padding-left: 16px; font-weight: 700; }
+  .diff-line.flash { animation: flash 1.5s ease-out; }
+  @keyframes flash {
+    0%, 30% { background: #fde68a; color: #1f2937; }
+    100% { /* fall back to inherited */ }
+  }
+
+  /* 就地註解 row：插在對應 diff 行正下方，預設展開；sticky-left 讓它不隨程式碼橫向捲動 */
+  .inline-annotation {
+    position: sticky; left: 0;
+    width: min(100%, 880px); box-sizing: border-box;
+    margin: 8px 0 8px 8px; padding: 10px 12px;
+    background: var(--bg); color: #0f172a;  /* 卡底固定淺色，文字釘深色（不隨 dark mode 翻淺）*/
+    border: 1px solid var(--fg); border-left: 4px solid var(--fg);
+    border-radius: 6px;
+    white-space: normal;
+    font: 14px/1.6 ui-sans-serif, system-ui, -apple-system, "Noto Sans TC", sans-serif;
+  }
+  .inline-annotation .ia-head { display: flex; gap: 8px; align-items: center; font-size: 12px; margin-bottom: 4px; }
+  .inline-annotation .severity-tag { font-weight: 700; color: var(--fg); }
+  .inline-annotation .finding-id { color: #475569; font-family: ui-monospace, monospace; }
+  .inline-annotation h4 { font-size: 14px; margin: 2px 0; color: #0f172a; }
+  .inline-annotation p { margin: 4px 0; font-size: 13px; color: #1e293b; }
+  .inline-annotation code { background: rgba(15, 23, 42, 0.06); padding: 1px 5px; border-radius: 4px; color: #0f172a; }
+  .inline-annotation .term-note { font-size: 12px; color: #475569; margin-top: 6px; }
+  .inline-annotation details { margin-top: 6px; }
+  .inline-annotation pre { margin: 6px 0 0; padding: 10px; background: #0f172a; color: #e2e8f0; border-radius: 6px; overflow-x: auto; }
+
+  /* 「全部收合」→ inline 註解縮成單行（severity + 標題）*/
+  .findings.collapsed .inline-annotation { padding: 4px 12px; }
+  .findings.collapsed .inline-annotation > :not(.ia-head) { display: none; }
+
+  /* 跨檔案 / 架構性 finding（無對應行）*/
+  .cross-file-findings { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; }
+  .cross-file-findings .inline-annotation { position: static; width: auto; margin: 8px 0; }
+
+  /* ── overview / risk-triage / consistency ─────── */
+  .mr-overview, .risk-triage, .consistency, .term-glossary, .learning-patterns {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 20px; margin-bottom: 16px;
+  }
+  .mr-overview .analogy { color: var(--fg-muted); }
+  .mr-overview .design-judgment { font-size: 13px; color: var(--fg-muted); margin-top: 8px; }
+  /* 🚦 風險分流：高風險區表（區域 / 觸及域 / 為什麼 / 需人工確認）+ 一般區 */
+  .risk-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .risk-table th, .risk-table td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; font-size: 13px; }
+  .risk-table thead th { color: var(--sev-high-fg); background: var(--sev-high-bg); }
+  .risk-triage .high-risk { font-weight: 700; color: var(--sev-high-fg); }
+  .risk-triage .general-zone { margin-top: 12px; color: var(--fg-muted); font-size: 14px; }
+  .consistency dt { font-weight: 600; margin-top: 8px; }
+  .consistency dd { margin: 2px 0 0; color: var(--fg-muted); }
+
+  /* 💡 值得學習（附屬，折疊）*/
+  .learning-patterns > summary { cursor: pointer; font-weight: 600; font-size: 16px; }
+  .learning-patterns ul { margin: 12px 0 0; padding-left: 18px; }
+  .learning-patterns li { margin-bottom: 8px; }
+  .learning-patterns .term-note { color: var(--fg-muted); font-size: 13px; }
+
+  footer { text-align: center; color: var(--fg-muted); font-size: 12px; margin-top: 32px; }
+
+  /* ── Print ─────────────────────────────────────── */
+  @media print {
+    body { background: #fff; }
+    .findings-toolbar, .focus-badge, .expand-all, .collapse-all, button { display: none !important; }
+    details > summary { list-style: none; }
+    .inline-annotation { position: static; width: auto; }
+    /* 列印時強制展開內嵌註解與值得學習 */
+    .findings.collapsed .inline-annotation > :not(.ia-head) { display: revert; }
+    section, .file-diff, .inline-annotation { break-inside: avoid; page-break-inside: avoid; }
+    @page { size: A4; margin: 16mm; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <!--
+    MAIN CONTENT 區塊由 skill 動態填入（區塊順序對齊 fe-mr-review：風險分流 → 技術審查 → 合併建議 → 值得學習折疊）：
+    1.  <header class="mr-header">
+    2.  <section class="merge-verdict verdict-{approve|conditional|reject}">  — ✅ 合併建議（頂部醒目橫幅）+ severity 計數 + 焦點徽章
+    3.  <section class="alert-banners"> (optional)               — 未解決討論 / 大型 MR 警示
+    4.  <section class="mr-overview">          — 🧭 導讀（比喻 + 技術 + ⚖️ 設計判斷）
+    5.  <section class="risk-triage">          — 🚦 風險分流（高風險區表：區域/觸及域/為什麼/需人工確認 + 一般區）
+    6.  <section class="focus-deep-dive"> (focusArea 不為 null 時) ★本 skill 獨有
+    7.  <section class="consistency">          — 🔗 一致性與共用 (optional)
+    8.  <div class="findings-toolbar"> + <section class="findings">  — 🔍 diff + inline 註解（就地內嵌、預設展開）
+    9.  <section class="cross-file-findings"> (optional)         — 🌐 架構性 finding（無對應行）
+    10. <details class="learning-patterns">    — 💡 值得學習的模式（附屬，折疊，選用）
+    11. <section class="term-glossary">        — 📖 名詞補充
+    12. <footer>
+    （無 Human Review Checklist、無 TL 視角）
+
+    merge-verdict 範例：
+    <section class="merge-verdict verdict-conditional">
+      <div class="verdict-line"><span class="verdict-chip">🟡 有條件合併</span></div>
+      <p class="verdict-reason">{一句原因：補完 X / 待後端對齊 Y 即可合}</p>
+      <div class="severity-counts">…count chips…</div>
+      <div class="focus-badge">🎯 焦點：{focusArea}</div>
+    </section>
+
+    findings 內每個有 finding 的 .diff-line 後方緊接 inline 註解 row：
+    <div class="diff">
+      <span class="diff-line added" data-new-lno="15" data-finding-id="f-002">+  while (!signal.aborted) {<span class="line-flag">◀ 🟠</span></span>
+      <div class="inline-annotation severity-high" id="f-002">
+        <div class="ia-head"><span class="severity-tag">🟠 High</span><span class="finding-id">#f-002</span></div>
+        <h4>{標題}</h4>
+        <p class="issue">{問題}</p>
+        <p class="suggestion"><strong>建議：</strong>{建議}</p>
+        <p class="term-note">名詞補充（選用）：{術語「中文 (English)」一句解釋}</p>
+      </div>
+      <span class="diff-line added" data-new-lno="16">+    const { value, done } = await reader.read();</span>
+    </div>
+
+    SVG defs for flow diagram arrows (放在第一個 svg 內)：
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="currentColor" />
+      </marker>
+    </defs>
+  -->
+</main>
+
+<script>
+(function () {
+  // Severity 篩選：顯示/隱藏對應的 inline 註解 + 行邊條
+  const toolbarChecks = document.querySelectorAll('.findings-toolbar input[data-filter]');
+  const sevOf = el => [...el.classList].find(c => c.startsWith('severity-'))?.replace('severity-', '');
+  const applyFilters = () => {
+    const active = new Set();
+    toolbarChecks.forEach(cb => { if (cb.checked) active.add(cb.dataset.filter); });
+    document.querySelectorAll('.inline-annotation').forEach(card => {
+      card.style.display = active.has(sevOf(card)) ? '' : 'none';
+    });
+    document.querySelectorAll('.diff-line[data-finding-id]').forEach(line => {
+      const card = document.getElementById(line.dataset.findingId);
+      const shown = card && card.style.display !== 'none';
+      line.style.borderLeftColor = shown ? '' : 'transparent';
+      const flag = line.querySelector('.line-flag');
+      if (flag) flag.style.display = shown ? '' : 'none';
+    });
+  };
+  toolbarChecks.forEach(cb => cb.addEventListener('change', applyFilters));
+
+  // 全部展開 / 收合：toggle .findings.collapsed（收合 = inline 註解縮成單行）
+  const findings = document.querySelector('.findings');
+  document.querySelector('.expand-all')?.addEventListener('click', () => {
+    findings?.classList.remove('collapsed');
+    document.querySelectorAll('.inline-annotation details').forEach(d => d.open = true);
+  });
+  document.querySelector('.collapse-all')?.addEventListener('click', () => {
+    findings?.classList.add('collapsed');
+  });
+
+  // 頂部 severity 計數 chip → 捲到第一個該 severity 的 finding + flash
+  document.querySelectorAll('.severity-counts .count[data-filter]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const sev = chip.dataset.filter;
+      const card = document.querySelector(`.inline-annotation.severity-${sev}`);
+      if (!card) return;
+      findings?.classList.remove('collapsed');
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const line = document.querySelector(`.diff-line[data-finding-id="${card.id}"]`);
+      const target = line || card;
+      target.classList.add('flash');
+      setTimeout(() => target.classList.remove('flash'), 1500);
+    });
+  });
+
+  // Focus badge → scroll
+  document.querySelector('.focus-badge')?.addEventListener('click', () => {
+    document.getElementById('focus')?.scrollIntoView({ behavior: 'smooth' });
+  });
+})();
+</script>
+</body>
+</html>

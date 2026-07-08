@@ -1,0 +1,34 @@
+[
+  {
+    "query": "幫我審查這個 MR",
+    "should_trigger": true
+  },
+  {
+    "query": "幫我 review 這個 merge request",
+    "should_trigger": true
+  },
+  {
+    "query": "這個 MR 幫我看一下，上面有 review comments 要處理",
+    "should_trigger": true
+  },
+  {
+    "query": "MR 上有 review 建議要回覆，幫我處理一下",
+    "should_trigger": true
+  },
+  {
+    "query": "幫我處理 review feedback",
+    "should_trigger": true
+  },
+  {
+    "query": "AI 先 review 再由人確認",
+    "should_trigger": true
+  },
+  {
+    "query": "幫我寫一個 React 元件",
+    "should_trigger": false
+  },
+  {
+    "query": "幫我 review 這個 branch 的 code",
+    "should_trigger": false
+  }
+]

@@ -1,0 +1,84 @@
+{
+  "skill_name": "fe-code-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "幫我 review 這個 branch 的變更，大概改了 30 行左右，主要是調整一個 UserProfile component 的 props interface",
+      "expected_output": "小型變更，只調度內建 /code-review + code-reviewer，輸出包含變更規模標註",
+      "files": [],
+      "expectations": [
+        "判定為小型變更（< 50 行）",
+        "使用 Skill tool 呼叫內建 /code-review，args 固定為 \"high\"",
+        "使用 Agent tool 呼叫 pr-review-toolkit:code-reviewer",
+        "不呼叫 silent-failure-hunter、pr-test-analyzer、type-design-analyzer、comment-analyzer",
+        "輸出包含「變更規模」欄位且標註為小型",
+        "輸出使用繁體中文",
+        "包含 Code Review 摘要區塊且有整體評估分數（x/10）"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "幫我 review 這個 branch，有一個新的留言系統功能，改了大概 150 行，包含 API 呼叫和表單處理",
+      "expected_output": "中型變更，調度 #1-#4，內建 /code-review 先跑、plugin agents 平行執行",
+      "files": [],
+      "expectations": [
+        "判定為中型變更（50–300 行）",
+        "使用 Skill tool 呼叫內建 /code-review，args 固定為 \"high\"",
+        "使用 Agent tool 呼叫 pr-review-toolkit:code-reviewer",
+        "使用 Agent tool 呼叫 pr-review-toolkit:silent-failure-hunter",
+        "使用 Agent tool 呼叫 pr-review-toolkit:pr-test-analyzer",
+        "不呼叫 type-design-analyzer 和 comment-analyzer",
+        "無依賴的 plugin agents 以平行方式呼叫（同一個 message 發起多個 Agent calls）",
+        "輸出包含「來源」欄位標註問題來自哪個工具 / agent",
+        "輸出包含「嚴重度」欄位（Critical/High/Medium/Suggestion）",
+        "問題依嚴重度排序（Critical → Suggestion）"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "幫我 review 這個 branch，是一個完整的商品管理模組重構，改了超過 500 行，有新的 TypeScript types、API services、React components 和測試",
+      "expected_output": "大型變更，調度全部 6 項（內建 /code-review args \"high\" + 5 個 plugin agents），整合結果去重並補充前端觀點",
+      "files": [],
+      "expectations": [
+        "判定為大型變更（> 300 行）",
+        "使用 Skill tool 呼叫內建 /code-review（args 固定 \"high\"），並用 Agent tool 呼叫 #2–#6 共 5 個 plugin agents",
+        "整合結果有去重處理（多個來源報同一問題時合併）",
+        "補充前端特定觀點（React 效能、SSR/CSR、bundle size 等）",
+        "輸出包含「變更規模」欄位且標註為大型",
+        "每個問題標註「來源」工具 / agent",
+        "每個問題用白話文描述：含「背景」脈絡、用具體後果說明問題",
+        "每個 finding 緊鄰處貼關鍵 3–5 行程式碼，位置為 file:line（審 MR 時附連結）",
+        "含「👤 需人工確認」四欄檢查項（動作 / 預期 / 為什麼重要 / 驗證方式），與 ✅「確認項目」區隔",
+        "報告最後含「📖 名詞小辭典」，內文維持專業用詞、不逐句插括號白話",
+        "摘要的「這次改動在做什麼」含比喻版（就像…）與技術版並存",
+        "技術原理 / 學習點放在 <details> 折疊區塊，主文保持新手可讀"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "我收到 reviewer 的回饋，他說：1. 把 useState 改成 useReducer 2. 加上 error boundary 3. 移除 console.log 4. 還有一個我看不太懂的建議是關於 memoization 的",
+      "expected_output": "進入回饋處理模式，先釐清不明確項目（第 4 項），不急著實作",
+      "files": [],
+      "expectations": [
+        "判定為回饋處理模式（非審查模式）",
+        "不呼叫任何審查工具（plugin agent 或內建 /code-review）",
+        "針對第 4 項（memoization）提出釐清問題，不先實作已理解的部分",
+        "不使用表演性附和語句（不說「你說得對」「很好的觀點」「感謝」）",
+        "依實作順序排列：阻斷性 → 簡單修正 → 複雜修正"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "reviewer 說我的 API error handling 不夠完整，要我加 retry logic 和 fallback UI，但我們這個 API 只在 admin 後台用，流量很低",
+      "expected_output": "進入回饋處理模式，執行 YAGNI 檢查，考慮是否該反駁",
+      "files": [],
+      "expectations": [
+        "判定為回饋處理模式",
+        "執行 YAGNI 檢查（搜尋程式碼庫確認 API 使用頻率/範圍）",
+        "考慮反駁的合理性（低流量 admin 後台是否需要完整 retry + fallback）",
+        "用技術理由評估，不是防禦心態",
+        "不使用表演性附和語句"
+      ]
+    }
+  ]
+}
