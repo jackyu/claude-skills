@@ -68,6 +68,12 @@ skill-name/
 # Install for Codex CLI native skills (~/.codex/skills/)
 ./scripts/install.sh --target codex
 
+# Install to multiple targets in one run (comma-separated)
+./scripts/install.sh -t claude-code,codex
+
+# Install to all agent targets (claude-code,agents,codex,cursor; project excluded)
+./scripts/install.sh -t all
+
 # Install for Cursor
 ./scripts/install.sh --target cursor
 

@@ -22,8 +22,13 @@ get_target_path() {
 }
 VALID_TARGETS="claude-code agents codex cursor project"
 
+# Special "all" target expands to every agent home-dir target (project excluded --
+# it is a cwd-relative path and should never be written implicitly).
+ALL_TARGETS="claude-code agents codex cursor"
+
 # Defaults
 TARGET="claude-code"
+TARGETS="claude-code"
 SKILL_FILTER=""
 DRY_RUN=false
 LIST_MODE=false
@@ -64,7 +69,9 @@ Deploy skills from this repo via symlinks.
 
 Options:
   -s NAME       Install a specific skill (supports glob patterns, e.g. "fe-*")
-  -t TARGET     Target environment: claude-code (default), agents, codex, cursor, project
+  -t TARGET     Target environment(s): claude-code (default), agents, codex, cursor, project.
+                Accepts a comma-separated list (e.g. "claude-code,codex") or "all"
+                (= claude-code,agents,codex,cursor; project excluded).
   -l            List all skills and their installation status
   -n            Dry run -- show what would happen without making changes
   --uninstall   Remove symlinks that point to this repo
@@ -77,6 +84,8 @@ Examples:
   $(basename "$0") -s "fe-*"        # Install all skills matching fe-*
   $(basename "$0") -t agents        # Install to ~/.agents/skills/ (generic AI agents)
   $(basename "$0") -t codex         # Install to ~/.codex/skills/ (Codex CLI native skills)
+  $(basename "$0") -t claude-code,codex  # Install to Claude Code + Codex in one run
+  $(basename "$0") -t all           # Install to all agent targets (claude-code,agents,codex,cursor)
   $(basename "$0") -t cursor        # Install to cursor target
   $(basename "$0") -t project       # Install to ./.claude/skills/ (project-level)
   $(basename "$0") -l               # List skills and status
@@ -96,12 +105,30 @@ parse_args() {
         shift 2
         ;;
       -t)
-        TARGET="${2:-}"
-        [[ -z "$TARGET" ]] && { error "Option -t requires an argument"; usage; exit 1; }
-        if ! get_target_path "$TARGET" >/dev/null 2>&1; then
-          error "Unknown target: $TARGET (valid: $VALID_TARGETS)"
-          exit 1
-        fi
+        local raw="${2:-}"
+        [[ -z "$raw" ]] && { error "Option -t requires an argument"; usage; exit 1; }
+        # Accept a comma-separated list; "all" expands to every agent home-dir target.
+        TARGETS=""
+        local _parts=()
+        IFS=',' read -ra _parts <<< "$raw"
+        local t
+        for t in "${_parts[@]}"; do
+          [[ -z "$t" ]] && continue
+          if [[ "$t" == "all" ]]; then
+            local a
+            for a in $ALL_TARGETS; do
+              case " $TARGETS " in *" $a "*) ;; *) TARGETS="${TARGETS:+$TARGETS }$a" ;; esac
+            done
+            continue
+          fi
+          if ! get_target_path "$t" >/dev/null 2>&1; then
+            error "Unknown target: $t (valid: $VALID_TARGETS, or 'all')"
+            exit 1
+          fi
+          # De-duplicate while preserving order
+          case " $TARGETS " in *" $t "*) ;; *) TARGETS="${TARGETS:+$TARGETS }$t" ;; esac
+        done
+        [[ -z "$TARGETS" ]] && { error "Option -t requires at least one valid target"; exit 1; }
         shift 2
         ;;
       -l)            LIST_MODE=true;  shift ;;
@@ -372,15 +399,19 @@ main() {
   parse_args "$@"
 
   if $LIST_MODE; then
-    do_list
+    for TARGET in $TARGETS; do
+      do_list
+    done
     exit 0
   fi
 
-  if $UNINSTALL; then
-    do_uninstall
-  else
-    do_install
-  fi
+  for TARGET in $TARGETS; do
+    if $UNINSTALL; then
+      do_uninstall
+    else
+      do_install
+    fi
+  done
 
   print_summary
 }

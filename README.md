@@ -105,6 +105,12 @@ Skills 以 symlink 方式從本儲存庫安裝至 agent 的 skills 目錄，編�
 # Codex CLI 原生 skills（~/.codex/skills/）
 ./scripts/install.sh -t codex
 
+# 一次裝到多個目標（逗號分隔）
+./scripts/install.sh -t claude-code,codex
+
+# 一次裝到所有 agent 目標（claude-code,agents,codex,cursor；不含 project）
+./scripts/install.sh -t all
+
 # 安裝至專案級目錄（./.claude/skills/）
 ./scripts/install.sh -t project
 
