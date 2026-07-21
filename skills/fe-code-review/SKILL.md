@@ -88,6 +88,7 @@ git diff "$BASE_BRANCH..HEAD" --name-only
    - Next.js SSR/CSR/SSG 選擇是否合理
    - Bundle size 影響（大型 library 是否有 tree-shakable 替代方案）
    - 瀏覽器相容性與 hydration mismatch 風險
+5. **架構規範合規**：載入 `fe-arch` skill，對新增／搬移的檔案跑其「Code Review 檢查清單」（元件位置、API 三層結構、共用歸屬、`z.infer`、測試放同層 `__tests__/`、`page.tsx` 無邏輯）。分級：檔案位置錯誤 → Minor（建議搬移）；高風險域 API 回應缺邊界 `parse()` → Critical（阻擋合併）
 
 ### Step 4: 輸出
 

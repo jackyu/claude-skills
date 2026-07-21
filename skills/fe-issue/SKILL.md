@@ -136,6 +136,11 @@ description: 將 PM 需求 Issue 轉換為前端技術 Issue 草稿。使用時�
 
 用戶可隨時要求切換層級。
 
+**檔案路徑（架構規範）**
+
+- Subtask 的「產出」欄列出的檔案路徑，必須符合 `fe-arch` skill 的架構規範——先載入 fe-arch，依其決策流程決定位置，不要憑印象寫路徑
+- 從 issue 拆解階段就把正確路徑寫進 Subtask，開發者照著建檔，從源頭對齊
+
 ### 產出格式
 
 直接輸出 Markdown 格式的草稿內容，不加外層 code block 包裹。在草稿頂部加上 PM Issue 關聯連結和規格疑問警語。

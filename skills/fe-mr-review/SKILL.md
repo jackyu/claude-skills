@@ -117,6 +117,7 @@ git fetch origin <source_branch>:<source_branch>
 | 安全性 | XSS、敏感資料外洩、不安全的動態渲染 |
 | 可維護性 | 重複邏輯、過長函式、magic number |
 | 🔴 高風險區（依 R1） | 對 R1 標記的高風險段落逐行檢查；對齊業務規則而非只看語法；標明哪些必須人工/cross-model 複查 |
+| 架構規範 | 新增／搬移檔案的位置是否合規；載入 `fe-arch` skill 跑其 Code Review 檢查清單（見 `review-focus.md`「架構規範檢查」） |
 | 討論追蹤 | 既有討論串中的修改建議是否已處理 |
 | 值得學習的模式 | （附屬，選用）辨識值得團隊參考的設計：資料層 fallback/正規化、防禦性工具函式、精確型別、非 happy path 測試覆蓋等 |
 

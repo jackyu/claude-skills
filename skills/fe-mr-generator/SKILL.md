@@ -107,6 +107,7 @@ git diff --name-only main..HEAD               # monorepo 用於判斷 client / a
 - 做了什麼只點核心意圖，逐項功能交給 diff，不逐條複述
 - 測試步驟跟修改內容一一對應；風險較高的變更，驗收標準寫明確
 - **不寫**架構決策、Review 重點/風險分流、學習重點、解題過程的思考脈絡——前三者 reviewer 從 diff 與審查工具即可獲得，解題思維則不是 MR 該交代的內容
+- 新增檔案的位置若不符合 `fe-arch` skill 的架構規範，在「注意事項」區塊標注，說明偏離原因或建議搬移（只標注、不改 code）
 - **description 最後一行固定附隱形標記** `<!-- mr:fe-mr-generator -->`（HTML comment，GitLab 渲染後不顯示）。此標記供 `/push` 的 PreToolUse hook 驗證「描述確實由本 skill 產生」；缺少標記會被擋下建立 MR，**務必保留**
 
 ### Step 8: 輸出結果

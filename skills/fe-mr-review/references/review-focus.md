@@ -134,3 +134,22 @@
 - **response passthrough 驗證邊界**：Route Handler 當純透傳 proxy 時，Zod 驗證責任要落在對的層（client `lib/api` vs handler），別「透傳未驗證」又與 MR 描述宣稱的不一致。→ 呼應 §6 契約。
 - **helper 抽了卻繞過**：抽了共用 helper（如集中 cookie / header 轉發的 `buildForwardHeaders`）卻在多個呼叫端各自重複實作，會抵銷抽取的意義——要嘛全用、要嘛別抽。→ 呼應 §2 既有基建、§3 一致性。
 - **API 演進向後相容**：後端新欄位還沒部署時，前端 schema 用 `nullable().optional()` 避免 crash；內部 package 版本精確釘定、不帶 `^`，避免意外升版帶進 breaking change。
+
+### 9. 架構規範檢查（Architecture Compliance）
+
+載入 `fe-arch` skill，對本次 MR 的每個**新增／搬移**檔案跑其「Code Review 檢查清單」：
+
+- 元件位置符合業務語意判斷（有業務語意 → `features/`；純視覺 → `components/ui/`）
+- API 檔案一操作一檔，含 fetch + `parse()` + `queryOptions` + hook 三層
+- 無 `features/common`、無只有單一使用者的函式被塞進全域 `utils/` / `lib/`
+- 無 feature 互相 import（領域 feature 單向依賴除外）
+- type 來自 `z.infer`，不手寫與 schema 重複的 interface
+- 測試檔放在被測檔案同層的 `__tests__/` 目錄（E2E 除外）
+- `page.tsx` 內無業務邏輯
+
+**違規分級**：
+
+| 情況 | 級別 | 理由 |
+|---|---|---|
+| 檔案位置錯誤、type 手寫重複、測試沒放同層 `__tests__/` | Minor（建議搬移） | 維護性問題，不影響 runtime |
+| 高風險域（下單／金額精度／權限／即時報價／金流狀態機）API 回應缺少邊界 `parse()`，或用 `as` 斷言跳過 | **Critical（阻擋合併）** | 與 `high-risk-zones.md` 的五大高風險域直接對應，是唯一有 runtime 安全影響的架構違規 |
