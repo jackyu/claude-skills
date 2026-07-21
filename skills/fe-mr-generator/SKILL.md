@@ -84,14 +84,14 @@ git diff main..HEAD
 依照 `references/mr-title-rules.md` 產生 Title。要點：
 
 - **通用**：沿用 Issue 原 title 不改寫、Subtask 加 ` - <subtask title>`、`[#xxx]` 前綴
-- **monorepo 專案**：依變更路徑補前綴 — `apps/client` → `前台`、`apps/admin` → `後台`、兩者都動 → `前/後台`、只動 `packages/*` → `共用`
-- **其他專案**：有 issue id 一律加 `[#xxx]`，無則可省略
+- **monorepo（有 `apps/*`）**：依變更路徑補前綴 — `apps/client` → `前台`、`apps/admin` → `後台`、兩者都動 → `前/後台`、只動 `packages/*` → `共用`（前綴詞可依專案慣例調整，見 reference）
+- **單一應用**：有 issue id 一律加 `[#xxx]`，無則可省略
 
-先判斷專案，monorepo 需再判斷變更目錄：
+先看目錄結構判斷類型，monorepo 需再判斷變更落在哪些 app：
 
 ```bash
-basename "$(git rev-parse --show-toplevel)"   # 判斷是否為 monorepo
-git diff --name-only main..HEAD               # monorepo 用於判斷 client / admin 前綴
+ls apps 2>/dev/null                # 有 apps/* → monorepo
+git diff --name-only main..HEAD    # monorepo 用於判斷 client / admin 前綴
 ```
 
 完整格式與範例見 `references/mr-title-rules.md`。
