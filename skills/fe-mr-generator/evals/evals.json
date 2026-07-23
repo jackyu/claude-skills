@@ -4,52 +4,62 @@
     {
       "id": 1,
       "prompt": "幫我產 MR 描述，這個是修 Button 元件的樣式，對應 Issue #101 - Button 樣式優化",
-      "expected_output": "簡單 MR：包含關聯、為什麼、做了什麼、測試、截圖。Title 含 issue id。",
+      "expected_output": "簡單 MR：description 包含關聯、為什麼（截圖視情況）；另附 inline 自註解清單。Title 含 issue id。",
       "files": [],
       "expectations": [
         "MR Title 包含 [#101]",
         "MR Description 不包含任何檔案路徑（如 src/、./、components/ 等）",
-        "MR Description 包含「為什麼」區塊且出現在「做了什麼」之前",
-        "MR Description 包含「做了什麼」區塊",
-        "MR Description 包含「測試」區塊",
+        "MR Description 包含「為什麼」區塊",
+        "MR Description 不包含「做了什麼」區塊",
+        "MR Description 不包含「測試說明」區塊",
         "MR Description 使用繁體中文",
         "MR Description 用 markdown code block 包裹輸出",
-        "不包含「架構決策」、「Review 重點 / 風險分流」、「學習重點」、「解題紀錄」區塊（已從描述移除）"
+        "不包含「架構決策」、「Review 重點 / 風險分流」、「學習重點」、「解題紀錄」區塊（已從描述移除）",
+        "輸出另附獨立 json code block 的 inline 自註解清單，每則含 file、new_line 或 old_line 其一、body 三個欄位",
+        "inline 自註解清單的 body 不包含任何檔案路徑",
+        "inline 自註解清單數量在 0–3 則之間（簡單 MR）"
       ]
     },
     {
       "id": 2,
       "prompt": "開發完了，幫我產 MR 描述。對應 Issue #269 訂單列表頁面，subtask 是 #270 搜尋篩選功能",
-      "expected_output": "一般 MR：關聯、為什麼、概念地圖、做了什麼（功能分組）、測試。",
+      "expected_output": "一般 MR：description 包含關聯、為什麼、概念地圖、截圖；另附 inline 自註解清單。",
       "files": [],
       "expectations": [
         "MR Title 包含 [#270] 且包含 subtask 標題",
         "MR Description 不包含任何檔案路徑",
         "MR Description 包含「關聯」區塊且提到 Closes #270",
-        "MR Description 包含「為什麼」區塊且在「做了什麼」之前",
-        "MR Description 的「做了什麼」按功能分組（非逐檔列舉）",
-        "MR Description 包含「測試」區塊且使用 checklist 格式",
+        "MR Description 包含「為什麼」區塊",
+        "MR Description 包含「概念地圖」區塊",
+        "MR Description 不包含「做了什麼」區塊",
+        "MR Description 不包含「測試說明」區塊",
         "MR Description 使用繁體中文",
         "MR Description 用 markdown code block 包裹輸出",
-        "不包含「架構決策」、「Review 重點 / 風險分流」、「學習重點」、「解題紀錄」區塊（已從描述移除）"
+        "不包含「架構決策」、「Review 重點 / 風險分流」、「學習重點」、「解題紀錄」區塊（已從描述移除）",
+        "輸出另附獨立 json code block 的 inline 自註解清單，每則含 file、new_line 或 old_line 其一、body 三個欄位",
+        "inline 自註解清單的 body 不包含任何檔案路徑",
+        "inline 自註解清單數量在 3–6 則之間（一般 MR）"
       ]
     },
     {
       "id": 3,
       "prompt": "這個 branch 是認證模組的重構，幫我產 MR 描述。對應 Issue #350 認證模組重構",
-      "expected_output": "複雜 MR：關聯、為什麼、概念地圖、做了什麼、測試。",
+      "expected_output": "複雜 MR：description 包含關聯、為什麼、概念地圖、截圖；另附 inline 自註解清單。",
       "files": [],
       "expectations": [
         "MR Title 包含 [#350]",
         "MR Description 不包含任何檔案路徑",
         "MR Description 包含「關聯」區塊",
-        "MR Description 包含「為什麼」區塊且在「做了什麼」之前",
-        "MR Description 包含「做了什麼」區塊且按功能分組",
+        "MR Description 包含「為什麼」區塊",
         "MR Description 包含「概念地圖」區塊",
-        "MR Description 包含「測試」區塊且使用 checklist 格式",
+        "MR Description 不包含「做了什麼」區塊",
+        "MR Description 不包含「測試說明」區塊",
         "MR Description 使用繁體中文",
         "MR Description 用 markdown code block 包裹輸出",
-        "不包含「架構決策」、「Review 重點 / 風險分流」、「學習重點」、「解題紀錄」區塊（已從描述移除）"
+        "不包含「架構決策」、「Review 重點 / 風險分流」、「學習重點」、「解題紀錄」區塊（已從描述移除）",
+        "輸出另附獨立 json code block 的 inline 自註解清單，每則含 file、new_line 或 old_line 其一、body 三個欄位",
+        "inline 自註解清單的 body 不包含任何檔案路徑",
+        "inline 自註解清單數量在 5–10 則之間（複雜 MR）"
       ]
     }
   ]

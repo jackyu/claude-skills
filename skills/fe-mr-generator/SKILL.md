@@ -9,7 +9,7 @@ description: 生成 Git Merge Request 的 Title 與 Description。使用時機�
 
 核心原則：MR 是知識載體，不只是變更清單。讓 reviewer 不只知道改了什麼，還能學到為什麼這樣改。
 
-**送到 review 桌上時，MR 就該是 review-ready 的。** 「讀起來費力」不是 reviewer 該自己克服的問題，是 MR 在產出階段就沒長好。一份好的 MR 描述聚焦在 reviewer 難以自行從 code 還原的核心：用一張純文字概念地圖讓人 30 秒掌握全貌、講清楚為何而做、做了什麼。其餘「diff 看得出來」的資訊（逐項功能、架構選擇、一般 review 重點、學習點）不重複描述，留給程式碼本身與 reviewer 端的審查工具；開發過程的解題思維也不需要向 reviewer 完整交代。
+**送到 review 桌上時，MR 就該是 review-ready 的。** 「讀起來費力」不是 reviewer 該自己克服的問題，是 MR 在產出階段就沒長好。一份好的 MR 描述聚焦在 reviewer 難以自行從 code 還原的核心：用一張純文字概念地圖讓人 30 秒掌握全貌、講清楚為何而做。「做了什麼」的細節（關鍵邏輯、商業決策、為何這樣做）改以作者自行留下的 inline 自註解落在 diff 對應行，不進 description。其餘「diff 看得出來」的資訊（逐項功能、架構選擇、一般 review 重點、學習點）不重複描述，留給程式碼本身與 reviewer 端的審查工具；開發過程的解題思維也不需要向 reviewer 完整交代。
 
 ## Workflow
 
@@ -63,15 +63,14 @@ git diff main..HEAD
 
 - **變更動機**：這個 branch 要解決什麼問題
 - **概念地圖元素**：哪些模組動了、資料怎麼流、bounded context 的邊界畫在哪。這是 reviewer「看圖不看 code」的依據，務必在 diff 裡釐清「本次動了什麼、刻意不碰什麼」
-- **功能分組**：將變更按功能/需求分組，用功能描述不用檔案路徑（只點核心意圖，逐項列舉交給 diff）
-- **測試變更**：新增或修改的測試檔案；風險較高的變更，驗收標準要寫清楚
+- **inline 註解候選行**：diff 中哪些行藏著 reviewer 難以自行還原的資訊（商業決策、非顯然取捨、魔法數字來源等），留給 Step 8 產生 inline 自註解清單
 
 ### Step 5: 判斷複雜度
 
 根據變更內容判斷 MR 複雜度，決定哪些區塊要寫：
 
 **簡單**（單一元件調整、樣式修改、文案更新、設定檔變更）
-→ 只寫：關聯、為什麼、做了什麼、測試說明
+→ 只寫：關聯、為什麼（截圖視情況）
 
 **一般**（新增頁面/元件、API 串接、既有功能修改）
 → 加上概念地圖
@@ -102,17 +101,23 @@ git diff --name-only main..HEAD    # monorepo 用於判斷 client / admin 前綴
 
 產出規則：
 - 用功能描述，禁止出現任何檔案路徑
-- 「為什麼」放在「做了什麼」前面，動機先行
+- 動機先行，「為什麼」是描述的主體
 - **概念地圖用純文字 ASCII 箭頭表達流向**，在 MR 中用程式碼區塊（```）包住以保留排版；只畫模組與資料流，禁止檔案路徑。目標是讓 reviewer 不讀 code 也能看懂架構長相
-- 做了什麼只點核心意圖，逐項功能交給 diff，不逐條複述
-- 測試步驟跟修改內容一一對應；風險較高的變更，驗收標準寫明確
 - **不寫**架構決策、Review 重點/風險分流、學習重點、解題過程的思考脈絡——前三者 reviewer 從 diff 與審查工具即可獲得，解題思維則不是 MR 該交代的內容
 - 新增檔案的位置若不符合 `fe-arch` skill 的架構規範，在「注意事項」區塊標注，說明偏離原因或建議搬移（只標注、不改 code）
 - **description 最後一行固定附隱形標記** `<!-- mr:fe-mr-generator -->`（HTML comment，GitLab 渲染後不顯示）。此標記供 `/push` 的 PreToolUse hook 驗證「描述確實由本 skill 產生」；缺少標記會被擋下建立 MR，**務必保留**
 
-### Step 8: 輸出結果
+### Step 8: 產生 Inline 自註解清單
 
-將 MR Title + Description 用 markdown code block 包裹輸出，讓使用者可以直接複製貼上。
+依照 `references/inline-comments-guide.md` 的規則，從 diff 中挑出 reviewer 難以自行還原的行，產生 inline 自註解清單：
+
+- 行號基準：`git diff origin/<target>...HEAD`（three-dot），只對 `+`/`-` 行取行號
+- 挑行原則、密度上限（簡單 0-3／一般 3-6／複雜 5-10，硬上限 10，同檔最多 3 則）見 reference
+- 每則輸出 `{file, new_line|old_line, body}`，`file` 為真實 repo 相對路徑，`body` 純內容（不加前綴、不加標記，這兩者由 `/push` 發佈時統一加工）
+
+### Step 9: 輸出結果
+
+將 MR Title + Description 用 markdown code block 包裹輸出；之後另外附上 inline 自註解清單的 json code block，讓使用者可以直接複製貼上。
 
 ````
 ```markdown
@@ -124,11 +129,19 @@ git diff --name-only main..HEAD    # monorepo 用於判斷 client / admin 前綴
 ```
 ````
 
+````
+```json
+[
+  { "file": "path/to/file.ts", "new_line": 42, "body": "..." }
+]
+```
+````
+
 `<!-- mr:fe-mr-generator -->` 是隱形驗證標記（見 Step 7），渲染後不顯示，但**必須**留在 description 內，否則 `/push` 建立 MR 時會被 hook 擋下。
 
 輸出後提醒用戶：
 1. 確認內容後複製貼到 GitLab MR
-2. 補上截圖（前端 UI 變更必附前後對比）
+2. 由 `/push` 建 MR 並自動發佈 inline 自註解、補上截圖（前端 UI 變更必附前後對比）
 
 ## 格式嚴格規範
 
@@ -140,7 +153,7 @@ git diff --name-only main..HEAD    # monorepo 用於判斷 client / admin 前綴
 
 MR 描述的目的是讓 reviewer **快速看懂這個 MR 在幹嘛**，不是寫技術論文，也不是給自己頒獎。寫的時候想像你在跟同事口頭講解這次改了什麼。
 
-這條規範約束「為什麼要這樣做」「做了什麼」等帶有技術敘述的內容。
+這條規範約束「為什麼要這樣做」與 inline 註解 body 等帶有技術敘述的內容。
 
 ### 語氣
 
@@ -180,3 +193,4 @@ MR 描述的目的是讓 reviewer **快速看懂這個 MR 在幹嘛**，不是�
 
 - `references/mr-title-rules.md` — MR Title 規則（含 monorepo 前綴邏輯）
 - `references/mr-description-template.md` — MR Description 完整模板
+- `references/inline-comments-guide.md` — Inline 自註解清單規則（挑行原則、密度、行號、格式）
