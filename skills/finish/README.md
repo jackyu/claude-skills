@@ -7,11 +7,12 @@
 補上開發流程最後一段沒人管的空白：
 
 ```
-/start  →  開發  →  /push  →  (GitLab 上 review、merge)  →  finish
-建 worktree                開 MR                          清 worktree 與分支
+/start  →  開發  →  /push  →  (GitLab 上 review、merge)  →  finish  →  retro
+建 worktree                開 MR                          清 worktree   沉澱改進
+                                                          與分支
 ```
 
-`/start` 建 worktree 開工、`/push` 跑品質閘並開 MR，但 MR 合併後的 worktree 移除、本地分支刪除、以及決定要不要丟棄未推的工作，過去都靠手動。這支 skill 負責的就是這一段。
+`/start` 建 worktree 開工、`/push` 跑品質閘並開 MR，但 MR 合併後的 worktree 移除、本地分支刪除、以及決定要不要丟棄未推的工作，過去都靠手動。這支 skill 負責的就是這一段，收完尾再自動接 `retro` 做回顧。
 
 它**不做**本地 merge 回主線——合併一律走 GitLab MR 流程。
 
@@ -29,6 +30,7 @@
 | 4 | 執行選擇：委派 `/push`／保留／丟棄（需 `discard`）／清理已合併分支 |
 | 5 | worktree 清理，只限指定路徑範圍 |
 | 6 | 跑 `git worktree list`、`git branch --list` 為證，再回報完成 |
+| 7 | 收尾完成後直接執行 `retro` 做 session 回顧，不詢問；中止收場（Step 1／2）則不跑 |
 
 菜單內容：
 
@@ -61,6 +63,6 @@
 
 ```
 finish/
-├── SKILL.md    # Agent 指令（Step 1–6 流程 + 紅線）
+├── SKILL.md    # Agent 指令（Step 1–7 流程 + 紅線）
 └── README.md   # 本檔案
 ```
