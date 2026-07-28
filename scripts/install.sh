@@ -68,15 +68,15 @@ Usage: $(basename "$0") [OPTIONS]
 Deploy skills from this repo via symlinks.
 
 Options:
-  -s NAME       Install a specific skill (supports glob patterns, e.g. "fe-*")
-  -t TARGET     Target environment(s): claude-code (default), agents, codex, cursor, project.
-                Accepts a comma-separated list (e.g. "claude-code,codex") or "all"
-                (= claude-code,agents,codex,cursor; project excluded).
-  -l            List all skills and their installation status
-  -n            Dry run -- show what would happen without making changes
-  --uninstall   Remove symlinks that point to this repo
-  --force       Force overwrite existing non-symlink directories (backs up first)
-  -h, --help    Show this help message
+  -s, --skill NAME     Install a specific skill (supports glob patterns, e.g. "fe-*")
+  -t, --target TARGET  Target environment(s): claude-code (default), agents, codex, cursor, project.
+                       Accepts a comma-separated list (e.g. "claude-code,codex") or "all"
+                       (= claude-code,agents,codex,cursor; project excluded).
+  -l, --list           List all skills and their installation status
+  -n, --dry-run        Dry run -- show what would happen without making changes
+  --uninstall          Remove symlinks that point to this repo
+  --force              Force overwrite existing non-symlink directories (backs up first)
+  -h, --help           Show this help message
 
 Examples:
   $(basename "$0")                  # Install all skills to ~/.claude/skills/
@@ -99,14 +99,14 @@ EOF
 parse_args() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -s)
+      -s|--skill)
         SKILL_FILTER="${2:-}"
-        [[ -z "$SKILL_FILTER" ]] && { error "Option -s requires an argument"; usage; exit 1; }
+        [[ -z "$SKILL_FILTER" ]] && { error "Option $1 requires an argument"; usage; exit 1; }
         shift 2
         ;;
-      -t)
+      -t|--target)
         local raw="${2:-}"
-        [[ -z "$raw" ]] && { error "Option -t requires an argument"; usage; exit 1; }
+        [[ -z "$raw" ]] && { error "Option $1 requires an argument"; usage; exit 1; }
         # Accept a comma-separated list; "all" expands to every agent home-dir target.
         TARGETS=""
         local _parts=()
@@ -128,14 +128,14 @@ parse_args() {
           # De-duplicate while preserving order
           case " $TARGETS " in *" $t "*) ;; *) TARGETS="${TARGETS:+$TARGETS }$t" ;; esac
         done
-        [[ -z "$TARGETS" ]] && { error "Option -t requires at least one valid target"; exit 1; }
+        [[ -z "$TARGETS" ]] && { error "Option $1 requires at least one valid target"; exit 1; }
         shift 2
         ;;
-      -l)            LIST_MODE=true;  shift ;;
-      -n)            DRY_RUN=true;    shift ;;
-      --uninstall)   UNINSTALL=true;  shift ;;
-      --force)       FORCE=true;      shift ;;
-      -h|--help)     usage; exit 0 ;;
+      -l|--list)       LIST_MODE=true;  shift ;;
+      -n|--dry-run)    DRY_RUN=true;    shift ;;
+      --uninstall)     UNINSTALL=true;  shift ;;
+      --force)         FORCE=true;      shift ;;
+      -h|--help)       usage; exit 0 ;;
       *)
         error "Unknown option: $1"
         usage
