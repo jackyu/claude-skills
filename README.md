@@ -24,13 +24,13 @@ cd claude-skills
 
 ## Skill 目錄
 
-共 17 個 skills，依分類索引如下：
+共 18 個 skills，依分類索引如下：
 
 - [前端開發](#前端開發) — 架構規範、issue 拆解、MR 審查與學習
 - [設計整合](#設計整合) — 設計稿驗證、Figma 整合、UI 審查
 - [框架最佳實踐](#框架最佳實踐) — React/Next.js、Remotion
 - [工具](#工具) — MR 生成、互動預覽
-- [工作流程](#工作流程) — skill 探索、完成前驗證
+- [工作流程](#工作流程) — skill 探索、完成前驗證、分支收尾
 - [開發輔助](#開發輔助) — Agentation 視覺回饋
 - [系統維護](#系統維護) — macOS 清理、磁碟分析
 
@@ -79,6 +79,7 @@ cd claude-skills
 |---|---|
 | [find-skills](skills/find-skills/) | 從開放 skills 生態系中探索與安裝 agent skills |
 | [verification-before-completion](skills/verification-before-completion/) | 在宣稱完成前強制執行驗證指令，證據先於斷言 |
+| [finish](skills/finish/) | 開發分支收尾：判斷合併狀態後提供選項（開 MR／保留／丟棄／清理 worktree），丟棄需輸入 discard |
 
 ### 開發輔助
 
@@ -169,7 +170,7 @@ claude-skills/
 │   │   └── rules/             # 領域特定規則檔案（選用）
 │   ├── figma/
 │   ├── fe-code-review/
-│   └── ...                    # 共 17 個 skills
+│   └── ...                    # 共 18 個 skills
 ```
 
 ## 貢獻方式
