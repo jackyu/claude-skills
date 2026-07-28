@@ -43,6 +43,19 @@ description: What this skill does. Use when [trigger scenario 1], [trigger scena
 - Keep under 3000 words; put detailed references in a `references/` subdirectory.
 - Prefer structured steps over long paragraphs.
 
+### Keeping SKILL.md and README.md in Sync
+
+When editing a skill's SKILL.md workflow or structure -- adding, removing, or renumbering steps, changing a menu, or altering a documented safety boundary -- check whether that skill's README.md describes the same thing and update it in the same change.
+
+Places README.md most often goes stale:
+
+- Step-by-step summary tables that enumerate the workflow.
+- Step-count references such as "Step 1-6" in the file-structure listing.
+- Safety-boundary tables that restate rules defined in SKILL.md.
+- Lifecycle diagrams naming the skills a workflow chains into.
+
+A README that contradicts its SKILL.md is worse than one that omits the detail, because readers trust it.
+
 ### Optional Directories
 
 ```
