@@ -1,6 +1,6 @@
 ---
 name: remotion-best-practices
-description: Best practices for Remotion - Video creation in React
+description: 提供 Remotion（用 React 程式化生成影片的框架）最佳實踐規則庫，撰寫、審查、除錯 Remotion 程式碼時查閱。使用時機：(1) 用戶正在寫或修改 Remotion 的 Composition、Sequence、動畫邏輯, (2) 用戶詢問 Remotion 特定 API 或渲染行為的正確用法, (3) 用戶要 review 或除錯 Remotion 專案的程式碼, (4) 用戶提到 remotion、影片生成、React 動畫合成相關需求。即使用戶只說「幫我看一下這段 Remotion 程式碼」也應觸發此 skill。
 metadata:
   tags: remotion, video, react, animation, composition
 ---

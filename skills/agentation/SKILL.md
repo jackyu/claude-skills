@@ -1,6 +1,6 @@
 ---
 name: agentation
-description: Add Agentation visual feedback toolbar to a Next.js project
+description: 在 Next.js 專案中安裝並設定 Agentation 視覺回饋工具列，讓非工程背景的人可直接在畫面上標註意見再回饋給開發者。使用時機：(1) 用戶要求加入 Agentation 或視覺回饋工具列, (2) 用戶想讓 PM、QA、設計師能直接在畫面上點選並留言, (3) 用戶提到要整合 annotation toolbar、feedback widget 進 Next.js 專案, (4) 專案尚未安裝 agentation 套件、用戶想快速導入。即使用戶只說「幫我裝一下標註工具」也應觸發此 skill。
 ---
 
 # Agentation Setup
