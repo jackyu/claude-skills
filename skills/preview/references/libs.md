@@ -175,6 +175,20 @@ configuration. Newlines silently collapse and the label text
 concatenates without spaces. Use `\n` (Mermaid's own newline escape)
 or split content across multiple nodes / edge labels.
 
+## Full-bleed slide decks
+
+For viewport-wide slide decks (e.g. content built with `/slide-design`):
+wrap all slides in `<main class="doc">…</main>` (the overlay JS gates
+selection capture on this selector — slides as direct children of `<body>`
+never trigger the "+ comment" button), then set `<body class="cmt-full-bleed">`.
+The template ships an opt-in mode that switches the gutter reserve from
+`margin-right: 332px` to `width: calc(100% - 332px)` on `main.doc`, so
+full-bleed slides don't overflow under the reserved gutter once comments
+exist. Pair with `scroll-snap-type: y proximity` (not `mandatory`) and
+`.slide { width: 100% }` (not `100vw`). The narrow-column default still
+applies to every prose page that doesn't set this class — no risk to
+existing previews.
+
 ## Conventions to follow
 
 - **One CDN load order**: Tailwind first, Alpine `defer`, Chart.js / Mermaid after. The template already gets this right.

@@ -20,7 +20,7 @@
 - **部署前 preflight**：`scripts/preflight.sh` 先確認 Vercel CLI 已安裝、已登入、token 有效，失敗時給明確修復指令
 - **註解 overlay**：`assets/comment-overlay.js` 注入頁面，支援反白標註與匯出回饋 markdown
 - **本機 fallback**：未設定 Vercel 時可改用 `open` 在本機開啟 HTML
-- **路徑偏好持久化**：以 `~/.claude/solopreneur.json` 記住每個 repo 的提案存放路徑（helper 已 inline 於 SKILL.md，無外部相依）
+- **路徑偏好持久化**：以 `~/.claude/solopreneur.json` 記住每個 repo 的提案存放路徑（cascade helper 抽在 `scripts/config-helpers.sh`，用 `source` 載入）
 
 ## Dependencies
 
@@ -34,9 +34,13 @@
 | `SKILL.md` | Main skill instructions |
 | `scripts/preflight.sh` | Vercel CLI 安裝 / 登入 / token 檢查 |
 | `scripts/deploy.sh` | 部署目錄到 Vercel 並回傳 URL |
+| `scripts/config-helpers.sh` | solopreneur.json repo-key 計算與分層讀寫 helper（source 載入） |
 | `assets/template.html` | 互動頁面 HTML 範本 |
 | `assets/comment-overlay.js` | 頁內註解 overlay（反白 + 匯出回饋） |
 | `references/libs.md` | 可選用的前端 library 清單與用法 |
+| `references/path-resolution.md` | 提案存放路徑的 config schema 與解析流程 |
+| `references/comment-overlay-ux.md` | 註解 overlay 完整 UX 規格（桌機/手機、匯出格式、diff toggle） |
+| `references/revision-workflow.md` | 修訂差異流程（flatten → apply → changelog） |
 
 ## Source
 

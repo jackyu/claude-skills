@@ -30,7 +30,11 @@
 
 | 檔案 | 說明 |
 |------|------|
-| `SKILL.md` | 主要 skill 指令，含 API 參考與程式碼範例 |
+| `SKILL.md` | 主要 skill 指令，含 Quick Start、核心 API 端點與 references 索引 |
+| `references/code-generation.md` | Figma 節點轉 React／Tailwind、擷取全部元件、完整設計轉程式碼流程 |
+| `references/design-tokens.md` | 顏色／字型 token 擷取、CSS 變數與 Tailwind 設定生成、Variables API |
+| `references/webhooks.md` | Dev Mode 資源擷取、webhook 設定與處理 |
+| `references/plugin-development.md` | Figma 外掛 manifest 與 code.ts 腳手架 |
 
 ## Language
 
