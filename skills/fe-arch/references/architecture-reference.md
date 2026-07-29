@@ -55,6 +55,8 @@ fe-arch skill 的完整參考文件。SKILL.md 是決策流程（procedural）�
     hooks/                      ← 跨 feature 的純 client hooks
       use-disclosure.ts
       use-debounce.ts
+    stores/                     ← 跨 feature 全域狀態（Zustand 等）；單一 feature 用的留在該 feature 內
+    constants/                  ← 跨 feature 常數；單一 feature 用的留在該 feature 內
     lib/                        ← 基礎設施（拔掉整個 app 不能動）
       api-client.ts             ← axios/ky instance：baseURL、auth header、錯誤攔截
       react-query.ts            ← QueryClient 預設值：staleTime、retry 策略
@@ -79,6 +81,7 @@ fe-arch skill 的完整參考文件。SKILL.md 是決策流程（procedural）�
 | `features/{功能}` | 使用者操作 | 有明確的業務動詞（篩選、下單、管理） |
 | `features/{領域}` | 共用業務資料 | 名詞型、被多個功能 feature 依賴 |
 | `hooks/` | 跨 feature 純 client hook | 兩個以上 feature 使用且不碰 server state |
+| `stores/` / `constants/` | 跨 feature 全域狀態與常數 | 第二個使用者出現才提升到這裡 |
 | `lib/` | 基礎設施 | 拔掉整個 app 不能動 |
 | `testing/` | 測試基礎設施 | 測試共用的 setup 與工具 |
 
