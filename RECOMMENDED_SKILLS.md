@@ -47,8 +47,6 @@ npx skills add <owner/repo@skill> -g -y
 | Skill | 說明 | 安裝 |
 |---|---|---|
 | [find-skills](https://skills.sh/vercel-labs/skills/find-skills) | 從開放 skills 生態系中探索與安裝 agent skills | `npx skills add vercel-labs/skills@find-skills` |
-| [brainstorming](https://skills.sh/obra/superpowers/brainstorming) | 透過結構化對話將想法轉化為完整的設計與規格文件 | `npx skills add obra/superpowers@brainstorming` |
-| [using-git-worktrees](https://skills.sh/obra/superpowers/using-git-worktrees) | 建立隔離的 git worktrees 進行並行開發 | `npx skills add obra/superpowers@using-git-worktrees` |
 | [grill-me](https://skills.sh/mattpocock/skills/grill-me) | 逐一提問審視你的計畫與設計，系統性走過所有決策分支，找出盲點 | `npx skills add mattpocock/skills@grill-me` |
 
 ## 後端 / 資料庫
@@ -100,7 +98,6 @@ Claude Code 官方或社群維護的 plugins，提供多 agent 協作能力。
 
 | Plugin | 說明 | 安裝 |
 |---|---|---|
-| [superpowers](https://github.com/obra/superpowers) | 完整的 agentic 開發方法論：brainstorming → worktree → planning → TDD → code review → completion | `/plugin install superpowers@claude-plugins-official` |
 | [everything-claude-code](https://github.com/affaan-m/everything-claude-code) | 28 agents + 116 skills + 60 commands，涵蓋多語言開發、安全掃描、TDD 等完整工作流 | `/plugin marketplace add affaan-m/everything-claude-code` |
 
 ---
