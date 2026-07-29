@@ -131,6 +131,6 @@ Each rule file contains:
 - Correct code example with explanation
 - Additional context and references
 
-## Full Compiled Document
+## Full Rule Set
 
-For the complete guide with all rules expanded: `AGENTS.md`
+There is no single compiled document — `rules/` is the source of truth (57 files, one per rule). Read the individual rule files listed above for full explanations and examples.

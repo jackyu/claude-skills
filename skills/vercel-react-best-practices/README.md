@@ -29,8 +29,7 @@
 | 檔案 | 說明 |
 |------|------|
 | `SKILL.md` | 主要 skill 指令，含規則索引 |
-| `AGENTS.md` | 完整編譯文件，展開所有規則 |
-| `rules/` | 包含 57 個獨立規則檔案的目錄 |
+| `rules/` | 包含 57 個獨立規則檔案的目錄（唯一的規則來源） |
 | `rules/async-parallel.md` | 對獨立操作使用 Promise.all() |
 | `rules/bundle-barrel-imports.md` | 直接 import，避免 barrel files |
 | `rules/bundle-dynamic-imports.md` | 對大型元件使用 next/dynamic |
