@@ -84,7 +84,7 @@ git branch --merged "origin/<base>" --list "<branch>"
 
 A3 與 B1 的清理順序，**順序承重、不可顛倒**，且**同一情境的各步必須在同一次 shell 呼叫內連續完成**。開頭「不跨步驟傳路徑變數」講的是不要跨使用者互動保存路徑，不是要把清理拆成好幾次呼叫——拆開跑正是半完成狀態的來源。
 
-**worktree 情境**（四步）：
+**worktree 情境**（五步）：
 
 1. 現算主 repo 根目錄並 cd 過去（worktree 必須從它外面移除）：
 
@@ -95,11 +95,25 @@ cd "$(git -C "$(cd "$(git rev-parse --git-common-dir)" && pwd -P)/.." rev-parse 
 2. 依 Step 5 移除 worktree。
 3. 刪本地分支：A3 用 `git branch -D "<branch>"`，B1 用 `git branch -d "<branch>"`。
 4. `git worktree prune`。
+5. 依下面的「票目錄歸檔」處理 `/start` 留下的票檔。
 
-**一般 repo 情境**（兩步；上面第 1、2、4 步不適用，沒有 worktree 可移除）：人正站在要刪的分支上，`branch -d`／`-D` 必定失敗，得先離開。
+**一般 repo 情境**（三步；上面第 1、2、4 步不適用，沒有 worktree 可移除）：人正站在要刪的分支上，`branch -d`／`-D` 必定失敗，得先離開。
 
 1. `git switch <base>`。
 2. 刪本地分支：A3 用 `git branch -D "<branch>"`，B1 用 `git branch -d "<branch>"`。
+3. 依下面的「票目錄歸檔」處理 `/start` 留下的票檔。
+
+**票目錄歸檔**（兩種情境共用，接在該情境的最後一步、同一次呼叫內）：`/start` 拆的票落在主 repo 根的 `.claude/tickets/<short-description>/`，`<short-description>` 是 `<branch>` 去掉 type 前綴（`feat/cart_checkout` → `cart_checkout`）。移到 `archive/` 留痕、**不刪**——A3 丟棄的票尤其是 retro 素材，「為什麼這批工作被丟掉」都寫在裡面。
+
+```bash
+root=$(git rev-parse --show-toplevel)   # 同一次呼叫內即算即用，不跨步驟保留
+if [ -d "$root/.claude/tickets/<short-description>" ]; then
+  mkdir -p "$root/.claude/tickets/archive"
+  mv "$root/.claude/tickets/<short-description>" "$root/.claude/tickets/archive/"
+fi
+```
+
+票目錄不存在（micro 改動沒拆票）就什麼都不做，這不是錯誤，不要當成清理失敗回報。
 
 `-d` 被拒時**不要說「沒真的合併」**：`-d` 比對的是分支 upstream，沒有就拿當前 HEAD（主 repo 本地基底）比，而本地基底常態落後 `origin`。貼出 git 原訊息與 Step 2 的證據，說明多半是基底過期，再問要不要改 `-D`——不自行升級。
 
@@ -139,12 +153,12 @@ retro **只產出提案**、逐項核可才動手，收尾結果不受它影響�
 
 ## Quick Reference
 
-| 選項 | 推遠端 | 保留 worktree | 刪本地分支 |
-|---|---|---|---|
-| A1 開 MR | 是 | 是 | 否 |
-| A2／B2 保留 | 否 | 是 | 否 |
-| A3 丟棄（需 discard） | 否 | 否 | `-D` |
-| B1 清理已合併 | 否 | 否 | `-d` |
+| 選項 | 推遠端 | 保留 worktree | 刪本地分支 | 票目錄歸檔 |
+|---|---|---|---|---|
+| A1 開 MR | 是 | 是 | 否 | 否 |
+| A2／B2 保留 | 否 | 是 | 否 | 否 |
+| A3 丟棄（需 discard） | 否 | 否 | `-D` | 是 |
+| B1 清理已合併 | 否 | 否 | `-d` | 是 |
 
 ## 紅線
 
