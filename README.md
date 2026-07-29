@@ -42,7 +42,7 @@ cd claude-skills
 |---|---|
 | [fe-arch](skills/fe-arch/) | 前端專案架構規範：檔案／目錄放置的決策流程（feature-based，建檔前必讀） |
 | [fe-issue](skills/fe-issue/) | 將 PM 需求 Issue 轉換為前端技術 Issue 草稿，含 Subtask 拆解 |
-| [fe-code-review](skills/fe-code-review/) | 前端程式碼審查，涵蓋品質、效能、安全性與編碼標準 |
+| [fe-code-review](skills/fe-code-review/) | 前端程式碼審查：Spec／Standards 兩軸主幹，加正確性、爆炸半徑副作用追蹤與無害區對抗挑戰 |
 | [fe-mr-review](skills/fe-mr-review/) | AI 輔助 GitLab MR 審查與 Review Comment 回覆（雙模式），含選用的 TL 視角補充 |
 | [fe-mr-review-html](skills/fe-mr-review-html/) | fe-mr-review 的 HTML artifact 輸出版本：內嵌 diff + 嚴重程度色標 + 焦點區深度說明（streaming/cache/並行控制等） |
 | [fe-mr-walkthrough](skills/fe-mr-walkthrough/) | reviewer 在 review 前的 MR 理解輔助：白話化說明、流程圖、AI 扮演作者答疑、好做法雷達 |
