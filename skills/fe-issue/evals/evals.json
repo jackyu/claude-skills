@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "幫我把這個 PM Issue 轉成前端技術 Issue（簡單的新功能：通知偏好設定頁）",
-      "expected_output": "結構化的前端技術 Issue，使用「實作範圍」模式（扁平清單），API 依賴表有標示",
+      "expected_output": "標準層的前端技術 Issue，使用「實作範圍」模式（扁平清單），API 依賴表有標示",
       "files": [],
       "expectations": [
         "輸出使用繁體中文",
@@ -14,7 +14,7 @@
         "包含「驗收條件」且分為功能面、資料顯示、既有功能、測試品質四個區塊",
         "測試品質區塊包含 Coverage ≥ 80% 要求",
         "包含「API 依賴」表格且使用 ✅/⚠️ 標示狀態",
-        "使用「實作範圍」模式（扁平編號清單），而非 Subtask 拆解",
+        "使用「實作範圍」模式（扁平編號清單），issue 內不做任務拆解",
         "不包含 Labels 區塊在 Issue body 中（Labels 僅作為 GitLab metadata）",
         "Phase 1.3 由 AI 主動探索 codebase 而非詢問用戶",
         "Phase 1.5 自動從 PM Issue API 回應擷取 labels"
@@ -23,7 +23,7 @@
     {
       "id": 2,
       "prompt": "幫我把這個 PM Issue 轉成前端技術 Issue（複雜功能：訂單管理頁面重構，含 Tab 架構、多 API 串接）",
-      "expected_output": "完整技術 Issue，Subtask 4-6 個，有結構樹、影響範圍分析、預估工時",
+      "expected_output": "標準層完整技術 Issue：有結構樹、實作範圍扁平清單、預估工時，任務拆解留待開發階段",
       "files": [],
       "expectations": [
         "輸出使用繁體中文",
@@ -31,9 +31,10 @@
         "包含「功能描述」且用前端技術語言描述（非複製 PM 原文）",
         "包含結構概覽（樹狀圖呈現 Tab 或頁面架構）",
         "包含「API 依賴」表格且區分既有 API 和需新 API",
-        "包含「Subtask 拆解」且至少 4 個 Subtask，每個預估不超過 2 天",
-        "包含「預估總工時」",
-        "包含「影響範圍 / 風險」區塊",
+        "包含「實作範圍」扁平編號清單；即使功能複雜也不在 issue 內做任務拆解（拆解留待開發階段依規格書進行）",
+        "包含「預估工時」",
+        "包含「技術備註」；有真實風險時以一行併入其中，不另開「影響範圍 / 風險」區塊",
+        "全文符合標準層長度判準（≤ 150 行、10 分鐘可讀完）",
         "不包含 Labels 區塊在 Issue body 中",
         "Phase 1.3 由 AI 主動探索 codebase",
         "Phase 1.5 自動從 PM Issue API 回應擷取 labels"
@@ -42,14 +43,14 @@
     {
       "id": 3,
       "prompt": "幫我把這個 PM Issue 轉成前端技術 Issue（Bug 修復：表單驗證和 API 錯誤處理問題）",
-      "expected_output": "Bug 修復的技術 Issue，根據複雜度決定使用實作範圍或 Subtask 模式",
+      "expected_output": "Bug 修復的標準層技術 Issue，使用「實作範圍」模式",
       "files": [],
       "expectations": [
         "輸出使用繁體中文",
         "包含「前端技術 Issue」標題",
         "包含「功能描述」且從技術角度描述問題根因",
         "包含「驗收條件」且包含測試品質區塊",
-        "根據複雜度使用「實作範圍」或「Subtask 拆解」模式",
+        "使用標準層的「實作範圍」模式（扁平編號清單）",
         "包含修復驗證和回歸測試相關內容",
         "不包含 Labels 區塊在 Issue body 中",
         "Labels 包含 # type::bug 但僅在 GitLab metadata 中",
@@ -72,10 +73,28 @@
         "不包含「功能描述」section",
         "不包含「驗收條件」section",
         "不包含「API 依賴」表格",
-        "不包含「技術備註」、「影響範圍 / 風險」、「Subtask 拆解」",
+        "不包含「規格書」與「技術備註」section",
         "不包含 ⚠️ 規格疑問警語",
         "Phase 1.1.5 主動判斷為 micro 並詢問用戶確認",
         "Micro fast-path 跳過 Phase 1.2 Figma 與 1.4 API 狀態"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "這是 /spec 流程產出的 spec 檔（.claude/specs/spec-order-refactor.md，內含「## 規格書」區段，規格已澄清），請依規格書產出前端技術 Issue，無設計稿連結",
+      "expected_output": "標準層技術 Issue，以「## 規格書」全文為規格主體，不另寫功能描述",
+      "files": [],
+      "expectations": [
+        "輸出使用繁體中文",
+        "包含「前端技術 Issue」標題",
+        "包含「規格書」區塊且嵌入 spec 檔的規格書全文",
+        "不包含獨立「功能描述」section（規格已由規格書承載）",
+        "跳過 Phase 1.1 重複澄清，直接以規格書為已確認規格",
+        "包含「驗收條件」且分為功能面、資料顯示、既有功能、測試品質四個區塊",
+        "包含「API 依賴」表格且使用 ✅/⚠️ 標示狀態",
+        "包含「實作範圍」扁平編號清單與「預估工時」",
+        "關聯需求不留空的 Figma placeholder（無設計稿連結時整行刪除）",
+        "不包含 Labels 區塊在 Issue body 中"
       ]
     }
   ]

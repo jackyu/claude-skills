@@ -2,7 +2,15 @@
 
 產出草稿時依照以下結構，`{{ }}` 的部分替換為實際內容。
 
+分兩個層級：**Micro（< 1 天）** 用極簡三段，**標準（≥ 1 天）** 用下方完整結構。
+
+**長度判準**：標準層級的 issue 全文 ≤ 150 行、10 分鐘內可讀完。超標先砍雜訊（重複敘述、可從 code 查到的細節、非必要的背景）再輸出。
+
+任務拆解在開發階段（`/start` 之後）依規格書進行，issue 本身只到「實作範圍」為止。
+
 ---
+
+## 標準（≥ 1 天）
 
 ```markdown
 # 前端技術 Issue：{{ ISSUE_TITLE }}
@@ -16,7 +24,23 @@
 
 ---
 
+## 規格書
+
+<!--
+`/spec` 流程產出的 to-spec 規格書全文嵌入此處，作為本 issue 的規格主體
+（Problem Statement / Solution / User Stories / Implementation Decisions /
+Testing Decisions / Out of Scope / Further Notes）。
+有規格書時，下方「功能描述」省略不寫——兩者擇一，不重複同一件事。
+單獨使用 fe-issue（非 `/spec` 流程）時，省略本區塊、改寫「功能描述」。
+-->
+
+{{ SPEC_DOCUMENT }}
+
+---
+
 ## 功能描述
+
+<!-- 沒有規格書時才寫；有規格書則刪除本 section -->
 
 {{ TECHNICAL_DESCRIPTION }}
 
@@ -57,29 +81,6 @@
 
 ---
 
-## 技術備註
-
-- {{ TECH_NOTES }}
-
----
-
-<!-- Micro Issue（<1 天）：錯字 / 樣式微調 / 圖片 / 檔案移動 — 使用此精簡格式，省略上方所有 section -->
-
-# 前端技術 Issue：{{ ISSUE_TITLE }}
-
-**關聯**：[{{ PM_ISSUE_ID }} — {{ PM_ISSUE_TITLE }}]({{ PM_ISSUE_URL }})
-
-## 實作範圍
-
-1. {{ ITEM_1 }}
-2. {{ ITEM_2 }}
-
-**預估**：約 {{ DAYS }} 天
-
----
-
-<!-- 小型 Issue（1-3 天）使用此模式 -->
-
 ## 實作範圍
 
 1. {{ ITEM_1 }}
@@ -92,38 +93,30 @@
 
 約 **{{ MIN }}–{{ MAX }} 個工作天**
 
-<!-- 中大型 Issue（4+ 天）使用此模式 -->
+---
 
-## Subtask 拆解
+## 技術備註
 
-### Subtask N：{{ SUBTASK_TITLE }}
-- **複雜度**: 低 / 中 / 中高 / 高
-- **說明**: {{ DESCRIPTION }}
-- **產出**: {{ OUTPUT }}
-- **測試**: {{ TEST_SCOPE }}
-- **依賴**: 無 / Subtask N / 後端 API
-- **預估**: {{ DAYS }} 天
+- {{ TECH_NOTES }}
+
+<!-- 有真實風險才寫，一項一行併入上方清單，例：影響既有 X 頁面的 Y 行為，需回歸測試 -->
+```
 
 ---
 
-## Subtask 總覽 Checklist
+## Micro（< 1 天）
 
-- [ ] Subtask 1: {{ TITLE }}
-- [ ] Subtask 2: {{ TITLE }}
+錯字 / 樣式微調 / 圖片替換 / 檔案移動 — 使用此精簡格式，省略標準層級的所有 section。
 
----
+```markdown
+# 前端技術 Issue：{{ ISSUE_TITLE }}
 
-## 預估總工時
+**關聯**：[{{ PM_ISSUE_ID }} — {{ PM_ISSUE_TITLE }}]({{ PM_ISSUE_URL }})
 
-約 **{{ MIN }}–{{ MAX }} 個工作天**（{{ NOTE }}）
+## 實作範圍
 
----
+1. {{ ITEM_1 }}
+2. {{ ITEM_2 }}
 
-## 影響範圍 / 風險
-
-- **高影響**: {{ HIGH_IMPACT }}
-- **中風險**: {{ MEDIUM_RISK }}
-- **低風險**: {{ LOW_RISK }}
-- **建議**: {{ SUGGESTION }}
-
+**預估**：約 {{ DAYS }} 天
 ```

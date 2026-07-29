@@ -101,16 +101,16 @@ Build Spec → Ready To Develop → Developing → Review → On Dev
 |------|------|-----------|
 | 1 | PM Issue 進入拆解，RD 用 `fe-issue` Skill 產出草稿 | `workflow::Build Spec` |
 | 2 | 技術 Issue 建立完成，需求確認無疑義 | → `workflow::Ready To Develop` |
-| 3 | RD 開始 Subtask 1 的開發 | → `workflow::Developing` |
-| 4 | Subtask 完成，用 `fe-mr-generator` 開 MR | → `workflow::Review` |
+| 3 | RD 開始實作 | → `workflow::Developing` |
+| 4 | 一段實作範圍完成，用 `fe-mr-generator` 開 MR | → `workflow::Review` |
 | 5 | MR 通過 review 並 merged | → `workflow::On Dev` |
 | 6 | 部署至 beta | → `workflow::On Beta` |
 | 7 | 部署至 staging | → `workflow::On Staging` |
 | 8 | 排定上線 | → `workflow::To Be Released` |
 | 9 | 正式上線 | → `workflow::On Prod` |
 
-> 注意：如果一張 Issue 有多個 Subtask（多個 MR），workflow 狀態以「整張 Issue 的進度」為準。
-> 例如 Subtask 1 的 MR merged 了但還有 Subtask 2 在開發中，Issue 維持 `workflow::Developing`。
+> 注意：如果一張 Issue 拆成多個 MR，workflow 狀態以「整張 Issue 的進度」為準。
+> 例如第一個 MR 已 merged 但還有其他實作範圍在開發中，Issue 維持 `workflow::Developing`。
 > 所有 MR 都 merged 後才轉為 `workflow::On Dev`。
 
 ---
