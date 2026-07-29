@@ -67,7 +67,7 @@ AI 扮演作者時的信心標記，避免誤導：
 ./scripts/install.sh -s fe-mr-walkthrough
 ```
 
-依賴 `skills/_shared/fe-mr-common/` 中的共用 references（diagram-rules、good-pattern-catalog、writing-principles）。install.sh 會跳過 `_` 開頭的目錄，但 SKILL.md 透過相對路徑 `../_shared/fe-mr-common/...` 引用，symlink 解析後仍可正常讀取。
+依賴 `skills/_shared/fe-mr-common/` 中的共用 references（diagram-rules、good-pattern-catalog、writing-principles、mr-context-usage）。install.sh 會跳過 `_` 開頭的目錄，但 SKILL.md 透過相對路徑 `../_shared/fe-mr-common/...` 引用，symlink 解析後仍可正常讀取。
 
 ## 開發與貢獻
 

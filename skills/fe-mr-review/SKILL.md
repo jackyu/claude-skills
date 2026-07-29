@@ -43,7 +43,7 @@ AI 輔助 GitLab Merge Request 審查工具，支援兩種模式：
 ~/.claude/skills/_shared/fe-mr-common/scripts/mr-context.sh <project_path> <mr_iid>
 ```
 
-一次取得 MR 基本資訊（標題、描述、來源/目標分支、作者、labels）+ 未解決討論串 + changed files + diff。
+完整用法、選項與補抓腳本見 [`_shared/fe-mr-common/mr-context-usage.md`](../_shared/fe-mr-common/mr-context-usage.md)。
 
 ### Step 2: 取得完整 Diff Context
 
@@ -141,79 +141,7 @@ git fetch origin <source_branch>:<source_branch>
 
 ### 審查模式輸出格式
 
-```
-# MR Review: {MR 標題}
-
-**MR 連結：** {URL}
-**作者：** {作者}
-**MR 類型：** {feature / bugfix / refactor / unknown}
-**變更範圍：** {簡述變更了哪些模組/功能}
-**檔案數：** {N} 個檔案，+{additions} / -{deletions}
-
----
-
-## 🚦 風險分流
-
-> 整份 MR 最先看這裡。決定 reviewer 注意力該放哪。
-
-### ⚠️ 高風險區（請逐行細看 + 對齊業務規則）
-
-| 區域 | 觸及的高風險域 | 為什麼高風險 | 需人工/cross-model 確認的點 |
-|------|---------------|-------------|---------------------------|
-| `{檔案}:{行數}` | {下單/精度/權限/報價/金流} | {後果} | {確認什麼業務規則} |
-
-<!-- 若無，寫：本次無高風險區變更，採一般審查強度。 -->
-
-### 🟢 一般區
-
-{簡述其餘變更，這些交給自動化 + AI 掃描，不逐行}
-
----
-
-## 🤖 技術審查結果
-
-### 需要修正
-
-#### {問題標題}
-- **位置**: `{檔案路徑}:{行數}`
-- **問題**: {具體描述}
-- **建議**: {改進方式}
-
-### 建議改進
-
-- {非必要但建議優化的項目}
-
-### ✅ 技術面 LGTM
-
-{如果沒有問題，簡述已確認無誤的項目}
-
----
-
-## ✅ 合併建議
-
-**結論**：{同意合併 / 有條件合併 / 不同意合併}
-**原因**：{一兩句講清楚——基於哪些 finding 或風險。有條件合併要寫「補完 X 即可合」；待人工/跨團隊確認的點也寫在這裡。}
-
----
-
-<details>
-<summary>💡 值得學習的模式（附屬功能，選用，點開看）</summary>
-
-> 僅在真有團隊參考價值時才列；沒有就整段省略。一個模式一兩句講完，別佔篇幅。
-
-- **{模式名稱}** `{檔案:行數}` — {白話講做了什麼、好在哪，具體不誇飾}
-  - 名詞補充（選用）：{術語「中文 (English)」一句解釋}
-
-</details>
-
----
-
-## 🔜 後續行動
-
-需要我執行以下操作嗎？
-1. **回覆 MR comment** — 將審查建議回覆在 MR 的對應討論串下
-2. **執行修復** — 依照「需要修正」項目進行程式碼修改（可全部或選擇性修正）
-```
+依 [`references/output-format-review.md`](references/output-format-review.md) 的 skeleton 組裝：**風險分流放最上方** → 技術審查結果（需要修正／建議改進／✅ 技術面 LGTM）→ 合併建議 → 值得學習的模式（附屬、折疊）→ 後續行動。
 
 ---
 
@@ -348,22 +276,11 @@ glab api "projects/<enc-path>/merge_requests/<iid>/notes?per_page=100" \
 
 ## 語氣與表達規範
 
-review 的唯一目的是讓人**快速看懂這個 MR 在幹嘛**，不是寫技術論文，也不是給作者頒獎。完整規範（語氣不過度吹捧、白話先行、第一次術語用「中文 (English)」、複雜術語放段落末「名詞補充」、改寫前後對照範例）見共用檔 [`_shared/fe-mr-common/review-writing-principles.md`](../_shared/fe-mr-common/review-writing-principles.md) §1。重點：
-
-- **語氣**：不過度吹捧、形容詞克制、用口語自述句，像在跟同事口頭講解。
-- **術語**：句子先用白話講懂、能獨立讀懂；第一次術語標「中文 (English)」；需展開的複雜術語（DI factory、blast radius 之類）不塞主句，放段落末「名詞補充」當學習素材；一句最多一兩個術語。
-
-## 中文文案排版規範
-
-依循 [中文文案排版指北](https://github.com/sparanoid/chinese-copywriting-guidelines)：
-
-- 中英文之間加空格：`使用 React 開發`
-- 中文與數字之間加空格：`共 5 個檔案`
-- 使用全形標點：，、。；：「」
-- 專有名詞使用官方大小寫：`GitHub`、`JavaScript`、`TypeScript`
+輸出遵循共用檔 [`_shared/fe-mr-common/writing-principles.md`](../_shared/fe-mr-common/writing-principles.md)「審查語氣」一節（白話先行、術語走名詞補充、不過度吹捧等）與其中的中文文案排版規範。
 
 ## Reference
 
 - `references/high-risk-zones.md` — 券商前端高風險區定義（Step R1 風險分流用）
 - `references/review-focus.md` — 各類型（Feature / Bugfix / Refactor）審查焦點 + 資深同儕跨類型優劣鏡片（收斂邊界、介面複雜度、語意精準）+ 資深 reviewer 實戰關注點（跨專案蒸餾：錯誤與副作用分層、既有基建優先、state/cache 跨頁、robustness 雙面、契約與取數職責、死碼/驗證/測試品質、Next.js App Router/a11y/design token/相容性等）；Step R2 校準類型、Step R3 技術審查時參照
+- `references/output-format-review.md` — 審查模式輸出格式 skeleton（Step R4 組裝輸出時參照）
 - `references/reply-template.md` — 回覆評估模式輸出範本

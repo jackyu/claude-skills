@@ -45,6 +45,7 @@
 | File | Description |
 |------|-------------|
 | `SKILL.md` | Skill 主要指令 |
+| `references/digest-template.md` | 學習筆記輸出模板與段落取捨原則 |
 
 ## Language
 

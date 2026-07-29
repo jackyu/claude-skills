@@ -2,7 +2,7 @@
 
 使用繁體中文，Markdown 格式，依下列結構產出最終報告。
 
-**撰寫前提**：讀者可能不熟悉本專案架構（含新手）。共用原則見 [`_shared/fe-mr-common/review-writing-principles.md`](../../_shared/fe-mr-common/review-writing-principles.md) 與 SKILL.md「報告撰寫風格（核心）」——先講脈絡再講問題、每個 finding 配關鍵程式碼、白話先行（第一次術語用「中文 (English)」）、複雜術語放該 finding 末的名詞補充、商業邏輯比喻只放摘要。
+**撰寫前提**：讀者可能不熟悉本專案架構（含新手）。共用原則見 [`_shared/fe-mr-common/writing-principles.md`](../../_shared/fe-mr-common/writing-principles.md)「審查語氣」一節與 SKILL.md「報告撰寫風格（核心）」——先講脈絡再講問題、每個 finding 配關鍵程式碼、白話先行（第一次術語用「中文 (English)」）、複雜術語放該 finding 末的名詞補充、商業邏輯比喻只放摘要。
 
 ```markdown
 ## Code Review 摘要

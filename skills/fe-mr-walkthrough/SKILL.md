@@ -35,11 +35,7 @@ description: 協助 reviewer 在 review 前快速理解 GitLab MR：白話化說
 ~/.claude/skills/_shared/fe-mr-common/scripts/mr-context.sh <project_path> <mr_iid>
 ```
 
-一次取得 MR meta + 未解決討論串 + changed files + diff（自動依大小切 full / stat）。
-
-- 大型 MR 自動降級為 stat 預覽 — 補抓特定檔案用 `mr-load-file.sh`
-- 需要完整討論串內容（含 follow-up notes）用 `mr-load-discussion.sh`
-- 若 description 提到關聯 Issue，補用 `issue-get.sh <issue_url>` 取得需求背景
+完整用法、選項與補抓腳本見 [`_shared/fe-mr-common/mr-context-usage.md`](../_shared/fe-mr-common/mr-context-usage.md)。
 
 **WIP MR 處理**：若 MR 是 Draft / WIP 狀態（mr-context.sh 輸出的 State 欄會標 `(draft)`），照常產出 walkthrough 但在報告開頭標註「⚠️ 此 MR 仍在進行中，內容可能還會變動」。
 
@@ -200,9 +196,4 @@ reviewer 可在報告中勾選，事後一次接 `fe-mr-digest` 產出完整學�
 
 ## 寫作原則
 
-依 [`_shared/fe-mr-common/writing-principles.md`](../_shared/fe-mr-common/writing-principles.md)：
-
-- 淺顯易懂（1-2 年經驗讀者）
-- 聚焦理解價值（不評判、不貼完整檔案）
-- 尊重原作者（禁用揣測性負面用語）
-- 中文文案排版規範（中英文空格、全形標點、官方大小寫）
+輸出遵循 [`_shared/fe-mr-common/writing-principles.md`](../_shared/fe-mr-common/writing-principles.md)「學習導讀語氣」一節（淺顯易懂、聚焦理解價值、尊重原作者）與其中的共用中文文案排版規範。

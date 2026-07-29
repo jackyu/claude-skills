@@ -1,6 +1,6 @@
 ---
 name: fe-mr-review-html
-description: 將 GitLab Merge Request 審查結果產出為單一自包含 HTML artifact，含 inline diff 標註、嚴重程度色標、焦點區深度說明（streaming/backpressure、cache、並行控制等）。使用時機：(1) 用戶要求以 HTML/網頁形式呈現 review、產出 HTML artifact, (2) 用戶說「render the diff with inline annotations」「color-code findings by severity」, (3) 用戶想交付一份可分享、可離線、可印製的 review 報告給其他 reviewer/PM/QA, (4) 用戶說自己對 PR 中某個邏輯（streaming、backpressure、cache 策略、並行控制、reconnect 機制…）不熟，希望報告中能特別講解, (5) 用戶想用視覺化方式呈現 review 結果。即使用戶只說「幫我做一份這個 PR 的 HTML review」也應觸發。
+description: 將 GitLab Merge Request 審查結果產出為單一自包含 HTML artifact，含 inline diff 標註、嚴重程度色標、焦點區深度說明。使用時機：(1) 用戶要求以 HTML/網頁形式呈現 review 或產出 HTML artifact, (2) 用戶想交付一份可分享、可離線、可印製的 review 報告給其他 reviewer/PM/QA, (3) 用戶說自己對 PR 中某個邏輯（如 streaming、cache、並行控制）不熟，希望報告特別講解, (4) 用戶想用視覺化方式呈現 review 結果。即使只說「幫我做一份這個 PR 的 HTML review」也應觸發此 skill。
 ---
 
 # MR Review HTML
@@ -15,7 +15,7 @@ description: 將 GitLab Merge Request 審查結果產出為單一自包含 HTML 
 
 > 本 skill **沿用 `fe-mr-review` 的審查分析邏輯**，僅替換輸出格式為 HTML 並加入「焦點區深度說明」。
 
-> **報告撰寫風格**依 [`_shared/fe-mr-common/review-writing-principles.md`](../_shared/fe-mr-common/review-writing-principles.md)：白話先行（句子先講懂、第一次術語用「中文 (English)」）、複雜術語放該 finding 的 inline 註解「名詞補充」（HTML 折疊區塊）、不過度吹捧、商業邏輯用「就像…」比喻（與精確描述並存、限導讀/概念說明）。每個 finding **就地內嵌在對應 diff 行下方**（本 skill 的核心 UI 價值）。
+> **報告撰寫風格**依 [`_shared/fe-mr-common/writing-principles.md`](../_shared/fe-mr-common/writing-principles.md)「審查語氣」一節；本 skill 特有的呈現方式：複雜術語放該 finding 的 inline 註解「名詞補充」（HTML 折疊區塊），每個 finding **就地內嵌在對應 diff 行下方**（本 skill 的核心 UI 價值）。
 
 ---
 
@@ -134,7 +134,7 @@ HTML 結構簡述（**就地內嵌、預設展開**）：
 
 ## 共用規範
 
-- **中文文案排版**：沿用 `fe-mr-review` 規則（中英文加空格、全形標點等）
+- **中文文案排版**：依 [`_shared/fe-mr-common/writing-principles.md`](../_shared/fe-mr-common/writing-principles.md)
 - **審查焦點過濾原則**：沿用 `fe-mr-review` Step R2 的過濾規則，不列瑣碎問題（風格、格式、命名偏好…）
 - **大型 MR（>500 行）**：先輸出變更摘要區塊（modules + 各別行數），再進入 findings
 - **未解決討論串**：在合併建議橫幅下方以警示 banner 標示「{N} 個未解決討論」

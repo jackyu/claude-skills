@@ -71,7 +71,7 @@
 
 規則：
 - 卡片 `id="f-NNN"` 與該行的 `data-finding-id` 相同（供 severity 篩選與計數 chip 捲動定位）。
-- 內容用[共用撰寫原則](../../_shared/fe-mr-common/review-writing-principles.md) §1：白話先行、第一次術語標「中文 (English)」、複雜術語放 `.term-note`「名詞補充」（沒有就省略）。
+- 內容用[共用撰寫原則](../../_shared/fe-mr-common/writing-principles.md)「審查語氣」§1：白話先行、第一次術語標「中文 (English)」、複雜術語放 `.term-note`「名詞補充」（沒有就省略）。
 - **同一行多個 finding** → 在該行下方堆疊多個 `.inline-annotation` row。
 - 深入的程式碼示範放 `<details>程式碼片段`，避免主文膨脹。
 - 不用「跳至 line N」連結（已就地，不需跳轉）。

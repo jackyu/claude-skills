@@ -27,22 +27,16 @@ description: 將已合併的 GitLab MR 轉化為學習筆記，從資深工程�
 執行：
 
 ```bash
-~/.claude/skills/_shared/fe-mr-common/scripts/mr-context.sh <project_path> <mr_iid>
+~/.claude/skills/_shared/fe-mr-common/scripts/mr-context.sh <project_path> <mr_iid> --all-discussions
 ```
 
-一次取得 MR meta（含 State 欄判斷合併狀態） + 未解決討論串 + changed files + diff（自動依大小切 full / stat）。
+完整用法、選項與補抓腳本見 [`_shared/fe-mr-common/mr-context-usage.md`](../_shared/fe-mr-common/mr-context-usage.md)（學習筆記通常需要已解決討論，故帶 `--all-discussions`）。
 
-**依 State 欄處理**：
+**依 State 欄處理**（mr-context.sh 輸出的 MR meta 含 State 欄）：
 
 - `merged` → 直接產出學習筆記
 - `opened` → 提醒用戶此 MR 仍在進行中，內容可能還會變動，詢問是否仍要產出
 - `closed` → 提醒用戶此 MR 並未被採納，詢問是否想了解為什麼被放棄
-
-**補抓細節**：
-
-- 大型 MR 自動降級為 stat 預覽 — 用 `mr-load-file.sh` 補抓特定檔案
-- 學習筆記需要完整討論串（含 follow-up notes）— 用 `mr-load-discussion.sh` 補抓
-- mr-context.sh 預設只列「未解決」討論，學習筆記通常需要已解決討論 — 加 `--all-discussions` 一併列出，再用 `mr-load-discussion.sh` 補抓完整內容
 
 ### Step 2: 理解 MR 描述
 
@@ -170,155 +164,13 @@ Review 討論是最有價值的學習素材之一，因為它展示了資深工�
 
 ## 輸出格式
 
-使用繁體中文，Markdown 格式：
-
-```markdown
-# 📝 MR 學習筆記：{{MR_TITLE}}
-
-> **MR 連結：** {{MR_URL}}
-> **作者：** {{AUTHOR}}
-> **Reviewer：** {{REVIEWER_NAMES}}
-> **合併日期：** {{MERGED_AT}}
-> **難度：** {{🟢 初階 / 🟡 中階 / 🔴 進階}}
-> **學習標籤：** {{`標籤1`}} {{`標籤2`}} {{`標籤3`}}
-
----
-
-## 📋 這個 MR 在做什麼？
-
-[用 2-3 段淺顯的文字說明這個 MR 的目的和背景。
-讀完這段，讀者應該理解「為什麼需要這個改動」。
-避免直接複製 MR description，用自己的話重新詮釋。]
-
----
-
-## 🛠️ 怎麼做的？
-
-### 整體策略
-
-[用一段話概述工程師的整體解法思路，先讓讀者有全局觀]
-
-### 關鍵實作
-
-#### 1. {{實作重點名稱}}
-
-[說明這段程式碼在做什麼、為什麼這樣設計]
-
-```tsx
-// 關鍵程式碼片段（不是完整檔案，只取最有學習價值的部分）
-```
-
-[對程式碼的逐段解說，用白話文解釋每個關鍵決策]
-
-#### 2. {{實作重點名稱}}
-
-[同上結構，按需增減]
-
----
-
-## ✨ 值得學習的技巧
-
-[條列 2-5 個從這個 MR 中值得學習的具體技巧或觀念，每一項用 1-2 句話說明]
-
----
-
-## 🔄 Before / After 對比
-
-> 此段落僅在 MR 涉及重構或優化時出現
-
-### 改善前的問題
-
-[說明原本程式碼的問題]
-
-```tsx
-// 重構前
-```
-
-### 改善後
-
-[說明改善了什麼]
-
-```tsx
-// 重構後
-```
-
-### 為什麼這樣改更好
-
-[解釋改善帶來的具體好處]
-
----
-
-## 🤔 為什麼不這樣做？
-
-> 此段落僅在有值得討論的替代方案時出現
-
-### 替代方案：{{方案名稱}}
-
-[為什麼當前方案比替代方案更適合這個情境]
-
----
-
-## 💬 Review 精華
-
-> 從 Review 討論中萃取的有價值對話
-
-### 討論 1：{{討論主題}}
-
-💬 **Reviewer（@reviewer_name）**：
-[Reviewer 的提問或意見]
-
-↩️ **Author（@author_name）**：
-[作者的回應]
-
-📖 **學到什麼**：[一句話總結這段討論的學習重點]
-
-### 討論 2：{{討論主題}}
-
-[同上結構，按需增減]
-
----
-
-## 📊 流程圖
-
-> 此段落僅在 MR 涉及資料流變化、狀態流轉或請求流程時出現
-
-[Mermaid 流程圖，透過 Figma:generate_diagram 渲染]
-
----
-
-## 🎯 總結
-
-### 一句話回顧
-
-[用一句話概括這個 MR 最核心的學習收穫]
-
-### 延伸閱讀
-
-[如果有相關的技術文件、官方文檔、或延伸學習資源，列在這裡]
-```
-
----
-
-## 段落取捨原則
-
-並非每個段落都必須出現。根據 MR 的內容決定：
-
-| 段落 | 出現條件 |
-|------|----------|
-| 📋 這個 MR 在做什麼 | 必出 |
-| 🛠️ 怎麼做的 | 必出 |
-| ✨ 值得學習的技巧 | 必出 |
-| 🔄 Before / After 對比 | 僅重構/優化類 MR |
-| 🤔 為什麼不這樣做 | 僅在有值得討論的替代方案時 |
-| 💬 Review 精華 | 僅在有有價值的討論時 |
-| 📊 流程圖 | 僅在涉及資料流/狀態流轉/請求流程時 |
-| 🎯 總結 | 必出 |
+完整模板（含各段落結構、範例佔位符）與段落取捨原則見 [`references/digest-template.md`](references/digest-template.md)。
 
 ---
 
 ## 寫作原則
 
-依 [`_shared/fe-mr-common/writing-principles.md`](../_shared/fe-mr-common/writing-principles.md)：淺顯易懂（1-2 年經驗讀者）、聚焦學習價值、尊重原作者、中文文案排版規範（中英文空格、全形標點）。
+輸出遵循 [`_shared/fe-mr-common/writing-principles.md`](../_shared/fe-mr-common/writing-principles.md)「學習導讀語氣」一節（淺顯易懂、聚焦學習價值、尊重原作者）與其中的共用中文文案排版規範。
 
 ---
 
