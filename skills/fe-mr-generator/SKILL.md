@@ -49,14 +49,6 @@ git diff --stat main..HEAD
 git diff main..HEAD
 ```
 
-也可使用 `scripts/get_commits.sh`：
-
-```bash
-./scripts/get_commits.sh           # 預設比對 origin/main
-./scripts/get_commits.sh -b rc/1.9.3  # 指定 base branch
-./scripts/get_commits.sh -v        # 含檔案統計
-```
-
 ### Step 4: 分析變更內容
 
 從 commit 和 diff 中識別（只取進描述會用到的核心，diff 看得出來的不另外整理）：
@@ -64,6 +56,7 @@ git diff main..HEAD
 - **變更動機**：這個 branch 要解決什麼問題
 - **概念地圖元素**：哪些模組動了、資料怎麼流、bounded context 的邊界畫在哪。這是 reviewer「看圖不看 code」的依據，務必在 diff 裡釐清「本次動了什麼、刻意不碰什麼」
 - **inline 註解候選行**：diff 中哪些行藏著 reviewer 難以自行還原的資訊（商業決策、非顯然取捨、魔法數字來源等），留給 Step 8 產生 inline 自註解清單
+- **閱讀動線**：這些候選行該用什麼順序讀？先找**入口點**（誰呼叫了這次的核心邏輯，讓 reviewer 知道從哪進來），再從核心**由內而外**往呼叫端擴散。機械性改動（跟著改的呼叫端、rename、格式）不佔動線順位。這個順序決定 Step 8 的 `order` 怎麼給
 
 ### Step 5: 判斷複雜度
 
@@ -109,11 +102,26 @@ git diff --name-only main..HEAD    # monorepo 用於判斷 client / admin 前綴
 
 ### Step 8: 產生 Inline 自註解清單
 
-依照 `references/inline-comments-guide.md` 的規則，從 diff 中挑出 reviewer 難以自行還原的行，產生 inline 自註解清單：
+依照 `references/inline-comments-guide.md` 的規則，從 diff 中挑出 reviewer 難以自行還原的行，產生 inline 自註解清單。這份清單同時是 reviewer 的**導覽動線**——`/push` 會依 `order` 幫每則加上順序標記與「接著看 → 下一則」的跳轉連結，並在 description 插一份閱讀地圖。
 
 - 行號基準：`git diff origin/<target>...HEAD`（three-dot），只對 `+`/`-` 行取行號
 - 挑行原則、密度上限（簡單 0-3／一般 3-6／複雜 5-10，硬上限 10，同檔最多 3 則）見 reference
-- 每則輸出 `{file, new_line|old_line, body}`，`file` 為真實 repo 相對路徑，`body` 純內容（不加前綴、不加標記，這兩者由 `/push` 發佈時統一加工）
+- 每則輸出 `{file, new_line|old_line, order?, title?, body}`，`file` 為真實 repo 相對路徑
+
+欄位規則：
+
+| 欄位 | 規則 |
+|------|------|
+| `order` | 導覽順序，字串。主要點 `"1"`、`"2"`…（連續）；次要點 `"2.1"`（掛在該主要點下，最多兩層、每個主要點下最多 3 個）。**省略＝補充項**（機械性但值得一提），不佔動線順位、排最後發佈 |
+| `title` | 有 `order` 者必填。≤16 全形字、**禁出現路徑**，供「接著看」連結文字與閱讀地圖用 |
+| `body` | 純內容。**不要**自己寫 `🤖💬`、編號、「接著看」尾行或 `<!-- mr:self-annotation -->` 標記——這些裝飾全由 `/push` 發佈時組裝 |
+
+排序原則（承 Step 4 的閱讀動線）：
+
+- `"1"` 固定給**入口點定位**：誰呼叫了這次的核心，讓 reviewer 知道從哪讀進來
+- `"2"` 起從核心**由內而外**：核心邏輯 → 外圈呼叫端
+- 機械性改動不發，或省略 `order` 標成補充項排最後
+- 主要點建議 3–7 則。`order` 只表相對順序，實際顯示的 `[i/M]` 編號由 `/push` 重算，**分母 M ＝主要點總數**（次要點與補充項不計入）
 
 ### Step 9: 輸出結果
 
@@ -132,7 +140,10 @@ git diff --name-only main..HEAD    # monorepo 用於判斷 client / admin 前綴
 ````
 ```json
 [
-  { "file": "path/to/file.ts", "new_line": 42, "body": "..." }
+  { "file": "path/to/entry.ts", "new_line": 12, "order": "1", "title": "從哪裡進來", "body": "..." },
+  { "file": "path/to/core.ts", "new_line": 42, "order": "2", "title": "篩選條件組裝", "body": "..." },
+  { "file": "path/to/core.ts", "new_line": 58, "order": "2.1", "title": "快取鍵設計", "body": "..." },
+  { "file": "path/to/util.ts", "old_line": 18, "body": "..." }
 ]
 ```
 ````
@@ -141,7 +152,8 @@ git diff --name-only main..HEAD    # monorepo 用於判斷 client / admin 前綴
 
 輸出後提醒用戶：
 1. 確認內容後複製貼到 GitLab MR
-2. 由 `/push` 建 MR 並自動發佈 inline 自註解、補上截圖（前端 UI 變更必附前後對比）
+2. 由 `/push` 建 MR 並自動發佈 inline 自註解、依 `order` 補上導覽標記與「接著看」跳轉連結、把閱讀地圖插進 description
+3. 補上截圖（前端 UI 變更必附前後對比）
 
 ## 格式嚴格規範
 
