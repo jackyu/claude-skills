@@ -358,6 +358,30 @@ uninstall_skill() {
   fi
 }
 
+# Returns 0 if any skill symlink from this repo is still installed at target_dir
+# apart from the ones handled in this run. Names handled this run are passed in
+# (newline-separated) rather than probed from disk, so the answer is the same
+# under --dry-run, where nothing has actually been unlinked yet.
+has_dependent_skills() {
+  local target_dir="$1"
+  local handled="$2"
+  local entry base resolved
+
+  for entry in "$target_dir"/*; do
+    [[ -L "$entry" ]] || continue
+    base="$(basename "$entry")"
+    # _shared/ dirs are what we are deciding about -- they are not dependents
+    [[ "$base" == _* ]] && continue
+    resolved="$(readlink "$entry")"
+    [[ "$resolved" == "$SKILLS_DIR/$base" ]] || continue
+    if printf '%s\n' "$handled" | /usr/bin/grep -qxF "$base"; then
+      continue
+    fi
+    return 0
+  done
+  return 1
+}
+
 do_uninstall() {
   local target_dir="$(get_target_path "$TARGET")"
 
@@ -372,10 +396,20 @@ do_uninstall() {
     uninstall_skill "$name" "$target_dir"
   done <<< "$skills"
 
-  # Remove _shared/ symlinks too
+  # Remove _shared/ symlinks too, but only once nothing is left to depend on them.
+  # Skills reach _shared/ via absolute paths at runtime (see install_shared_dirs),
+  # so unlinking it while siblings stay installed breaks them -- which is exactly
+  # what a filtered `--uninstall -s <one-skill>` used to do.
+  local sname
   for shared in "$SKILLS_DIR"/_*/; do
     [[ -d "$shared" ]] || continue
-    uninstall_skill "$(basename "$shared")" "$target_dir"
+    sname="$(basename "$shared")"
+    if has_dependent_skills "$target_dir" "$skills"; then
+      info "skip: $sname (still required by other installed skills)"
+      ((COUNT_SKIPPED++)) || true
+      continue
+    fi
+    uninstall_skill "$sname" "$target_dir"
   done
 }
 
