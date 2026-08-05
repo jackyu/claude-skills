@@ -24,7 +24,7 @@ cd claude-skills
 
 ## Skill 目錄
 
-共 19 個 skills，依分類索引如下：
+共 20 個 skills，依分類索引如下：
 
 - [前端開發](#前端開發) — 架構規範、issue 拆解、MR 審查與學習
 - [設計整合](#設計整合) — 設計稿驗證、Figma 整合、UI 審查
@@ -72,6 +72,7 @@ cd claude-skills
 |---|---|
 | [fe-mr-generator](skills/fe-mr-generator/) | 從分支變更內容生成結構化 Merge Request 描述 |
 | [preview](skills/preview/) | 把提案/計畫/想法做成互動 HTML、部署 Vercel 取得分享連結，內嵌註解 overlay 收集回饋 |
+| [comment-polish](skills/comment-polish/) | 整批改寫既有程式碼註解：去翻譯腔與 AI 贅字、拆短句，核可後只動註解行（依 comment-style rule） |
 
 ### 工作流程
 
@@ -171,7 +172,7 @@ claude-skills/
 │   │   └── rules/             # 領域特定規則檔案（選用）
 │   ├── figma/
 │   ├── fe-code-review/
-│   └── ...                    # 共 19 個 skills
+│   └── ...                    # 共 20 個 skills
 ```
 
 ## 貢獻方式
