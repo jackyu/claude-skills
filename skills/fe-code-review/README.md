@@ -27,11 +27,11 @@
 
 | Step | 內容 |
 |------|------|
-| 1 | 前置：固定基準點（fail-fast，ref 不可解析或 diff 為空就停）、規模判定、spec 來源定位 |
-| 2 | 主幹兩軸：呼叫 `mattpocock-skills:code-review`，餵入本環境的 Standards 來源與 spec 來源，並在 Spec 軸 brief 追加「不變量破壞」檢查 |
+| 1 | 前置：固定基準點（fail-fast，ref 不可解析或 diff 為空就停）、規模判定（大型變更額外判「該不該拆」）、spec 來源定位 |
+| 2 | 主幹兩軸：呼叫 `mattpocock-skills:code-review`，餵入本環境的 Standards 來源（含 `fe-guardrails` 的門檻數字）與 spec 來源，並在 Spec 軸 brief 追加「不變量破壞」檢查 |
 | 3 | 專項工具：依規模調度內建 `/code-review` 與 pr-review-toolkit agents |
 | 4 | 爆炸半徑軸與無害區對抗挑戰軸（各一個 `general-purpose` subagent，與 Step 3 平行） |
-| 5 | 整合報告：兩軸分節不 rerank，其餘依嚴重度排序 |
+| 5 | 整合報告：兩軸分節不 rerank，其餘依嚴重度排序；末節核對架構規範與靜態品質門檻 |
 
 調度的審查來源：
 
@@ -55,6 +55,8 @@
 - 兩軸主幹：Spec 軸與 Standards 軸分節呈現、不合併 rerank，避免一軸的通過遮蔽另一軸的失敗
 - 爆炸半徑追蹤：每個被改的匯出符號都要交出呼叫點清單，結論是「無 diff 外呼叫者」也要明列
 - 無害區對抗挑戰：finding 必須先被自己反駁過才進報告，反駁成功的寫進「已挑戰未破」清單當作驗過的證據
+- 靜態品質門檻用數字判定：函式長度、巢狀深度、單檔行數、重複邏輯、條件複雜度都對照 [`fe-guardrails`](../fe-guardrails/) 的門檻表，沒超標也要寫出實測值
+- 大型變更主動判「該不該拆」：三項判準都不成立時要明說「已評估，不建議拆」
 - 依變更規模智慧調度專項 agent，無依賴者平行執行
 - 整合結果去重（僅在正確性一節內）、排序（Critical → Suggestion）、來源標註
 - 白話文報告：先講脈絡再講問題、術語附白話、帶學習點，讓不熟架構的工程師（含新手）也能判斷與學習

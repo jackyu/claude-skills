@@ -16,6 +16,7 @@ description: 前端程式碼審查 Orchestrator，以 Spec 軸／Standards 軸�
   - 內建 `code-review` — 正確性 bug 偵測。**`skill` 固定為 `code-review`，`args` 固定帶 effort level 字串，預設一律用 `high`**（即 `args: "high"`）。
     - effort level **務必當作 `args` 傳入**，不要寫進 `skill` 名稱（寫成 `code-review high` 會導致 tool call 無法解析）。
     - 若要把問題直接發成 GitHub PR inline comment，`args` 改為 `"high --comment"`。
+    - **這個內建 skill 設有 `disable-model-invocation`，透過 `Skill` tool 呼叫必定回錯**（`cannot be used with Skill tool due to disable-model-invocation`）。遇到此錯誤直接跳過 #1，在 Step 5 的總結註明「內建 code-review 無法程式呼叫，保留給使用者手動執行 `/code-review`」，不要重試、不要嘗試繞過。
 - **subagents**：用 `Agent` tool 調度，透過 `subagent_type` 參數指定（如 `pr-review-toolkit:silent-failure-hunter`；爆炸半徑軸與無害區軸用 `general-purpose`）。無依賴的 agents 在同一 message 平行呼叫。
 
 ## 模式判定
@@ -49,6 +50,14 @@ git diff "$FIXED_POINT...HEAD" --name-only     # 輸出為空 → 停下回報
 - **中型**：50–300 行
 - **大型**：> 300 行
 
+規模除了決定 Step 3 派幾個 agent，**大型變更還要在 Step 5 的摘要輸出「這批該不該拆」的判定**。AI 產出的 diff 天生比人寫的大，不主動判一次就會一路長到沒人 review 得動。判準三項：
+
+1. 這批 commit 是否包含多個彼此獨立、可各自上線的目的
+2. 是否把重構跟功能混在一起（混了之後 reviewer 分不出哪些行為改變是故意的）
+3. 拆開後每一份是否仍能編譯、測試通過
+
+任一項成立就建議拆，並具體指出拆成哪幾份、各含哪些檔案。三項都不成立要**明說「已評估，不建議拆」**——省略這句就分不出是評估過還是根本沒看。
+
 **1c. spec 來源定位**（供 Step 2 的 Spec 軸），依序嘗試，找到即停：
 
 1. 使用者以參數給的 spec 檔路徑。
@@ -68,6 +77,7 @@ git diff "$FIXED_POINT...HEAD" --name-only     # 輸出為空 → 停下回報
 
 - `~/.claude/rules/*.md`：`typescript.md`、`component-patterns.md`、`coding-style.md`、`data-fetching.md`、`error-handling.md`、`response-transform.md`、`html-semantics.md`、`tailwind.md`、`testing.md`、`security.md`、`seo.md`、`git-workflow.md`、`git-worktree.md`
 - `fe-arch` skill 的「Code Review 檢查清單」
+- [`fe-guardrails/references/thresholds.md`](../fe-guardrails/references/thresholds.md) 的「給 review skill 引用的檢查項」——靜態品質門檻的數字（函式長度、複雜度、巢狀深度、單檔行數、重複率），Step 5 第 6 節會用到
 - 專案 `CLAUDE.md`（若存在）
 
 這些與該 skill 內建的 Fowler smell baseline 並用；明文規範與 baseline 衝突時，以明文規範為準。
@@ -151,7 +161,15 @@ brief：
 3. `## 副作用（爆炸半徑）`——Step 4a 的匯出符號呼叫點清單與判定。
 4. `## 無害區挑戰`——Step 4b 撐過反駁的 finding，末尾附「已挑戰未破」清單。
 5. `## 前端專項`——前述工具不一定懂的前端問題，額外補：React re-render 效能（缺少 memo、key 不穩定、在 render 中建立新物件/函式）、Next.js SSR/CSR/SSG 選擇是否合理、bundle size 影響（大型 library 是否有 tree-shakable 替代方案）、瀏覽器相容性與 hydration mismatch 風險。
-6. `## 架構規範合規`——載入 `fe-arch` skill，對新增／搬移的檔案跑其「Code Review 檢查清單」（元件位置、API 三層結構、共用歸屬、`z.infer`、測試放同層 `__tests__/`、`page.tsx` 無邏輯）。分級：檔案位置錯誤 → Minor（建議搬移）；高風險域 API 回應缺邊界 `parse()` → Critical（阻擋合併）。
+6. `## 架構與品質門檻合規`——兩部分：
+
+   **(a) 架構規範**：載入 `fe-arch` skill，對新增／搬移的檔案跑其「Code Review 檢查清單」（元件位置、API 三層結構、共用歸屬、`z.infer`、測試放同層 `__tests__/`、`page.tsx` 無邏輯）。分級：檔案位置錯誤 → Minor（建議搬移）；高風險域 API 回應缺邊界 `parse()` → Critical（阻擋合併）。
+
+   **(b) 靜態品質門檻**：對 diff 內新增／修改的函式與檔案，逐項核對 `fe-guardrails/references/thresholds.md` 的數字——函式長度（`.ts` >50 行、`.tsx` >150 行，不含空行註解）、巢狀深度 >4、單檔 >200 行、連續 ≥5 行實質重複、單一函式分支數 >15。
+
+   **完成判準（可逐項對照）**：每一項都要有數字，**沒超標也要寫掃了什麼、實際數字多少**——「掃過 12 支函式，最長 43 行，未超標」。只寫「無異常」會讓人分不出是驗過沒事、還是根本沒看，這跟爆炸半徑與無害區挑戰是同一條原則。
+
+   專案已經裝了對應的 ESLint 規則時，這節可以改成引用 lint 輸出，不必人工重數——但仍要把數字寫進報告。
 
 去重只在第 2 節內部做、不跨節；第 1 節的兩軸永遠獨立。報告風格與篇幅見下方「輸出規範」。
 

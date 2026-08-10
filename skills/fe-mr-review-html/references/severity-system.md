@@ -12,6 +12,8 @@
 
 > 對齊 fe-mr-review：`critical`/`high`/`medium` = **需要修正（要動作）**；`low`/`info` = **技術觀察（不需動作）**。安全性問題以 `critical`/`high` 出現。不再有 `good`（值得學習的模式）級別。
 
+> **medium 那個「>80 行」是分級用的粗判準，不是門檻。** 實際檢查要用的數字在 [`fe-guardrails/references/thresholds.md`](../../fe-guardrails/references/thresholds.md)：`.ts` >50 行、`.tsx` >150 行（不含空行註解）。兩者的關係是——超過 thresholds.md 的門檻就該報，報出來之後落在 80 行以上的歸 `medium`，50-80 行之間的歸 `low`。門檻數字有異動只改 thresholds.md，這裡的分級標準不用跟著動。
+
 ## 分級判定步驟
 
 1. **這個問題在正式環境會發生嗎？**
