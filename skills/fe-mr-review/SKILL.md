@@ -167,9 +167,11 @@ git fetch origin <source_branch>:<source_branch>
 
 這是本地 AI 的關鍵優勢。在分析 review comments 之前，先讀取：
 
-1. **CLAUDE.md**：取得專案的 coding convention 和架構資訊
-2. **本次 MR 變更的檔案**：透過 Step 2 的 diff 取得完整變更內容（不只是 diff，還要看周邊邏輯）
-3. **相關的既有程式碼**：被變更檔案 import 的模組、共用元件、型別定義
+1. **每條 comment 錨定的那一行程式碼**（最優先，不可略過）：DiffNote 帶 `position.new_path` 與 `position.new_line`，`mr-context.sh` 與 `mr-load-discussion.sh` 已輸出為 `file`／`line`。**用 Read 把那一行連同上下文讀出來，確認 reviewer 指的是哪一段，再讀他的文字。**
+   > ⚠️ comment 文字常用指代詞（「這邊」「這個更新」「這樣寫」），光讀文字很容易讀成別的東西——**錨定行才是他真正指的目標**。答錯題會浪費整輪往返，而且 reviewer 通常只會客氣地回一句「好像跟我說的不太是一件事？」，不會直說你答錯了。
+2. **CLAUDE.md**：取得專案的 coding convention 和架構資訊
+3. **本次 MR 變更的檔案**：透過 Step 2 的 diff 取得完整變更內容（不只是 diff，還要看周邊邏輯）
+4. **相關的既有程式碼**：被變更檔案 import 的模組、共用元件、型別定義
 
 ### Step P3: 逐條分析
 
