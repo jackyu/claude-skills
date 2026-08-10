@@ -1,0 +1,45 @@
+{
+  "_comment": "品質護欄規則（.eslintrc 舊格式）。在專案 .eslintrc 的 extends 之後合併，或直接把 rules 與 overrides 併進去。門檻依據見 fe-guardrails/references/thresholds.md。既有專案的 level 應為 warn、數字用 apply.sh --measure 量到的實際值覆寫。",
+
+  "rules": {
+    "complexity": ["warn", 15],
+    "max-depth": ["warn", 4],
+    "max-lines": [
+      "warn",
+      { "max": 200, "skipBlankLines": true, "skipComments": true }
+    ],
+    "max-lines-per-function": [
+      "warn",
+      { "max": 50, "skipBlankLines": true, "skipComments": true }
+    ]
+  },
+
+  "overrides": [
+    {
+      "_comment": "JSX 撐行數，跟邏輯複雜度不是同一回事，所以放寬",
+      "files": ["*.tsx", "*.jsx"],
+      "rules": {
+        "max-lines-per-function": [
+          "warn",
+          { "max": 150, "skipBlankLines": true, "skipComments": true }
+        ]
+      }
+    },
+    {
+      "_comment": "測試檔的 describe 區塊天生就長，套門檻只會製造噪音",
+      "files": [
+        "**/__tests__/**",
+        "*.test.ts",
+        "*.test.tsx",
+        "*.spec.ts",
+        "*.spec.tsx",
+        "*.stories.ts",
+        "*.stories.tsx"
+      ],
+      "rules": {
+        "max-lines-per-function": "off",
+        "max-lines": "off"
+      }
+    }
+  ]
+}
