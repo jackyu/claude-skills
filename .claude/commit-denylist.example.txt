@@ -1,0 +1,30 @@
+# commit-guard 敏感詞清單「範本」
+#
+# 這份 .example 會進版控，實際使用的 commit-denylist.txt 不會——
+# 清單本身就列著它要保護的東西，進版控等於把答案貼在門口。
+#
+# 啟用：
+#   cp .claude/commit-denylist.example.txt .claude/commit-denylist.txt
+#   然後把下面的佔位符換成真的要擋的詞
+#
+# 格式：一行一個詞，大小寫不敏感；# 開頭是註解，空行忽略。
+# 命中時 commit 會被擋下，由你決定改寫措辭、還是把該詞從清單移除。
+#
+# 沒有 commit-denylist.txt 時，敏感詞檢查不啟用（每次 commit 會印一行提示），
+# 但檔案存在卻讀不到會直接擋下——設定壞掉不等於沒設定。
+
+# --- 公司 / 品牌 ---
+# 公司名、產品品牌、對外不公開的服務代號
+your-company-name
+
+# --- 內部專案 / repo 代號 ---
+# 內部 repo 名、專案代號、GitLab group 路徑
+internal-project-slug
+
+# --- 團隊 / 組織識別 ---
+# 團隊 label、部門縮寫、issue tracker 的 group 名
+team-label
+
+# --- 內部網域 / 主機 ---
+# 內網網址、跳板機名稱、內部 API domain
+internal.example.com
