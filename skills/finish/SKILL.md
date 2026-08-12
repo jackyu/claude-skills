@@ -84,7 +84,11 @@ git branch --merged "origin/<base>" --list "<branch>"
 
 A3 與 B1 的清理順序，**順序承重、不可顛倒**，且**同一情境的各步必須在同一次 shell 呼叫內連續完成**。開頭「不跨步驟傳路徑變數」講的是不要跨使用者互動保存路徑，不是要把清理拆成好幾次呼叫——拆開跑正是半完成狀態的來源。
 
-**worktree 情境**（五步）：
+**worktree-isolated sandbox 偵測（動手清理前先判斷）**：部分環境的 session 被鎖死在自己的 worktree 目錄裡，任何離開它的 git 操作（`cd 主repo && git ...`、`git -C 主repo ...`，甚至 Step 1 判斷一般 repo／worktree 用的那條 `test "$(cd ... )"` 複合指令）都會被拒絕，錯誤訊息含「a worktree-isolated session's git operations must target its own worktree」。判斷到這個訊息（或 session 環境資訊本來就註明「This is a git worktree」「Do NOT cd to the original repository root」），**不要重試其他 Bash 變化型**——這個限制連使用者用 `!` 前綴直接下指令都一樣被擋（`!` 只是略過模型的工具呼叫介面，執行環境仍是同一個被鎖定的 sandbox），也不是 `ExitWorktree` 工具能解的（它只認自己這個 session 用 `EnterWorktree` 建立的 worktree，`/start` 手動建的不算，呼叫會是 no-op）。
+
+確認是這種環境後，直接跳過本節後面的自動執行步驟，把完整清理指令區塊（worktree 移除＋分支刪除＋`worktree prune`＋票目錄歸檔，四步合併成一段）一次交給使用者，請對方在**另一個與本 session 無關的終端機、或另一個指向主 repo 目錄的 session**執行。使用者回報完成後，改用 Step 6 的檔案系統版驗證（`test -f`／`ls`／`grep` 讀 `.git/refs/heads/`、`.git/packed-refs`），不要假設 git 驗證指令能跑；worktree 目錄被移除後即使磁碟上已經不存在，這個限制依然基於原本綁定的路徑存在，不會因為目錄消失而解除。
+
+**worktree 情境**（五步；上述 sandbox 限制不成立時才照跑）：
 
 1. 現算主 repo 根目錄並 cd 過去（worktree 必須從它外面移除）：
 
@@ -142,6 +146,16 @@ git branch --list "<branch>"
 
 兩者都不再出現該路徑與分支才算完成。**貼上實際輸出再宣告**，不憑沒報錯就斷言成功。
 
+**worktree-isolated sandbox 情境的驗證**：上面兩條 git 指令一樣會被擋，改用純檔案系統指令驗證，一樣要貼實際輸出才能宣告完成：
+
+```bash
+test -d "<worktree 絕對路徑>" && echo "worktree 目錄仍存在" || echo "worktree 目錄已移除"
+test -f "<主repo>/.git/refs/heads/<branch>" && echo "分支 ref 仍存在" || echo "分支 ref 已移除"
+grep -c "refs/heads/<branch>$" "<主repo>/.git/packed-refs" 2>/dev/null || echo "0"
+```
+
+使用者宣稱「手動完成」不等於已驗證——曾發生 worktree 目錄確實移除，但分支刪除那一步實際沒執行成功，靠這組指令才抓到。
+
 ### Step 7: 接續 session 回顧
 
 finish 流程執行完畢後——**不論使用者選了哪個選項**——直接執行 `retro` skill 回顧本次 session。**不要問「要不要順便做個回顧」，直接跑。**
@@ -172,3 +186,4 @@ retro **只產出提案**、逐項核可才動手，收尾結果不受它影響�
 | 「這個 worktree 看起來也沒用，順手清掉」 | 只清上述三個路徑下的，其餘屬使用者手動管理 |
 | 「有 upstream 就是推過了」 | `worktree add -b … origin/main` 也會設 upstream；看 `branch.<branch>.merge` |
 | 「`ls-remote` 非 0 就當沒這分支」 | 只有 exit 2 是「查無 ref」；其餘非零是連線問題，停下回報 |
+| 「換個寫法再試一次，總有辦法離開 worktree」 | worktree-isolated sandbox 的限制看訊息就能一次判斷，不必也不該重試多種 Bash 變化型；`!` 前綴也一樣被擋，直接交給使用者 |

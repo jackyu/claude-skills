@@ -28,8 +28,8 @@
 | 2 | 確認基底分支（推不出來就問，不假設 main），`git fetch --prune` 後判斷已合併或未合併；沒推過的分支直接算未合併，不查遠端 |
 | 3 | 依情境呈現菜單，逐字照列、等使用者回答 |
 | 4 | 執行選擇：委派 `/push`／保留／丟棄（需 `discard`）／清理已合併分支；走清理的情境順帶把 `/start` 拆的票目錄歸檔到 `.claude/tickets/archive/` |
-| 5 | worktree 清理，只限指定路徑範圍 |
-| 6 | 跑 `git worktree list`、`git branch --list` 為證，再回報完成 |
+| 5 | worktree 清理，只限指定路徑範圍；先判斷是不是被鎖在 worktree 裡的 sandbox，是的話把指令交給使用者在別的終端機跑 |
+| 6 | 跑 `git worktree list`、`git branch --list` 為證，再回報完成；sandbox 情境改用 `test -d`／`test -f`／讀 `packed-refs` 這類檔案系統指令驗證 |
 | 7 | 收尾完成後直接執行 `retro` 做 session 回顧，不詢問；中止收場（Step 1／2）則不跑 |
 
 菜單內容：
@@ -51,6 +51,7 @@
 | force-push | ⛔ 絕不執行 |
 | `git worktree remove --force` | ⛔ 不用，移除失敗就回報實際錯誤 |
 | 已合併分支用 `git branch -D` | ⛔ 先用 `-d`；被拒時附證據詢問，不自行升級 |
+| 被鎖在 worktree 的 sandbox | ⛔ 不重試各種 Bash 變化型（`!` 前綴、`ExitWorktree` 都無效）；直接把清理指令交給使用者，回報後仍要自己用檔案系統指令驗證 |
 
 `-d` 被拒不等於沒合併：`-d` 比對的是分支 upstream，沒有就拿主 repo 的本地基底比，而本地基底常態落後於 `origin`，所以真的合併了也可能被擋。
 
