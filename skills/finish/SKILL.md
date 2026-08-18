@@ -1,6 +1,6 @@
 ---
 name: finish
-description: 開發分支收尾流程——確認狀態後提供選項（開 MR／保留／丟棄／清理已合併分支），執行對應動作並清理 worktree。使用時機：(1) 用戶說功能做完了、分支開發完成, (2) 用戶要清理 worktree 或已合併的分支, (3) MR 已合併要收尾, (4) 用戶說要丟棄這個分支的工作, (5) /start 建立的 worktree 開發告一段落。即使用戶只是說「這個分支搞定了」「幫我收一下」也應觸發此 skill。
+description: 開發分支收尾流程——確認狀態後提供選項（開 MR／保留／丟棄／清理已合併分支），執行對應動作並清理 worktree。使用時機：(1) 用戶說功能做完了、分支開發完成, (2) 用戶要清理 worktree 或已合併的分支, (3) MR 已合併要收尾, (4) 用戶說要丟棄這個分支的工作, (5) `/spec` 建立的 worktree 開發告一段落。即使用戶只是說「這個分支搞定了」「幫我收一下」也應觸發此 skill。
 ---
 
 # 開發分支收尾
@@ -107,13 +107,14 @@ cd "$(git -C "$(cd "$(git rev-parse --git-common-dir)" && pwd -P)/.." rev-parse 
 2. 刪本地分支：A3 用 `git branch -D "<branch>"`，B1 用 `git branch -d "<branch>"`。
 3. 依下面的「票目錄歸檔」處理 `/start` 留下的票檔。
 
-**票目錄歸檔**（兩種情境共用，接在該情境的最後一步、同一次呼叫內）：`/start` 拆的票落在主 repo 根的 `.claude/tickets/<short-description>/`，`<short-description>` 是 `<branch>` 去掉 type 前綴（`feat/cart_checkout` → `cart_checkout`）。移到 `archive/` 留痕、**不刪**——A3 丟棄的票尤其是 retro 素材，「為什麼這批工作被丟掉」都寫在裡面。
+**票目錄歸檔**（兩種情境共用，接在該情境的最後一步、同一次呼叫內）：票拆在主 repo 根的 `.claude/tickets/<branch>/`，`<branch>` 與分支、worktree 同名（`/spec` 建立時就是同一個 `<type>_<short_description>` 字串，不去 type 前綴；舊分支若是 `feat/cart_checkout` 這種斜線格式，票目錄對應的是去掉前綴的 `cart_checkout`）。移到 `archive/` 留痕、**不刪**——A3 丟棄的票尤其是 retro 素材，「為什麼這批工作被丟掉」都寫在裡面。
 
 ```bash
 root=$(git rev-parse --show-toplevel)   # 同一次呼叫內即算即用，不跨步驟保留
-if [ -d "$root/.claude/tickets/<short-description>" ]; then
+ticket_dir="<branch>"   # 舊斜線分支改用去掉 type 前綴的那段，例如 feat/cart_checkout → cart_checkout
+if [ -d "$root/.claude/tickets/$ticket_dir" ]; then
   mkdir -p "$root/.claude/tickets/archive"
-  mv "$root/.claude/tickets/<short-description>" "$root/.claude/tickets/archive/"
+  mv "$root/.claude/tickets/$ticket_dir" "$root/.claude/tickets/archive/"
 fi
 ```
 
