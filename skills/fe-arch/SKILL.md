@@ -119,7 +119,7 @@ src/features/{feature}/api/
   - API 回應的 schema → `features/{feature}/types/`
   - Mutation 輸入的 schema → 直接放在該 mutation 檔案內（與 form 綁定）
   - 跨 feature 的領域 schema → 領域 feature 的 `types/`
-- **高風險域強制驗證**：涉及委託/成交、金額精度、權限邊界、即時報價、付款狀態的 API 回應，必須在 fetch 邊界 `parse()`，不允許 `as` 斷言跳過
+- **高風險域強制驗證**：涉及身分驗證/KYC、審核狀態機、權限邊界、個資欄位的 API 回應，必須在 fetch 邊界 `parse()`，不允許 `as` 斷言跳過（域定義見 `fe-mr-review/references/high-risk-zones.md`）
 
 ## Phase 5：測試檔
 

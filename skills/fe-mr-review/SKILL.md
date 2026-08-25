@@ -18,7 +18,7 @@ AI 輔助 GitLab Merge Request 審查工具，支援兩種模式：
 
 人要看的是機器看不了的三件事：**意圖對不對、架構與 bounded context 有沒有守住、高風險區的業務規則對不對。**
 
-**但券商情境有一塊嚴謹不能往兩頭搬**——下單、金額/股數精度、權限邊界、報價一致性、金流狀態機。所以本 skill 的第一個動作不是技術審查，而是**風險分流**：把 MR 切成「高風險區（人逐行看）」與「一般區（自動化 + agent 掃）」。99% 不看，1% 看到死。
+**但目前產品線（申請前台／審核後台）有一塊嚴謹不能往兩頭搬**——身分驗證、審核狀態機、權限邊界、個資處理、多步驟表單完整性。所以本 skill 的第一個動作不是技術審查，而是**風險分流**：把 MR 切成「高風險區（人逐行看）」與「一般區（自動化 + agent 掃）」。99% 不看，1% 看到死。
 
 ---
 
@@ -73,7 +73,7 @@ git fetch origin <source_branch>:<source_branch>
 
 讀取 `references/high-risk-zones.md`，掃過完整 diff，把每一段變更分類為「高風險區」或「一般區」。
 
-判斷依據：是否觸及下單/委託邏輯、金額與股數精度計算、權限與身份邊界、即時報價/資料一致性、金流狀態機。參考檔內有每一域的訊號關鍵字、前端常見錯法與 reviewer 確認點。
+判斷依據：是否觸及身分驗證與文件審核（KYC）、審核流程狀態機、申請人與審核人員的權限邊界、個資與敏感資料處理、多步驟表單的資料完整性。參考檔內有每一域的訊號關鍵字、前端常見錯法與 reviewer 確認點。
 
 分流結果決定審查強度：
 
@@ -87,6 +87,8 @@ git fetch origin <source_branch>:<source_branch>
 若 diff 完全未觸及任一高風險域，明確標示「本次無高風險區變更，採一般審查強度」，不要含糊帶過。
 
 > **Cross-Context / Cross-Model 提示**：本 skill 在乾淨 session 只看最終產物（不帶產出時的對話歷史），本身即為 cross-context review。高風險區可再請不同 model 複查一次（例如 Codex 看 Claude 寫的），blind spot 不同。
+
+> **視覺化提示**：審核狀態機、多步驟表單這類高風險區，文字描述常常講不清楚「這次改動的形狀」。可依 `fe-show-me` 用 call-tree diff（改了哪一層呼叫）或 state diagram（狀態流轉）表達，比純文字快。只在高風險區、且畫圖確實比文字清楚時才用，不為畫而畫。
 
 ### Step R2: 判斷 MR 類型
 
@@ -201,7 +203,7 @@ git fetch origin <source_branch>:<source_branch>
 - 不要盲目全部採納，review comments 有一定的 false positive 率
 - 不要為了省事全部不採納，確實有道理的建議要接受
 - 拿不準的就標為「需討論」，寧可多討論也不要自己亂判斷
-- 若 comment 涉及高風險區（下單/精度/權限/報價/金流），即使看起來可採納，也傾向標為「需討論」並對齊業務規則後再動
+- 若 comment 涉及高風險區（身分驗證/審核狀態機/權限/個資/表單完整性），即使看起來可採納，也傾向標為「需討論」並對齊業務規則後再動
 
 ### Step P4: 執行修正
 
@@ -286,7 +288,7 @@ glab api "projects/<enc-path>/merge_requests/<iid>/notes?per_page=100" \
 
 ## Reference
 
-- `references/high-risk-zones.md` — 券商前端高風險區定義（Step R1 風險分流用）
+- `references/high-risk-zones.md` — 申請／審核前端高風險區定義（Step R1 風險分流用）
 - `references/review-focus.md` — 各類型（Feature / Bugfix / Refactor）審查焦點 + 資深同儕跨類型優劣鏡片（收斂邊界、介面複雜度、語意精準）+ 資深 reviewer 實戰關注點（跨專案蒸餾：錯誤與副作用分層、既有基建優先、state/cache 跨頁、robustness 雙面、契約與取數職責、死碼/驗證/測試品質、Next.js App Router/a11y/design token/相容性等）；Step R2 校準類型、Step R3 技術審查時參照
 - `references/output-format-review.md` — 審查模式輸出格式 skeleton（Step R4 組裝輸出時參照）
 - `references/reply-template.md` — 回覆評估模式輸出範本
