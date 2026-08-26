@@ -25,6 +25,7 @@ AI 幫你寫完的程式碼，你不一定講得出「為什麼」。這支 skil
 2. diff 是空的 → 問使用者要考哪些檔案或目錄，改用指定檔案模式。
 3. diff 超過 500 行 → 先列出改動的檔案清單，請使用者挑 2–3 個最沒把握的區塊，只考那些。
 4. 有 spec 或 issue（`docs/`、`IMPLEMENTATION_PLAN.md`、`/spec` 產物）就一起讀，題目可以問「spec 要求 X，你的實作在哪裡對應」。
+5. 問一句「這個 branch 開 MR 了嗎？有就貼連結」。有 → 從 URL 拆出 project path 與 IID，跑 `~/.claude/skills/_shared/fe-mr-common/scripts/mr-context.sh <project_path> <mr_iid> --minimal` 拿 MR 標題與 `web_url`，留給收尾當卡片標題與連結。沒有 → 標題暫用 spec／issue 標題，都沒有就請使用者用一句話講這個 branch 在做什麼；連結先留 branch 名與 `git log --oneline origin/main..HEAD` 的 commit 範圍，MR 開了再補。
 
 大量讀檔派 subagent（Explore），主對話只收「改動摘要＋值得出題的位置清單」。
 
@@ -62,7 +63,8 @@ Q3／7 🟡 為什麼不那樣做
 1. **評分**：✅ 答對／🟡 部分對／❌ 答錯或不知道。部分對要點名少了什麼（「你講到會回滾，但沒講 `onSettled` 為什麼還要再 invalidate」）。
 2. **追問一次**：答對或部分對時可追一題衍生問題（「那如果 cancel 到一半使用者切頁呢？」），最多追一次，不無限延伸。
 3. **不接受含糊**：「我大概知道」「應該是快取的關係」這種回答請使用者用自己的話講具體一點，再評分。
-4. 評完進下一題。一輪最多 7 題，到了就收，超過會變成折磨、使用者又會想放行。
+4. **逐題留紀錄**：每題評完就把「題目全文、使用者原文回答、評分、講評（部分對少了什麼）」原封寫進 scratchpad 的 `qa-log.md`。不要事後憑印象重組——收尾要把這份考古題完整放進卡片，日後複習重看的就是這個。
+5. 評完進下一題。一輪最多 7 題，到了就收，超過會變成折磨、使用者又會想放行。
 
 ### Step 4：「不知道」走導師模式
 
@@ -70,18 +72,19 @@ Q3／7 🟡 為什麼不那樣做
 
 1. 切換語氣，用 [`_shared/fe-mr-common/writing-principles.md`](../_shared/fe-mr-common/writing-principles.md) 的學習導讀語氣講解：為什麼要這樣做、反例會發生什麼事、邊界條件在哪。
 2. 資料流、狀態流轉、請求時序這三種情境才畫圖（判準見 [`_shared/fe-mr-common/diagram-rules.md`](../_shared/fe-mr-common/diagram-rules.md)），畫圖交給 `fe-show-me`。單純 if/else 不畫。
-3. 講完**換個角度再問一次同一觀念**，確認真的懂了。例：講完樂觀更新三段式後問「那 `onError` 拿到的 context 是誰給的？」。這題也要評分，記錄為「補課後」的結果。
+3. 講完**換個角度再問一次同一觀念**，確認真的懂了。例：講完樂觀更新三段式後問「那 `onError` 拿到的 context 是誰給的？」。這題也要評分，記錄為「補課後」的結果；講解重點與重問的題目、回答一樣寫進 `qa-log.md`。
 4. 導師模式不是脫逃出口。使用者連續兩題不知道，暫停出題，問要不要先把這個主題整個講一遍再繼續。
 
 ### Step 5：收尾產出掌握度報告
 
 7 題考完（或使用者說停）：
 
-1. 依 [`references/report-template.md`](references/report-template.md) 產出報告。核心是三欄：每個觀念標 懂／半懂／不懂，附「reviewer 可能追問的三題」，以及「補課紀錄」。
-2. 標籤依 [`_shared/fe-mr-common/learning-tags.md`](../_shared/fe-mr-common/learning-tags.md) 選 1–3 個。
-3. 寫進 Heptabase：先 `ToolSearch select:mcp__heptabase-mcp__create_object` 載入工具，再以 `objectType: card` 建卡，內容第一行是 h1 標題，標籤寫在內容第二行 `#標籤`（Hepta Markdown 的 `#tag` 會不會自動掛標籤未驗證，掛不上就當一般文字，不算失敗）。
-4. Heptabase MCP 不在或建卡失敗 → 落到 `<repo 根目錄>/.claude/notes/<project_name>/ask-me-why-<YYYY-MM-DD>-<branch>.md`。`project_name` 是被考的那個專案的名稱，取 `basename $(git rev-parse --show-toplevel)`；先用專案名分一層，之後多個專案的報告才不會混在一起。目錄不在就建，並跟使用者說明落在哪。
-5. 建卡或寫檔後 re-read 確認內容有進去，才回報「已寫入」。
+1. 依 [`references/report-template.md`](references/report-template.md) 產出報告。標題固定 `[審查測驗] <MR 標題>`（Step 1 拿到的；沒 MR 就用 spec／issue 標題或使用者那句話），不用 branch 名——branch 名對日後檢索沒意義。標題下方第一段放 MR 連結，讓人從筆記直接跳回去對照 diff。
+2. 報告兩大段：**掌握度報告**（懂／半懂／不懂、reviewer 可能追問的三題、補課紀錄）與**完整考古題**（從 `qa-log.md` 原封搬，每題一個 toggle：題目當標題、展開是使用者原文回答＋評分＋講評）。考古題不摘要、不改寫。
+3. 標籤依 [`_shared/fe-mr-common/learning-tags.md`](../_shared/fe-mr-common/learning-tags.md) 選 1–3 個。
+4. 寫進 Heptabase：先 `ToolSearch select:mcp__heptabase-mcp__create_object` 載入工具，再以 `objectType: card` 建卡。內容第一行是 h1 標題，第二行 `#標籤`（`#tag` 會不會自動掛標籤未驗證，掛不上就當一般文字，不算失敗）。**表格一律包在 `<hepta-table tokenId="new" hasColumnHeader="true">…</hepta-table>` 裡**，裸的 markdown table Heptabase 不認，會顯示成一串符號；同一次寫入有多張表就用 `new-0`、`new-1`。每格只能一段行內文字，不能放清單或換行。
+5. Heptabase MCP 不在或建卡失敗 → 落到 `<repo 根目錄>/.claude/notes/<project_name>/ask-me-why-<YYYY-MM-DD>-<branch>.md`，內容同一份但把 `<hepta-table>` 標籤拿掉、toggle 的 `+` 換成 `-`，變回一般 markdown。`project_name` 是被考的那個專案的名稱，取 `basename $(git rev-parse --show-toplevel)`；先用專案名分一層，之後多個專案的報告才不會混在一起。目錄不在就建，並跟使用者說明落在哪。
+6. 建卡或寫檔後 re-read 確認內容有進去（尤其表格有沒有變成真的表格、考古題題數對不對），才回報「已寫入」。
 
 報告寫完，對話只給 3 句摘要＋卡片標題或檔案路徑，不把整份報告倒進對話。
 
