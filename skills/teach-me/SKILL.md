@@ -1,9 +1,9 @@
 ---
-name: learn
+name: teach-me
 description: 用六步學習法帶你學任何主題（Python、系統設計、git、任何技能）：拆 5 級階梯、鎖定最重要的 20% 排 10 課、一次一題當考官、壓成一頁速查表、篩 5 個驗證過的資源、費曼復述補漏。進度存在當前 repo 的 .claude/learn/，跨 session、跨機器自動接續。使用時機：(1) 用戶說「教我 X」「我想學 X」「/learn」「幫我排 X 的學習計畫」, (2) 用戶說「考我 X 觀念」「出題考我」且沒有綁 branch 或 diff（綁 diff 的交給 fe-ask-me-why）, (3) 用戶要「做一頁速查表」「cheatsheet」「整理成一頁」, (4) 用戶要「幫我篩 X 的學習資源」「哪些值得看」, (5) 用戶說「用費曼法檢查我懂不懂」「我講一遍你聽」, (6) 用戶說「繼續上次學的」「今天該學什麼」。即使用戶只說「我 Python 要怎麼開始」也應觸發此 skill。
 ---
 
-# learn — 六步學習法，進度跟著 repo 走
+# teach-me — 六步學習法，進度跟著 repo 走
 
 ## 核心理念
 
@@ -56,7 +56,7 @@ description: 用六步學習法帶你學任何主題（Python、系統設計、g
 
 各模式的前置檔：plan 要 `ladder.md`；quiz／cheatsheet／feynman 要 `plan.md`；resources 只要 `progress.md`。
 
-帶參數（`/learn ladder`、`/learn quiz`、`/learn cheatsheet`、`/learn resources`、`/learn feynman`、`/learn plan`）直接進該模式；該模式的前置檔不存在就先補前一步。
+帶參數（`/teach-me ladder`、`/teach-me quiz`、`/teach-me cheatsheet`、`/teach-me resources`、`/teach-me feynman`、`/teach-me plan`）直接進該模式；該模式的前置檔不存在就先補前一步。
 
 ## 六個模式
 

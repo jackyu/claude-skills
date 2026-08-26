@@ -1,4 +1,4 @@
-# learn
+# teach-me
 
 用六步學習法帶你學任何主題：拆 5 級階梯 → 鎖定最重要的 20% 排 10 課 → 一次一題當考官 → 壓成一頁速查表 → 篩 5 個驗證過的資源 → 費曼復述補漏。進度存在當前 repo，跨 session、跨機器自動接續。
 
@@ -9,13 +9,13 @@
 ## 怎麼用
 
 ```
-/learn                    # 自動接續：沒主題就開新主題，有進度就接下一步
-/learn ladder             # 搭 5 級階梯
-/learn plan               # 排 10 課計畫
-/learn quiz               # 考下一課（或到期該復習的課）
-/learn cheatsheet         # 把剛考完的課壓成一頁
-/learn resources          # 篩 5 個資源＋7 天路徑
-/learn feynman            # 費曼復述補漏
+/teach-me                    # 自動接續：沒主題就開新主題，有進度就接下一步
+/teach-me ladder             # 搭 5 級階梯
+/teach-me plan               # 排 10 課計畫
+/teach-me quiz               # 考下一課（或到期該復習的課）
+/teach-me cheatsheet         # 把剛考完的課壓成一頁
+/teach-me resources          # 篩 5 個資源＋7 天路徑
+/teach-me feynman            # 費曼復述補漏
 教我 Python async
 考我 git rebase 觀念
 ```
@@ -45,7 +45,7 @@
 ## 檔案結構
 
 ```
-learn/
+teach-me/
 ├── SKILL.md                        # 入口判斷＋六個模式
 ├── README.md
 └── references/
@@ -69,4 +69,4 @@ learn/
 
 ## 與其他 skill 的關係
 
-純主題學習用 `learn`；題目要綁 branch diff 或專案程式碼時用 `fe-ask-me-why`（有裝的話）。兩支不互相依賴。
+純主題學習用 `teach-me`；題目要綁 branch diff 或專案程式碼時用 `fe-ask-me-why`（有裝的話）。兩支不互相依賴。

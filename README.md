@@ -78,7 +78,7 @@ cd claude-skills
 | [comment-polish](skills/comment-polish/) | 整批改寫既有程式碼註解：去翻譯腔與 AI 贅字、拆短句，核可後只動註解行（依 comment-style rule） |
 | [fe-show-me](skills/fe-show-me/) | 用最小視覺形式（pseudocode／call tree／component tree／file tree／Mermaid／diff／單頁 HTML）講重點；HTML 產出強制假資料、self-contained、固定落在 `.claude/tmp/` |
 | [fe-ask-me-why](skills/fe-ask-me-why/) | 針對當前 branch diff 扮演 reviewer 逐題反問「為什麼這樣做／為什麼不那樣做／API 怎麼接」，不知道就切導師模式講解再換角度重問，收尾產掌握度報告寫進 Heptabase |
-| [learn](skills/learn/) | 六步學習法學任何主題：5 級階梯 → 20% 計畫 → 一次一題考官 → 一頁速查表（必問嵌進哪個必經路徑）→ 驗證過的 5 個資源 → 費曼補漏；進度存 `<repo>/.claude/learn/`，pure skill、網頁版也能用 |
+| [teach-me](skills/teach-me/) | 六步學習法學任何主題：5 級階梯 → 20% 計畫 → 一次一題考官 → 一頁速查表（必問嵌進哪個必經路徑）→ 驗證過的 5 個資源 → 費曼補漏；進度存 `<repo>/.claude/learn/`，pure skill、網頁版也能用 |
 
 ### 工作流程
 
