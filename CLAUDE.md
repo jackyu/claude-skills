@@ -118,6 +118,13 @@ skill-name/
 3. 若要納入本 repo 管理，將建立好的 skill 複製至 `skills/<name>/`
 4. 更新 `README.md` 的 Skill 目錄表格
 
+## 交付流程（新 skill 完成後）
+
+1. fresh-context agent 驗收通過（read-back＋假素材實跑）即直接推 main，本 repo 不開 PR、不走 fe-mr-generator。
+2. `./scripts/install.sh -s <name>` 安裝，確認 `~/.claude/skills/<name>` symlink 指向主 repo。
+3. 回報時列出各種觸發句與參數用法（自然語言與 `--flag` 兩種都給）。
+4. worktree 保留，等使用者在別的專案實測過才 `/finish`。
+
 ## Naming Conventions
 
 - Use kebab-case: `my-skill-name`
