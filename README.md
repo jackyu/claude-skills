@@ -24,12 +24,12 @@ cd claude-skills
 
 ## Skill 目錄
 
-共 24 個 skills，依分類索引如下：
+共 25 個 skills，依分類索引如下：
 
 - [前端開發](#前端開發) — 架構規範、issue 拆解、MR 審查與學習
 - [設計整合](#設計整合) — 設計稿驗證、Figma 整合、UI 審查
 - [框架最佳實踐](#框架最佳實踐) — React/Next.js、Remotion
-- [工具](#工具) — MR 生成、互動預覽、六步學習法
+- [工具](#工具) — MR 生成、互動預覽、六步學習法、週報／A3 提案
 - [工作流程](#工作流程) — skill 探索、完成前驗證、分支收尾、session 回顧
 - [開發輔助](#開發輔助) — Agentation 視覺回饋
 - [系統維護](#系統維護) — macOS 清理、磁碟分析
@@ -79,6 +79,7 @@ cd claude-skills
 | [fe-show-me](skills/fe-show-me/) | 用最小視覺形式（pseudocode／call tree／component tree／file tree／Mermaid／diff／單頁 HTML）講重點；HTML 產出強制假資料、self-contained、固定落在 `.claude/tmp/` |
 | [fe-ask-me-why](skills/fe-ask-me-why/) | 針對當前 branch diff 扮演 reviewer 逐題反問「為什麼這樣做／為什麼不那樣做／API 怎麼接」，不知道就切導師模式講解再換角度重問，收尾產掌握度報告寫進 Heptabase |
 | [teach-me](skills/teach-me/) | 六步學習法學任何主題：5 級階梯 → 20% 計畫 → 一次一題考官 → 一頁速查表（必問嵌進哪個必經路徑）→ 驗證過的 5 個資源 → 費曼補漏；進度存 `<repo>/.claude/learn/`，pure skill、網頁版也能用 |
+| [a3-report](skills/a3-report/) | 給主管的週報與 A3 提案：進度／blocker／拍板事項（縮小版 A3：問題→現況→方案比較→建議）／下週，或完整 8 格 A3；素材來自手打筆記、PM issue、GitLab 本週 MR／issue；沒數據標「待確認」不腦補；`--format md\|ppt\|html` |
 
 ### 工作流程
 
@@ -178,7 +179,7 @@ claude-skills/
 │   │   └── rules/             # 領域特定規則檔案（選用）
 │   ├── figma/
 │   ├── fe-code-review/
-│   └── ...                    # 共 24 個 skills
+│   └── ...                    # 共 25 個 skills
 ```
 
 ## 貢獻方式

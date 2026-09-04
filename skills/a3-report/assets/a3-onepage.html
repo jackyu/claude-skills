@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A3：{{提案標題}}</title>
+<style>
+  :root {
+    --color-bg: #ffffff;
+    --color-surface: #f7f7f5;
+    --color-border: #d8d5cf;
+    --color-text: #1f1f1f;
+    --color-text-muted: #5a5a56;
+    --color-accent: #8a6d3b;
+    --color-pending-bg: #fdecec;
+    --color-pending-border: #c0392b;
+    --color-pending-text: #7a2415;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 16px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+    line-height: 1.6;
+  }
+
+  /* 頂部標題列：標題／提案人／日期／受眾／要決定什麼 */
+  .header {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    background: var(--color-surface);
+  }
+
+  .header h1 {
+    margin: 0 0 8px 0;
+    font-size: 1.4rem;
+  }
+
+  .header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+  }
+
+  .header-meta strong {
+    color: var(--color-text);
+  }
+
+  /* 8 格主體：2 欄 × 4 列，左欄①–④、右欄⑤–⑧ */
+  .a3-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(4, auto);
+    grid-auto-flow: column;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .cell {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: var(--color-bg);
+  }
+
+  .cell h2 {
+    margin: 0 0 6px 0;
+    font-size: 1rem;
+    color: var(--color-accent);
+  }
+
+  .cell .conclusion {
+    font-weight: 600;
+    margin: 0 0 8px 0;
+  }
+
+  .cell ul {
+    margin: 0;
+    padding-left: 1.2em;
+    font-size: 0.92rem;
+  }
+
+  .cell ul li {
+    margin-bottom: 4px;
+  }
+
+  .cell table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-top: 6px;
+  }
+
+  .cell th, .cell td {
+    border: 1px solid var(--color-border);
+    padding: 4px 6px;
+    text-align: left;
+  }
+
+  /* 待確認：紅底加左側粗邊框，黑白列印也看得出來 */
+  .pending {
+    background: var(--color-pending-bg);
+    border-left: 4px solid var(--color-pending-border);
+    color: var(--color-pending-text);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+
+  /* 底部：要主管決定什麼橫幅 */
+  .decision-banner {
+    border: 2px solid var(--color-accent);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    background: #fbf6ec;
+  }
+
+  .decision-banner h2 {
+    margin: 0 0 6px 0;
+    font-size: 1.05rem;
+  }
+
+  /* 自檢閘門表 */
+  .checklist {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+
+  .checklist h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.05rem;
+  }
+
+  .checklist table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  .checklist th, .checklist td {
+    border: 1px solid var(--color-border);
+    padding: 6px 8px;
+    text-align: left;
+  }
+
+  .checklist th {
+    background: var(--color-surface);
+  }
+
+  /* 響應式：寬度小於 900px 退成單欄 */
+  @media (max-width: 900px) {
+    .a3-grid {
+      grid-template-columns: 1fr;
+      grid-auto-flow: row;
+    }
+  }
+
+  /* 列印：A3 橫向 */
+  @media print {
+    @page {
+      size: A3 landscape;
+      margin: 12mm;
+    }
+    body {
+      padding: 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!--
+  weekly 模式：.a3-grid 改單欄，依序放四個 .cell：進度／風險與 blocker／需要拍板的事
+  （每個拍板事項一個子區塊）／下週。.header 與 .checklist 照用；不使用 .decision-banner
+  （拍板事項的「要主管決定什麼」寫在自己的 cell 內）。
+-->
+
+<header class="header">
+  <h1>A3：{{提案標題}}</h1>
+  <div class="header-meta">
+    <span>提案人：<strong>{{姓名}}</strong></span>
+    <span>日期：<strong>{{YYYY-MM-DD}}</strong></span>
+    <span>受眾：<strong>{{主管職稱}}</strong></span>
+    <span>要決定什麼：<strong>{{一句話}}</strong></span>
+  </div>
+</header>
+
+<main class="a3-grid">
+  <section class="cell">
+    <h2>① 問題</h2>
+    <p class="conclusion">{{一句話：這個問題是什麼}}</p>
+    <ul>
+      <li>影響範圍：{{受影響的人／系統／流程}}</li>
+    </ul>
+  </section>
+
+  <section class="cell">
+    <h2>② 現況</h2>
+    <p class="conclusion">{{一句結論}}</p>
+    <ul>
+      <li>{{數字事實}}（<span class="pending">🔴 待確認：{{缺什麼}}，去哪拿：{{Sentry／GA／某 dashboard／問誰}}</span>）</li>
+    </ul>
+  </section>
+
+  <section class="cell">
+    <h2>③ 目標</h2>
+    <p class="conclusion">{{一句話，含期限與指標}}</p>
+    <ul>
+      <li>{{可衡量的指標定義}}</li>
+    </ul>
+  </section>
+
+  <section class="cell">
+    <h2>④ 根因</h2>
+    <p class="conclusion">{{一句結論}}</p>
+    <ul>
+      <li>{{根因鏈第一步}}</li>
+      <li>{{根因鏈第二步}}</li>
+    </ul>
+  </section>
+
+  <section class="cell">
+    <h2>⑤ 對策</h2>
+    <p class="conclusion">{{一句結論：建議怎麼解}}</p>
+    <table>
+      <thead>
+        <tr><th>方案</th><th>效益</th><th>風險或成本</th><th>建議</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>{{方案 A}}</td><td>{{一句話}}</td><td>{{一句話}}</td><td>{{選／不選}}</td></tr>
+        <tr><td>{{方案 B}}</td><td>{{一句話}}</td><td>{{一句話}}</td><td>{{選／不選}}</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="cell">
+    <h2>⑥ 計畫</h2>
+    <p class="conclusion">{{一句結論}}</p>
+    <table>
+      <thead>
+        <tr><th>事項</th><th>負責人</th><th>日期</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>{{里程碑 1}}</td><td>{{姓名}}</td><td>{{日期}}</td></tr>
+        <tr><td>{{里程碑 2}}</td><td>{{姓名}}</td><td>{{日期}}</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="cell">
+    <h2>⑦ 成效</h2>
+    <p class="conclusion">{{一句結論：用什麼數字確認方案有效}}</p>
+    <ul>
+      <li>量測指標：{{指標名稱}}</li>
+      <li>基準值：{{數字}}（<span class="pending">🔴 待確認：{{缺什麼}}，去哪拿：{{Sentry／GA／某 dashboard／問誰}}</span>）</li>
+      <li>何時量：{{日期或頻率}}</li>
+    </ul>
+  </section>
+
+  <section class="cell">
+    <h2>⑧ 標準化</h2>
+    <p class="conclusion">{{一句結論：怎麼避免問題再發生}}</p>
+    <ul>
+      <li>規則／自動化：{{具體做法}}</li>
+      <li>Owner：{{負責維護的人或團隊}}</li>
+    </ul>
+  </section>
+</main>
+
+<section class="decision-banner">
+  <h2>要主管決定什麼</h2>
+  <p>{{一句話}}，決定期限 {{日期}}，不決定的話 {{會怎樣}}</p>
+</section>
+
+<section class="checklist">
+  <h2>自檢閘門</h2>
+  <table>
+    <thead>
+      <tr><th>檢查點</th><th>結果</th><th>說明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>① 問題是否具體、可驗證</td><td>{{✅／⚠️}}</td><td>{{說明}}</td></tr>
+      <tr><td>② 現況數字是否有來源</td><td>{{✅／⚠️}}</td><td>{{說明}}</td></tr>
+      <tr><td>③ 目標是否有期限與指標</td><td>{{✅／⚠️}}</td><td>{{說明}}</td></tr>
+      <tr><td>④ 根因是否可驗證</td><td>{{✅／⚠️}}</td><td>{{說明}}</td></tr>
+      <tr><td>⑤ 對策是否比較過至少兩個方案</td><td>{{✅／⚠️}}</td><td>{{說明}}</td></tr>
+      <tr><td>⑥ 計畫每項是否有負責人與日期</td><td>{{✅／⚠️}}</td><td>{{說明}}</td></tr>
+      <tr><td>⑦ 成效是否有量測方式與基準值</td><td>{{✅／⚠️}}</td><td>{{說明}}</td></tr>
+      <tr><td>⑧ 標準化是否有具體規則與 owner</td><td>{{✅／⚠️}}</td><td>{{說明}}</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</body>
+</html>

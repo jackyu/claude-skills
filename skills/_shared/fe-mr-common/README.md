@@ -11,6 +11,7 @@
 | [fe-mr-review](../../fe-mr-review/) | writing-principles（審查語氣）、mr-context-usage |
 | [fe-mr-review-html](../../fe-mr-review-html/) | writing-principles（審查語氣） |
 | [fe-code-review](../../fe-code-review/) | writing-principles（審查語氣） |
+| [a3-report](../../a3-report/) | writing-principles（只引「共用規範」整段與審查語氣 §1 白話先行；讀者改為主管，不屬於兩種語氣任一） |
 
 ## 檔案清單
 
