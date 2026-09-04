@@ -1,0 +1,42 @@
+[
+  {
+    "query": "幫我整理這週要跟主管講的東西",
+    "should_trigger": true
+  },
+  {
+    "query": "這件事我不敢自己決定，要寫給主管拍板",
+    "should_trigger": true
+  },
+  {
+    "query": "幫我寫份 A3 提案說服主管清技術債",
+    "should_trigger": true
+  },
+  {
+    "query": "我想推動導入 feature flag 平台，寫個提案給主管",
+    "should_trigger": true
+  },
+  {
+    "query": "把這週的週報做成投影片",
+    "should_trigger": true
+  },
+  {
+    "query": "幫我 review 這個 MR",
+    "should_trigger": false
+  },
+  {
+    "query": "幫我把這個 MR 整理成學習筆記",
+    "should_trigger": false
+  },
+  {
+    "query": "幫我把 review 結果做成網頁交出去",
+    "should_trigger": false
+  },
+  {
+    "query": "我想幫這專案加 ESLint 複雜度門檻",
+    "should_trigger": false
+  },
+  {
+    "query": "幫我把 React hooks 的觀念整理成一頁速查表",
+    "should_trigger": false
+  }
+]
