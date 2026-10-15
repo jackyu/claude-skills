@@ -1,6 +1,7 @@
 ---
 name: fe-mr-digest
 description: 將已合併的 GitLab MR 轉化為學習筆記，從資深工程師的程式碼和 Review 討論中萃取知識。使用時機：(1) 用戶要求將 MR 整理成學習筆記, (2) 用戶提到 MR 學習、MR 筆記、MR digest, (3) 用戶想從某個 MR 學習工程師的思路或技巧, (4) 用戶提到從 code review 中學習, (5) 用戶想把 MR 當作教材或知識庫素材, (6) 用戶說「這個 MR 寫得不錯，幫我整理一下」。此 skill 的目的不是審查程式碼，而是萃取學習價值——理解工程師怎麼思考、怎麼解決問題、Reviewer 怎麼看待這些決策。即使用戶只是說「幫我看看這個 MR 有什麼值得學的」也應觸發此 skill。
+disable-model-invocation: true
 ---
 
 # MR Learning Digest

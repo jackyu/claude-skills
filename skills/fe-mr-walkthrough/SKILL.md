@@ -1,6 +1,7 @@
 ---
 name: fe-mr-walkthrough
 description: 協助 reviewer 在 review 前快速理解 GitLab MR：白話化說明、流程圖輔助、AI 扮演作者答疑、標記值得學習的好做法（可銜接 fe-mr-digest）。使用時機：(1) 用戶說「幫我先看懂這個 MR」「解釋一下這個 MR 在幹嘛」, (2) 用戶提到 MR walkthrough、MR 導讀、MR 理解, (3) 用戶想在 review 前先 brief 自己, (4) 用戶要把 MR 翻譯成 PM/QA 看得懂的版本, (5) 用戶想對 MR 提問但作者不在線, (6) 用戶說「這個 MR 有沒有什麼值得學的」但 MR 尚未合併。
+disable-model-invocation: true
 ---
 
 # MR Walkthrough

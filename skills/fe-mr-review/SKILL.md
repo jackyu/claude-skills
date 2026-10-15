@@ -1,6 +1,7 @@
 ---
 name: fe-mr-review
 description: AI 輔助 GitLab Merge Request 審查與 Review Comment 回覆。使用時機：(1) 用戶要求審查 MR/PR, (2) 用戶提到 merge request review、PR review, (3) 用戶要求產出 code review 並包含人工確認項目, (4) 用戶提到要讓 AI 先 review 再由人確認, (5) 用戶要求針對 GitLab MR 進行審查, (6) 用戶要求分析 review comments, (7) 用戶提到 code review 回覆、review 回應, (8) 用戶說 MR 上有 review 建議要處理, (9) 用戶說要處理 review feedback。即使用戶只是說「MR 上有 review 幫我看一下」也應觸發此 skill。
+disable-model-invocation: true
 ---
 
 # MR Review
