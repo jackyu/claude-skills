@@ -86,7 +86,7 @@ A3 與 B1 的清理順序，**順序承重、不可顛倒**，且**同一情境�
 
 **worktree-isolated sandbox 偵測（動手清理前先判斷）**：部分環境的 session 被鎖死在自己的 worktree 目錄裡，任何離開它的 git 操作（`cd 主repo && git ...`、`git -C 主repo ...`，甚至 Step 1 判斷一般 repo／worktree 用的那條 `test "$(cd ... )"` 複合指令）都會被拒絕，錯誤訊息含「a worktree-isolated session's git operations must target its own worktree」。判斷到這個訊息（或 session 環境資訊本來就註明「This is a git worktree」「Do NOT cd to the original repository root」），**不要重試其他 Bash 變化型**——這個限制連使用者用 `!` 前綴直接下指令都一樣被擋（`!` 只是略過模型的工具呼叫介面，執行環境仍是同一個被鎖定的 sandbox），也不是 `ExitWorktree` 工具能解的（它只認自己這個 session 用 `EnterWorktree` 建立的 worktree，`/start` 手動建的不算，呼叫會是 no-op）。
 
-確認是這種環境後，直接跳過本節後面的自動執行步驟，把完整清理指令區塊（worktree 移除＋分支刪除＋`worktree prune`＋票目錄歸檔，四步合併成一段）一次交給使用者，請對方在**另一個與本 session 無關的終端機、或另一個指向主 repo 目錄的 session**執行。使用者回報完成後，改用 Step 6 的檔案系統版驗證（`test -f`／`ls`／`grep` 讀 `.git/refs/heads/`、`.git/packed-refs`），不要假設 git 驗證指令能跑；worktree 目錄被移除後即使磁碟上已經不存在，這個限制依然基於原本綁定的路徑存在，不會因為目錄消失而解除。
+確認是這種環境後，直接跳過本節後面的自動執行步驟，把完整清理指令區塊（worktree 移除＋`worktree prune`＋票目錄歸檔＋分支刪除，四步合併成一段）一次交給使用者。區塊裡只有 `worktree remove` 用 `&&` 擋後面（它失敗代表有未追蹤檔，後面都不該跑），其餘三步用 `;` 各自獨立、`branch -d` 放最後：本地基底常落後 `origin`，`-d` 被拒很常見，整串 `&&` 會連 prune 與歸檔一起漏掉。交接時先附 Step 2 的 `git merge-base --is-ancestor <分支 tip> origin/<base>` 結果，預告 `-d` 若被拒該怎麼判斷。請對方在**另一個與本 session 無關的終端機、或另一個指向主 repo 目錄的 session**執行。使用者回報完成後，改用 Step 6 的檔案系統版驗證（`test -f`／`ls`／`grep` 讀 `.git/refs/heads/`、`.git/packed-refs`），不要假設 git 驗證指令能跑；worktree 目錄被移除後即使磁碟上已經不存在，這個限制依然基於原本綁定的路徑存在，不會因為目錄消失而解除。
 
 **worktree 情境**（五步；上述 sandbox 限制不成立時才照跑）：
 
@@ -152,7 +152,7 @@ git branch --list "<branch>"
 ```bash
 test -d "<worktree 絕對路徑>" && echo "worktree 目錄仍存在" || echo "worktree 目錄已移除"
 test -f "<主repo>/.git/refs/heads/<branch>" && echo "分支 ref 仍存在" || echo "分支 ref 已移除"
-grep -c "refs/heads/<branch>$" "<主repo>/.git/packed-refs" 2>/dev/null || echo "0"
+grep -q "refs/heads/<branch>$" "<主repo>/.git/packed-refs" 2>/dev/null && echo "packed-refs 仍有分支" || echo "packed-refs 已無分支"
 ```
 
 使用者宣稱「手動完成」不等於已驗證——曾發生 worktree 目錄確實移除，但分支刪除那一步實際沒執行成功，靠這組指令才抓到。
