@@ -55,7 +55,7 @@ pr 的段落順序是 Summary → Evidence → Merge Danger；這個 skill 刻�
 
 依照 `references/mr-description-template.md`，五段依序是：
 
-1. **關聯**：決定 `Closes` 還是 `Related to`
+1. **關聯**：決定 `Closes` 還是 `Related to`；後端票、追蹤票這類其他關聯可以另列一行
 2. **為什麼要這樣做**：2–3 句背景與動機
 3. **Summary**：照 pr 的規則挑最小的圖
 4. **Merge Danger**：Door（one-way／two-way）與 Blast Radius
@@ -69,9 +69,9 @@ pr 的段落順序是 Summary → Evidence → Merge Danger；這個 skill 刻�
 - **Evidence**：只列實際存在的證據，不准編造或補寫成已驗證
   - **有驗收清單**：每個沒刪除的 AC 一項，用 AC 編號開頭（mission-band 會檢查每個編號都有出現）。照該條的 `結果` 填：
     - `通過`：寫 AC 標題，接 Before／After 截圖（`改動前` 是 `無（新功能）` 或 `同預期` 開頭的只有 After）和測試名稱加 `（紅→綠）` 或 `（通過）`
-    - `未過`、`受阻`、`待驗`、`待重驗`：寫 `AC-n 待補：<結果裡寫的原因>`，不要寫成通過
+    - `未過`、`受阻`、`待驗`、`待重驗`：寫 `AC-n 待補：<原因>`，不要寫成通過。原因改寫成白話的功能描述（不貼函式名、路徑、指令）；已經拿到的證據（例：After 截圖、紅→綠的測試）照樣列在下面
     - 整體回歸是 `通過` 就在最後加一行 `整體回歸：<N> 條 journey 通過（<SHA 前 9 碼>）`，其他狀態寫 `整體回歸：待補`
-    - 截圖是主 checkout 的本機檔案，MR 上要看得到得先上傳（`glab api --method POST "projects/<專案>/uploads" --form "file=@<檔名>"` 取回 markdown）。這個 skill 不上傳，先寫路徑，提醒使用者或 /push 處理
+    - 截圖是主 checkout 的本機檔案，MR 上要看得到得先上傳（`glab api --method POST "projects/<專案>/uploads" --form "file=@<檔名>"` 取回 markdown）。這個 skill 不上傳：先用 inline code 寫證據檔路徑、標「待上傳」，提醒使用者或 /push 處理。這是下面「不寫路徑」規則的例外，上傳換成圖片後路徑就不見了
   - **沒有清單**：列對話裡實際有的證據；沒有就寫「待補：缺 <什麼>」
 - **詞彙**：專案有 `GLOSSARY.md` 就用裡面的領域詞
 

@@ -4,7 +4,7 @@
 
 ## 通用規則（所有專案）
 
-- 直接使用 Issue 原本的 title，不改寫
+- 直接使用 Issue 原本的 title，內容不改寫（issue title 自帶的 `[後台]` 這類前綴照下方 monorepo 規則拿掉）
 - 例外：Issue title 是英文 conventional commit 格式（如 `fix(admin): move ji proxy path`）時，改寫成中文說明，`[#id][前後台]` 前綴照留。例：`[#459][後台] 吉盈 API 轉發改走 /proxy/ji，避免被反向代理送到開戶後端`
 - 若為 Subtask，在 Issue title 後加 ` - <subtask title>`
 - Issue ID 使用 `[#xxx]` 前綴標記
