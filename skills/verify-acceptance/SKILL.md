@@ -78,10 +78,10 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
    - 確認 Before 的 port 上沒有還在跑的 dev server（有就先 cleanup）
    - `cd <base> && git status --porcelain`；有上次沒清掉的測試檔就 `git clean -fd -- 'apps/*/test'`（不帶 `-x`，`.env`、`node_modules` 不會被刪）
    - `git checkout --detach -f <baseSha>`
-   - lockfile 跟上次不同，或 launch／測試回報缺 `node_modules` → `pnpm install --frozen-lockfile`
+   - `git diff --name-only <切換前的 HEAD> <baseSha> -- pnpm-lock.yaml` 有東西，或 launch／測試回報缺 `node_modules` → `pnpm install --frozen-lockfile`
 4. install 之後看 `git -C <base> status --short`，lockfile 被改寫就 `git checkout -- pnpm-lock.yaml`，保持 `<base>` 乾淨
 5. 確認 `<base>` 有 `.env`（`git check-ignore -q apps/<app>/.env && test -f apps/<app>/.env`）。沒有就把 Before 截圖記成 `受阻｜baseline 沒有 .env`；Before journey 照樣寫好（補了 `.env` 重跑就能直接用），After 和測試紅轉綠照跑（測試不需要 `.env`）
-6. 起 app：admin `cd <base> && .claude/skills/verify-admin/scripts/launch.sh <port> …`（預設 3203），client 預設 3204，再跑 doctor 並記下 `<base>` 的 HEAD；PdfViewer 頁面一樣用 turbopack
+6. 有 `.env` 才起 app（沒有的話 launch 一定失敗，不用試）：admin `cd <base> && .claude/skills/verify-admin/scripts/launch.sh <port> …`（預設 3203），client 預設 3204，再跑 doctor 並記下 `<base>` 的 HEAD；PdfViewer 頁面一樣用 turbopack
 7. `<base>` 只拿來跑，不 commit、不改追蹤的檔案；暫時放進去的檔案用完就刪
 
 ## Step 3：逐條跑
@@ -90,7 +90,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 
 ### 截圖：admin
 
-1. 寫臨時 journey 到 `<證據目錄>/journeys/AC-<n>.json`（Step 5 回歸入庫會用到，不要刪）
+1. 寫臨時 journey 到 `<證據目錄>/journeys/AC-<n>.json`（Step 5 回歸入庫會用到，不要刪）。已經存在、而且 mock 跟「前提」對得上就沿用；條目內容改過（`待重驗`）就重寫
    - 範本：`<wt>/.claude/skills/verify-admin/journeys/*.json` 裡同區域的那份，照抄後依「前提」改 `mocks` 的資料
    - 必填：`route`、`roles`、`ready`、`mocks`、`steps`。角色以 AC「前提／操作」寫的為準，沒寫才用範本的（吉盈頁面給 `ji_admin`）
    - `steps`：照「操作」寫動作；「預期」寫成 `expectVisible`／`expectCount`／`expectUrl` 等斷言。`capture` 拍兩張：第一個動作之前一張、最後一個斷言之後一張
@@ -108,7 +108,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 
 ### 截圖：收證據
 
-把這次 drive 的整個證據目錄（截圖、ARIA、network log）複製到 `<證據目錄>/runs/AC-<n>-after/`，再把斷言後那張截圖另外複製成 `<證據目錄>/AC-<n>-after-<寬度>.png`；同一個寬度有好幾張要當證據時，加流水號 `AC-<n>-after-<寬度>-<序號>.png`，每張都寫進結果。worktree 刪掉後證據還在。
+把這次 drive 的整個證據目錄（截圖、ARIA、network log）複製到 `<證據目錄>/runs/AC-<n>-after/`（已有舊的就先刪掉再複製，不要新舊混在一起），再把斷言後那張截圖另外複製成 `<證據目錄>/AC-<n>-after-<寬度>.png`；同一個寬度有好幾張要當證據時，加流水號 `AC-<n>-after-<寬度>-<序號>.png`，每張都寫進結果。worktree 刪掉後證據還在。
 
 ### 測試
 
@@ -150,7 +150,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 
 1. 對應的測試檔要是這個分支新增或改過的。對應到的是沒改過的既有測試 → 當成「找不到對應的測試」
 2. 把要帶進 `<base>` 的檔案找齊：這個測試檔，加上 `git diff --name-only <baseSha>...HEAD -- apps/<app>/test/` 裡被它 import 的輔助檔（helpers、fixtures）。原本 `<base>` 有的先備份
-3. 在 `<base>` 只跑這條指定的測試：`cd <base> && pnpm --filter <app> exec jest --runTestsByPath '<路徑>' -t '<測試名稱>'`，輸出存到 `<證據目錄>/<測試檔名去掉副檔名>-test-before.txt`
+3. 在 `<base>` 只跑指定的測試（好幾條 AC 共用同一個測試檔時，用 `-t '<名稱 A>|<名稱 B>'` 一次跑完，共用一份輸出）：`cd <base> && pnpm --filter <app> exec jest --runTestsByPath '<路徑>' -t '<測試名稱>'`，輸出存到 `<證據目錄>/<測試檔名去掉副檔名>-test-before.txt`
    - `-t` 比對的是 describe 加 it 的完整名稱，是 regex：名稱裡的 `( ) [ ] . * + ?` 要先跳脫
    - 判定前確認輸出裡指定的測試**真的有跑**（passed 加 failed 至少 1）。全部 skipped 代表 `-t` 沒比對到，修好重跑，不能當成綠
 4. 跑完還原 `<base>`：改過的 `git -C <base> checkout -- <路徑>`，新增的刪掉，最後 `git -C <base> status --porcelain` 要是空的
@@ -165,6 +165,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 - 證據路徑一律相對於 `<main>`
 - 任何一條的結果變了，`整體回歸` 改回 `未跑`
 - 用 Edit 改 `- 結果：` 那一行。每條的結果行常常長得一樣，old_string 要連同上一行 `- 來源：…` 一起帶上才唯一。改完 Read 回來確認
+- 新的結果跟原本一字不差就不用改，也不算「結果變了」
 
 ## Step 5：回歸入庫
 
@@ -193,7 +194,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 
 ## Step 7：收尾回報
 
-- 跑 cleanup 關掉自己起的 app（After 和 Before 都要），確認 port 釋放；刪掉 `<main>/.claude/worktrees/verify-baseline.lock`；確認 `<base>` 的 `git status --porcelain` 是空的
+- 跑 cleanup 關掉自己起的 app（After 和 Before 都要），確認 port 釋放（drive 和 cleanup 會在 `<wt>/.claude/verify-evidence/` 留下 run 目錄和 dev log，那裡已 gitignore，不用清）；刪掉 `<main>/.claude/worktrees/verify-baseline.lock`；確認 `<base>` 的 `git status --porcelain` 是空的
 - 回報表格：AC、結果、證據路徑；最後一行統計（通過 N／未過 N／受阻 N／待驗 N，待驗含待重驗）
 - 未過的條目附原因和截圖路徑，建議回實作階段修
 - 受阻的條目列出缺什麼、誰能解（例：「請你執行 `! cp …`」）
