@@ -88,7 +88,7 @@ pr 的段落順序是 Summary → Evidence → Merge Danger；這個 skill 刻�
 輸出後提醒使用者：
 
 1. Evidence 有「待補」的話，開 MR 前補上
-2. 需要閱讀地圖（diff 上的 inline 導覽註解）時另外跑閱讀地圖的 skill，這個 skill 不產
+2. 需要閱讀地圖（diff 上的 inline 導覽註解）時跑 `/mr-reading-map <MR 號>`，這個 skill 不產
 
 ## 語氣與表達規範
 

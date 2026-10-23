@@ -6,7 +6,7 @@
 
 GitLab 版的 Pocock `pr` skill。Summary 圖、Evidence、Merge Danger 照 `pr` 的規則寫，再加上 GitLab 與前端專案的規則：`[#id][前後台] 中文說明` 標題、Closes／Related to 關聯、「為什麼要這樣做」、fe-arch 注意事項，以及給 `/push` 檢查用的隱形標記。
 
-inline 導覽註解與閱讀地圖不在這個 skill 的範圍，由另外的 skill 處理。
+inline 導覽註解與閱讀地圖不在這個 skill 的範圍，由 `mr-reading-map` skill 處理。
 
 ## When to Use
 
