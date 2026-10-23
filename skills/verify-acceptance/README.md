@@ -4,7 +4,7 @@
 
 ## Purpose
 
-驗收階段的入口。讀 `/to-acceptance` 產生的 `.claude/specs/acceptance-<key>.md`，依每條的證據類型截圖（用 verify-admin／verify-client 驅動）、跑測試或跑指令，把 `通過`／`未過`／`受阻` 和證據路徑寫回清單。mission-band 讀清單顯示進度，fe-mr-generator 照 AC 編號填 MR 的 Evidence。
+驗收階段的入口。讀 `/to-acceptance` 產生的 `.claude/specs/acceptance-<key>.md`，依每條的證據類型截圖（用 verify-admin／verify-client 驅動）、跑測試或跑指令，把 `通過`／`未過`／`受阻` 和證據路徑寫回清單。會改變的行為另在 origin/main 的 baseline worktree（`.claude/worktrees/verify-baseline`）拍 Before、驗測試紅轉綠（改動前也會過的測試判成空包彈）。最後把標了回歸的條目寫進 verify-admin／verify-client，並對 After 跑全部 journey 當整體回歸。mission-band 讀清單顯示進度，fe-mr-generator 照 AC 編號填 MR 的 Evidence。
 
 格式規格在 `skills/_shared/acceptance/format.md`。
 
@@ -19,7 +19,7 @@
 
 | File | Description |
 |------|-------------|
-| `SKILL.md` | 流程：準備、起 app、逐條跑、寫回、回報 |
+| `SKILL.md` | 流程：準備、起 After／Before 的 app、逐條跑、寫回、回歸入庫、整體回歸、回報 |
 
 ## Language
 

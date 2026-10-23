@@ -18,7 +18,11 @@ MR 描述只放 reviewer 從 diff 讀不出來的東西：為什麼做、改動�
 1. **關聯 Issue**：這個 MR 對應哪張 Issue？
 2. **Subtask 對應**：對應 Issue 中的哪個 Subtask？（選填）
 3. **PM Issue**：上游的 PM Issue 編號（選填）
-4. **驗收素材**：驗收階段的截圖、測試由紅轉綠的紀錄、blast-radius 的結論。有就拿來用，沒有不用另外補做
+4. **驗收素材**：
+   - **驗收清單**：主 checkout 的 `.claude/specs/acceptance-<key>.md`（主 checkout＝`dirname "$(git rev-parse --path-format=absolute --git-common-dir)"`，key 通常是 issue 號；格式見 `~/.claude/skills/_shared/acceptance/format.md`）。有清單就以它為 Evidence 的唯一依據
+   - 沒有清單時：對話裡的截圖、測試由紅轉綠的紀錄
+   - blast-radius 的結論
+   - 有就拿來用，沒有不用另外補做
 
 ### Step 2: 確認分支資訊
 
@@ -62,7 +66,13 @@ pr 的段落順序是 Summary → Evidence → Merge Danger；這個 skill 刻�
 **素材規則**
 
 - **Merge Danger**：有 blast-radius 的結論就直接引用、註明出處，不重新推論。沒有就從 diff 推，句首標「推測：」
-- **Evidence**：只列實際存在的證據（驗收截圖、測試紅轉綠的紀錄、指令輸出）。沒有就寫「待補：缺 <什麼>」，不准編造或補寫成已驗證
+- **Evidence**：只列實際存在的證據，不准編造或補寫成已驗證
+  - **有驗收清單**：每個沒刪除的 AC 一項，用 AC 編號開頭（mission-band 會檢查每個編號都有出現）。照該條的 `結果` 填：
+    - `通過`：寫 AC 標題，接 Before／After 截圖（`改動前` 是 `無（新功能）` 或 `同預期` 開頭的只有 After）和測試名稱加 `（紅→綠）` 或 `（通過）`
+    - `未過`、`受阻`、`待驗`、`待重驗`：寫 `AC-n 待補：<結果裡寫的原因>`，不要寫成通過
+    - 整體回歸是 `通過` 就在最後加一行 `整體回歸：<N> 條 journey 通過（<SHA 前 9 碼>）`，其他狀態寫 `整體回歸：待補`
+    - 截圖是主 checkout 的本機檔案，MR 上要看得到得先上傳（`glab api --method POST "projects/<專案>/uploads" --form "file=@<檔名>"` 取回 markdown）。這個 skill 不上傳，先寫路徑，提醒使用者或 /push 處理
+  - **沒有清單**：列對話裡實際有的證據；沒有就寫「待補：缺 <什麼>」
 - **詞彙**：專案有 `GLOSSARY.md` 就用裡面的領域詞
 
 **其他規則**
