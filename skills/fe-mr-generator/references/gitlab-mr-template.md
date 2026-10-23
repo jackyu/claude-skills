@@ -6,23 +6,27 @@
 
 ## 💡 為什麼要這樣做
 
-<!-- 用 2-3 句話說明背景和動機，不是「做了什麼」而是「為什麼要做」 -->
-<!-- 讓不了解需求背景的人也能快速理解 context -->
-
-
+<!-- 2-3 句背景和動機，不是「做了什麼」而是「為什麼要做」 -->
 
 ---
 
-### 備註（選填）
+## 🗺️ Summary
 
-<!-- 若 reviewer 需要特別關注某些地方，一句話說明應特別關注的部分 -->
+<!-- 最小的一張圖：pseudocode、call tree、component tree、file tree、Mermaid 或 diff -->
 
 ---
 
-## 📸 截圖
+## ⚠️ Merge Danger
 
-<!-- 前端 UI 變更必附截圖 -->
+**Door:**
 
-| Before | After |
-|--------|-------|
-|  |  |
+**Blast Radius:**
+
+---
+
+## ✅ Evidence
+
+- **Before:**
+  **After:**
+
+<!-- mr:fe-mr-generator -->

@@ -254,7 +254,7 @@ git commit -m "fix: address code review feedback"
 
 若 MR 描述過於簡略，在「合併建議」的原因裡點出（如「描述缺背景，建議補上目的與要解決的問題後再合」），不需另開區塊。
 
-> 治本提醒：MR 讀起來費力，根源常在 generator 階段。可建議作者改用 `fe-mr-generator` 重產描述（含概念地圖與風險分流），而非靠 review 端硬讀。
+> 治本提醒：MR 讀起來費力，根源常在 generator 階段。可建議作者改用 `fe-mr-generator` 重產描述（含 Summary 圖與 Merge Danger），而非靠 review 端硬讀。
 
 ### 大型 MR（超過 500 行變更）
 

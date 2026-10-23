@@ -1,33 +1,12 @@
 # MR Description Template
 
-產出 MR 描述時依照以下結構。核心原則：MR 是知識載體，不只是變更清單。
+五段依序：關聯 → 為什麼要這樣做 → Summary → Merge Danger → Evidence。每個 MR 五段都要有。Summary、Evidence、Merge Danger 的寫法以 Pocock `pr` skill 為準，這裡只補 GitLab 與本專案的規則。
 
-送到 review 桌上時就要 review-ready。對 reviewer CP 值最高的區塊是 **概念地圖**（讓人看圖不看 code）。description 只保留 why 與整體輪廓：關聯、為什麼、概念地圖（一般以上必填）、截圖。「做了什麼」的核心資訊（關鍵邏輯、商業決策、為何這樣做）改以作者自行留下的 inline 自註解直接落在 diff 對應行，不進 description；逐項功能、架構選擇、一般 review 重點等「diff 看得出來」的資訊，一樣留給程式碼本身。
-
-## 區塊分級
-
-根據 MR 複雜度決定哪些區塊必填：
-
-| 區塊 | 簡單 MR | 一般 MR | 複雜 MR |
-|------|---------|---------|---------|
-| 關聯 | ✅ 必填 | ✅ 必填 | ✅ 必填 |
-| 為什麼要這樣做 | ✅ 必填 | ✅ 必填 | ✅ 必填 |
-| 概念地圖 | — 省略 | ✅ 必填 | ✅ 必填 |
-| 截圖 | 視情況 | ✅ 必填 | ✅ 必填 |
-| Inline 自註解（非描述區塊） | 0–3 則 | 3–6 則 | 5–10 則 |
-
-> 逐項功能、架構選擇、一般 review 重點、學習點等「diff 看得出來」的內容不進描述——交給程式碼與 reviewer 端的審查工具（fe-mr-review 會自行做風險分流）。原「做了什麼」「測試說明」兩區塊的內容，改由 inline 自註解（見 `references/inline-comments-guide.md`）與 CI/驗收流程承擔。開發過程的解題思維（嘗試了什麼、為什麼不行）也不進描述——MR 著重「為何而做」，不需要向 reviewer 完整交代思考過程。
-
-**複雜度判斷**：
-- **簡單**：單一元件調整、樣式修改、文案更新、設定檔變更
-- **一般**：新增頁面/元件、API 串接、既有功能修改
-- **複雜**：架構重構、跨模組影響、效能優化、新技術導入
-
----
+段落標題要包含這五個詞（emoji 可有可無）：`關聯`、`為什麼要這樣做`、`Summary`、`Merge Danger`、`Evidence`。mission-band 會比對這些詞，判斷 MR 格式是否完整。
 
 ## Template
 
-```markdown
+````markdown
 ## 🔗 關聯
 
 - **Issue**: Closes #{{ ISSUE_ID }}
@@ -38,63 +17,57 @@
 
 ## 💡 為什麼要這樣做
 
-<!-- 這個標題行之後會被 /push 插入一塊「閱讀地圖」（inline 自註解的索引）。
-     模板不要預埋 <!-- mr:reading-map:start --> 標記，交給 /push 自己找位置插入。 -->
+{{ 2–3 句背景與動機。不是「做了什麼」，是「為什麼要做」。 }}
 
-{{ 用 2-3 句話說明這個 MR 的背景和動機。
-   不是「做了什麼」，而是「為什麼要做」。
-   讓不了解需求背景的人也能快速理解 context。 }}
-
-<!-- 範例：
-案件狀態詳細頁的 Tab 結構已經不符合業務審核流程的分類方式，
-審核人員需要頻繁在不同 Tab 間切換才能完成一個審查動作。
-這次重構 Tab 結構，將相關審查項目歸類在一起，減少切換次數。
--->
+{{ 選填：新增檔案位置不符合 fe-arch 時，加一段「**注意事項**」說明偏離原因或建議搬移 }}
 
 ---
 
-## 🗺️ 概念地圖
+## 🗺️ Summary
 
-<!-- 複雜度：一般以上必填。這是 reviewer「看圖不看 code」的那張圖。
-     目標：讓 reviewer 在讀任何一行 code 之前，30 秒內掌握
-     「動了哪些模組、資料怎麼流、bounded context 的邊界畫在哪」。
-     規則：純文字 ASCII 箭頭，貼到 MR 時用程式碼區塊包住以保留排版；禁止檔案路徑。 -->
+{{ 照 pr 的規則挑最小的圖：pseudocode、call tree、component tree、file tree、Mermaid 或 diff。
+   每張圖旁邊配一兩句說明，只留回答「改了什麼形狀」需要的節點。 }}
 
-{{ 模組與資料流向圖，並明確標出本次變更的邊界。基本格式： }}
-
-    [ 觸發點 ] ──→ [ 模組 A ] ──→ [ 模組 B ] ──→ [ 結果 ]
-                      │
-                      └─ 邊界：本次只動 {{ X }}，刻意不碰 {{ Y }}
-
-<!-- 範例：
-    [ 會員清單頁 ] ──→ [ 搜尋篩選 Hook ] ──→ [ TanStack Query ] ──→ [ 列表渲染 ]
-                            │
-                            └─ 邊界：本次只動「清單查詢與篩選」，
-                               不碰「審核流程」與「案件狀態變更」
--->
+<!-- 閱讀地圖（選用）由另外的 skill 插在這裡 -->
 
 ---
 
-## 📸 截圖或錄影
+## ⚠️ Merge Danger
 
-<!-- 前端 UI 變更必附截圖 -->
+**Door:** {{ one-way 或 two-way }}
 
-| Before | After |
-|--------|-------|
-| {{ 截圖 }} | {{ 截圖 }} |
+{{ 選填：為什麼是這種門 }}
+
+**Blast Radius:** {{ 一個詞 }}
+
+{{ 選填：合併後可能波及哪些地方。引用 blast-radius 結論時註明出處；從 diff 推的句首標「推測：」 }}
+
+---
+
+## ✅ Evidence
+
+- **Before:** {{ 截圖／輸出／失敗的測試 }}
+  **After:** {{ 截圖／輸出／通過的測試 }}
+
+{{ 沒有實際證據就寫「待補：缺 <什麼>」 }}
 
 <!-- mr:fe-mr-generator -->
-```
+````
 
-> 最後一行的 `<!-- mr:fe-mr-generator -->` 是隱形驗證標記，渲染後不顯示。`/push` 的 PreToolUse hook 會檢查它是否存在，缺少則擋下建立 MR，**請務必保留在 description 結尾**。
+## 段落規則
 
----
+| 段落 | 規則 |
+|------|------|
+| 關聯 | 這個 MR 做完就能關票才寫 `Closes #id`；只做一部分、或關聯的是追蹤票，寫 `Related to #id`。Subtask、PM Issue 沒有就整行刪掉 |
+| 為什麼要這樣做 | 讓不了解需求背景的人也能看懂 context。不寫解題過程 |
+| Summary | 一張圖講清楚就不要放兩張。前端 UI 改動優先用 component tree 或 diff 形式的 component tree |
+| Merge Danger | one-way door＝難以回退（刪資料、改對外契約、資料遷移）；two-way door＝revert 就能回復 |
+| Evidence | 截圖最好，其次是測試紅轉綠、指令輸出。前端 UI 改動要附前後對比截圖。不收合、放最後 |
 
 ## 格式規範
 
-- **禁止出現檔案路徑**：不論相對或絕對路徑，一律用功能描述取代
-- **禁路徑規則的例外**：僅約束 description 本文與 inline 註解 body；註解清單 JSON 的 `file` 欄位必須是真實 repo 相對路徑（見 `references/inline-comments-guide.md`）
-- **禁止 Markdown 連結格式中包含路徑**：`[文字](src/...)` 這類寫法不允許
-- **概念地圖**：純文字 ASCII 箭頭，在 MR 中以程式碼區塊包住保留排版
-- **使用繁體中文**
-- **MR Title 格式**：見 `references/mr-title-rules.md`（含通用規則與 monorepo 前綴邏輯）
+- 檔案路徑只能出現在 Summary 的程式碼區塊裡；文字段落用功能描述
+- Markdown 連結不帶 repo 內路徑
+- 使用繁體中文；`Summary`、`Merge Danger`、`Evidence`、`Door`、`Blast Radius` 維持英文
+- 最後一行固定是 `<!-- mr:fe-mr-generator -->`，`mr-create.sh`／`mr-update.sh` 會檢查，缺了擋下
+- MR Title 見 `references/mr-title-rules.md`

@@ -4,7 +4,8 @@
 
 ## 通用規則（所有專案）
 
-- 直接使用執行 Issue 原本的 title，不改寫
+- 直接使用 Issue 原本的 title，不改寫
+- 例外：Issue title 是英文 conventional commit 格式（如 `fix(admin): move ji proxy path`）時，改寫成中文說明，`[#id][前後台]` 前綴照留。例：`[#459][後台] 吉盈 API 轉發改走 /proxy/ji，避免被反向代理送到開戶後端`
 - 若為 Subtask，在 Issue title 後加 ` - <subtask title>`
 - Issue ID 使用 `[#xxx]` 前綴標記
 
@@ -50,7 +51,7 @@ ls apps 2>/dev/null   # 存在且底下有多個 app → monorepo
 判斷依據（看變更落在哪些目錄）：
 
 ```bash
-git diff --name-only main..HEAD
+git diff --name-only origin/<target>...HEAD
 ```
 
 前綴決策（由上往下，先成立者採用）：
@@ -68,7 +69,7 @@ git diff --name-only main..HEAD
 
 - 前綴詞外層用 `[]` 包住
 - `[{前綴詞}]` 與 `{title}` 之間保留**一個半形空白**作區隔
-- 前綴由路徑推導，不要從 issue title 手動嵌入
+- 前綴由路徑推導，不要從 issue title 手動嵌入；issue title 自己帶的 `[開戶]`、`[後台]` 這類前綴要拿掉，避免跟路徑前綴重複
 
 範例：
 
@@ -82,7 +83,7 @@ git diff --name-only main..HEAD
 偵測 snippet（給 agent 自動判斷前綴）：
 
 ```bash
-files=$(git diff --name-only main..HEAD)
+files=$(git diff --name-only origin/<target>...HEAD)
 client=$(echo "$files" | grep -q '^apps/client/' && echo 1)
 admin=$(echo "$files" | grep -q '^apps/admin/' && echo 1)
 if [ "$client" = 1 ] && [ "$admin" = 1 ]; then echo "前/後台"
