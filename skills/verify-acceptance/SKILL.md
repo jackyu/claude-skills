@@ -2,17 +2,22 @@
 name: verify-acceptance
 description: 照驗收清單（.claude/specs/acceptance-<key>.md）逐條驗收：依每條的證據類型起 app 截圖、跑測試或跑指令；會改變的行為另在分支的分岔點（baseline worktree）拍 Before、驗測試紅轉綠；把結果寫回清單，再把要進回歸的條目寫進 verify-admin／verify-client，最後跑整體回歸。驗收階段使用者打 /verify-acceptance 時使用。
 disable-model-invocation: true
+context: fork
+background: false
 ---
 
 # verify-acceptance：逐條驗收
 
 清單格式以 `~/.claude/skills/_shared/acceptance/format.md` 為準，先讀它。這個 skill 只寫清單的 `結果`、`回歸入庫`、`整體回歸`、meta 的 `branch`，其他欄位是 `/to-acceptance` 的，不要改。
 
-**用法**：`/verify-acceptance [key] [--all] [--only AC-1,AC-3] [--no-regression]`
+**用法**：`/verify-acceptance [key] [--all] [--only AC-1,AC-3] [--no-regression] [--branch <分支>] [--target <分支>] [--spec-ok]`
+
+**這個 skill 在 subagent 裡跑**（frontmatter `context: fork`）：驗收要起 app、讀大量輸出，放在主對話會讓之後每一次呼叫都重讀這些內容。subagent 中途問不了使用者，所以遇到要使用者決定的地方，一律停下來把問題寫進回報、結束這一輪，使用者回答後帶對應的旗標重跑。Step 7 的回報是主對話唯一看得到的內容，要能單獨讀懂。
 
 - 預設只跑結果是 `待驗`、`未過`、`受阻`、`待重驗` 的條目；`--all` 連 `通過` 的也重跑；`--only` 只跑指定的
 - 逐條跑完後接著做回歸入庫（Step 5）和整體回歸（Step 6）；`--no-regression` 跳過這兩步
 - 不 commit、不 push。驗收過程發現程式要改，回報給使用者，回實作階段修
+- `--branch`、`--target`、`--spec-ok` 是回答停下來的問題用的，見 Step 0 第 3～5 點
 - **通常要跑兩輪**：第一輪逐條驗收、把回歸寫進 worktree；使用者 commit 之後再跑一次，這次條目都過了會直接進整體回歸，記下的 SHA 才是最後要進 MR 的那一個
 
 ## Step 0：準備
@@ -23,14 +28,14 @@ disable-model-invocation: true
 2. **找清單**：給了 key 就讀 `<main>/.claude/specs/acceptance-<key>.md`；沒給就照 format.md「檔案與 key」從目前分支或 mission 名稱找。找不到 → 請使用者先跑 `/to-acceptance`，結束
 3. **找 `<wt>`**：
    - meta 有 `branch` → `git worktree list` 找那個分支的目錄
-   - 沒有 → 用目前所在的 worktree。但目前分支是預設分支（`git symbolic-ref --short refs/remotes/origin/HEAD` 去掉 `origin/`）或 `rc/*` 時，停下來問使用者功能分支是哪一個
+   - 沒有 → 用目前所在的 worktree。但目前分支是預設分支（`git symbolic-ref --short refs/remotes/origin/HEAD` 去掉 `origin/`）或 `rc/*` 時：有 `--branch` 就用它；沒有就停下來，回報「目前在 <分支>，請用 `--branch <功能分支>` 重跑」，結束
    - 確定後把分支名寫進 meta `branch`
 4. **決定比較基準 `<baseRef>`**（改動前＝這個分支切出來的地方）：
-   - meta `branchType` 是 `fix`（hotfix，目標是 `rc/*`）→ `<baseRef>`＝`origin/<MR 的目標分支>`；不知道目標就問使用者
+   - meta `branchType` 是 `fix`（hotfix，目標是 `rc/*`）→ `<baseRef>`＝`origin/<MR 的目標分支>`；目標用 `--target`，沒給、也查不到這個分支的 MR 時，停下來回報「hotfix 要指定目標，請用 `--target rc/<版本>` 重跑」，結束
    - 其他 → `origin/<預設分支>`
    - `cd <wt> && git fetch origin`，算出分岔點 `<baseSha>`＝`git merge-base HEAD <baseRef>`。之後所有 diff 都用 `<baseSha>...HEAD`，Before 也跑在 `<baseSha>`
    - `git rev-list --count HEAD..<baseRef>` 大於 0 → 提醒「分支落後 N 個 commit，建議先 rebase」，不擋（Before 用分岔點，不會混到別人的改動）
-5. **規格改過沒有**：meta `spec` 不是 null 時，spec 檔現在的 mtime（取到整秒）比 `specMtime` 新 → 先提醒「規格改過，清單可能沒跟上，要先跑 /to-acceptance 更新嗎？」，使用者說繼續才往下
+5. **規格改過沒有**：meta `spec` 不是 null 時，spec 檔現在的 mtime（取到整秒）比 `specMtime` 新 → 沒有 `--spec-ok` 就停下來，回報「規格改過，清單可能沒跟上：先跑 /to-acceptance 更新；確定不用更新就加 `--spec-ok` 重跑」，結束
 6. **分支狀態**：
    - `<wt>` 沒有 `.claude/skills/verify-admin`（或 `verify-client`）→ 分支切得太早，請使用者 rebase，截圖類先記成 `受阻｜分支沒有驅動腳本，請先 rebase`
    - 未提交改動：`git status --porcelain --untracked-files=no` 有東西，或 `git status --porcelain -- apps packages` 有未追蹤檔 → 提醒驗收跑的是含未提交改動的版本
@@ -67,7 +72,7 @@ disable-model-invocation: true
 
 Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-baseline`，切到 `<baseSha>`：
 
-1. **鎖**：鎖檔放在 `<base>` 外面，`<main>/.claude/worktrees/verify-baseline.lock`（放在 `<base>` 裡會被當成未追蹤檔）。存在、內容的 key 不是這次的、而且修改時間在 2 小時內 → 有別的驗收正在用，停下來告訴使用者。否則寫入 `<key> <ISO 時間>`，Step 7 收尾時刪掉
+1. **鎖**：鎖檔放在 `<base>` 外面，`<main>/.claude/worktrees/verify-baseline.lock`（放在 `<base>` 裡會被當成未追蹤檔）。存在、內容的 key 不是這次的、而且修改時間在 2 小時內 → 有別的驗收正在用，Before 截圖和測試紅轉綠記成 `受阻｜baseline 被 <鎖檔的 key> 占用`，After 照跑，回報裡說明。否則寫入 `<key> <ISO 時間>`，Step 7 收尾時刪掉
 2. **第一次**（`<base>` 不存在）：
    ```bash
    git -C <main> worktree add --detach <base> <baseSha>
@@ -194,7 +199,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 
 ## Step 7：收尾回報
 
-- 跑 cleanup 關掉自己起的 app（After 和 Before 都要），確認 port 釋放（drive 和 cleanup 會在 `<wt>/.claude/verify-evidence/` 留下 run 目錄和 dev log，那裡已 gitignore，不用清）；刪掉 `<main>/.claude/worktrees/verify-baseline.lock`；確認 `<base>` 的 `git status --porcelain` 是空的
+- 跑 cleanup 關掉自己起的 app（After 和 Before 都要），確認 port 釋放（drive 和 cleanup 會在 `<wt>/.claude/verify-evidence/` 留下 run 目錄和 dev log，那裡已 gitignore，不用清）；刪掉 `<main>/.claude/worktrees/verify-baseline.lock`（只刪這一輪自己寫的；內容是別的 key 就不動）；確認 `<base>` 的 `git status --porcelain` 是空的
 - 回報表格：AC、結果、證據路徑；最後一行統計（通過 N／未過 N／受阻 N／待驗 N，待驗含待重驗）
 - 未過的條目附原因和截圖路徑，建議回實作階段修
 - 受阻的條目列出缺什麼、誰能解（例：「請你執行 `! cp …`」）
