@@ -102,6 +102,14 @@ cd claude-skills
 |---|---|
 | [mole-maintenance](skills/mole-maintenance/) | 安裝並用 Mole (`mo`) 做 macOS 維護 — 偵測/安裝、系統健康檢查、磁碟分析、清理預覽（清除預設只 dry-run，需明確指示才真刪） |
 
+## Mods
+
+Claude Code mod 放在 `mods/`，不走 `install.sh`，各自的 README 寫安裝方式與前置條件。
+
+| Mod | 說明 |
+|---|---|
+| [mission-band](mods/mission-band/) | 輸入框上方的開發任務進度提示（開始 → 實作 → 驗收 → 審查 → 收尾），依賴本 repo 的 approach、to-acceptance、verify-acceptance、cleanup |
+
 ## 安裝方式
 
 ### install.sh（推薦用於本 repo 技能）
@@ -180,6 +188,8 @@ claude-skills/
 │   ├── figma/
 │   ├── fe-code-review/
 │   └── ...                    # 共 25 個 skills
+├── mods/
+│   └── mission-band/          # Claude Code mod（安裝見其 README）
 ```
 
 ## 貢獻方式

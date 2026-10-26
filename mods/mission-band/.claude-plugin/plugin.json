@@ -1,0 +1,1 @@
+{ "name": "mission-band", "version": "0.1.0", "description": "Track progress through the new-feature mission flow and show the next step above the prompt", "types": "./types/index.d.ts" }

@@ -1,0 +1,1013 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mission 指南</title>
+<style>
+  /* 色 token：5 個階段各一色（流程圖／步驟卡／表格標題共用），另外三個狀態色（完成／進行中／跳過）
+     跟階段色分開——階段色代表「哪個階段」，狀態色代表「做完了沒」，兩個維度不混用同一組顏色。 */
+  :root {
+    --bg: #ffffff;
+    --bg-alt: #f4f5f7;
+    --fg: #1b1f24;
+    --fg-muted: #5b636e;
+    --border: #d9dde2;
+    --accent: #0a5fd1;
+    --accent-bg: #e8f0fd;
+    --code-bg: #f0f1f3;
+    --table-head: #eef1f4;
+
+    --ok: #147136;
+    --doing: #714f14;
+    --skip: #71141c;
+
+    --stage-start: #154984;       --stage-start-soft: #e3ecf7;
+    --stage-build: #3e1584;       --stage-build-soft: #ebe3f7;
+    --stage-verify: #137252;      --stage-verify-soft: #e3f7f0;
+    --stage-review: #844915;      --stage-review-soft: #f7ece3;
+    --stage-finish: #84153e;      --stage-finish-soft: #f7e3eb;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15181c;
+      --bg-alt: #1d2127;
+      --fg: #e4e6ea;
+      --fg-muted: #9aa3ad;
+      --border: #333a42;
+      --accent: #6cb0ff;
+      --accent-bg: #16263d;
+      --code-bg: #20242b;
+      --table-head: #232833;
+
+      --ok: #bcf1cf;
+      --doing: #f1ddbc;
+      --skip: #f1bcc0;
+
+      --stage-start: #a2c4eb;       --stage-start-soft: #1c314a;
+      --stage-build: #bda2eb;       --stage-build-soft: #2d1c4a;
+      --stage-verify: #a2ebd3;      --stage-verify-soft: #1c4a3b;
+      --stage-review: #ebc4a2;      --stage-review-soft: #4a311c;
+      --stage-finish: #eba2bd;      --stage-finish-soft: #4a1c2d;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #15181c;
+    --bg-alt: #1d2127;
+    --fg: #e4e6ea;
+    --fg-muted: #9aa3ad;
+    --border: #333a42;
+    --accent: #6cb0ff;
+    --accent-bg: #16263d;
+    --code-bg: #20242b;
+    --table-head: #232833;
+
+    --ok: #bcf1cf;
+    --doing: #f1ddbc;
+    --skip: #f1bcc0;
+
+    --stage-start: #a2c4eb;       --stage-start-soft: #1c314a;
+    --stage-build: #bda2eb;       --stage-build-soft: #2d1c4a;
+    --stage-verify: #a2ebd3;      --stage-verify-soft: #1c4a3b;
+    --stage-review: #ebc4a2;      --stage-review-soft: #4a311c;
+    --stage-finish: #eba2bd;      --stage-finish-soft: #4a1c2d;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "Segoe UI", system-ui, sans-serif;
+    line-height: 1.65;
+    padding: 24px 16px 64px;
+  }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    margin: 0 0 4px;
+  }
+
+  .subtitle {
+    color: var(--fg-muted);
+    margin: 0 0 28px;
+    font-size: 0.95rem;
+  }
+
+  nav.toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+
+  nav.toc a {
+    display: inline-block;
+    color: var(--accent);
+    background: var(--accent-bg);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  nav.toc a:hover {
+    text-decoration: underline;
+  }
+
+  section {
+    margin-bottom: 44px;
+    scroll-margin-top: 12px;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    margin-top: 0;
+  }
+
+  h3 {
+    font-size: 1.02rem;
+    margin-bottom: 6px;
+  }
+
+  p { margin: 0 0 12px; }
+
+  .lead {
+    border-left: 3px solid var(--accent);
+    background: var(--bg-alt);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+  }
+  .lead p:last-child { margin-bottom: 0; }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    border-radius: 4px;
+    padding: 0.1em 0.35em;
+    font-size: 0.92em;
+  }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    white-space: pre;
+  }
+
+  /* band 示意圖裡的符號上色，跟下面圖例用同一組狀態色：完成綠、進行中橘、略過紅、未開始灰。 */
+  .sym-done { color: var(--ok); font-weight: 700; }
+  .sym-doing { color: var(--doing); font-weight: 700; }
+  .sym-skip { color: var(--skip); font-weight: 700; }
+  .sym-idle { color: var(--fg-muted); }
+  .sym-current { font-weight: 700; }
+  .sym-warn { color: var(--doing); font-weight: 700; }
+  .sym-accent { color: var(--accent); font-weight: 700; }
+
+  /* ===== callout：注意／小技巧，兩種有色邊條 ===== */
+  .callout {
+    border-left: 3px solid var(--border);
+    background: var(--bg-alt);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    font-size: 0.92rem;
+    margin: 14px 0;
+  }
+  .callout::before {
+    display: block;
+    font-weight: 700;
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .callout--tip { border-left-color: var(--accent); }
+  .callout--tip::before { content: "小技巧"; color: var(--accent); }
+  .callout--warn { border-left-color: var(--doing); }
+  .callout--warn::before { content: "注意"; color: var(--doing); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ===== 五分鐘上手：動畫 mock band ===== */
+  .mock-band {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-alt);
+    padding: 14px 16px;
+    margin: 14px 0 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.86rem;
+  }
+  .mock-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .mock-tab { display: inline-flex; align-items: center; gap: 5px; }
+  .mock-steps { display: flex; flex-direction: column; gap: 6px; }
+  .mock-step { display: flex; align-items: center; gap: 6px; color: var(--fg-muted); }
+  .mock-symwrap { position: relative; display: inline-block; width: 1.1em; height: 1.1em; vertical-align: middle; }
+  .mock-sym { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; }
+  .mock-tab .mock-sym--idle { color: var(--fg-muted); }
+  .mock-tab .mock-sym--current { color: var(--fg); font-weight: 700; }
+  .mock-tab .mock-sym--done { color: var(--ok); }
+  .mock-step .mock-sym--idle { color: var(--fg-muted); }
+  .mock-step .mock-sym--current { color: var(--doing); }
+  .mock-step .mock-sym--done { color: var(--ok); }
+  .mock-caption { font-size: 0.78rem; color: var(--fg-muted); margin: 6px 0 0; font-family: inherit; }
+
+  /* ===== 五分鐘上手：步驟卡 ===== */
+  .qs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+  .qs-card {
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--stage-color, var(--border));
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .qs-card[data-stage="start"]  { --stage-color: var(--stage-start);  --stage-soft: var(--stage-start-soft); }
+  .qs-card[data-stage="build"]  { --stage-color: var(--stage-build);  --stage-soft: var(--stage-build-soft); }
+  .qs-card[data-stage="verify"] { --stage-color: var(--stage-verify); --stage-soft: var(--stage-verify-soft); }
+  .qs-card[data-stage="review"] { --stage-color: var(--stage-review); --stage-soft: var(--stage-review-soft); }
+  .qs-card[data-stage="finish"] { --stage-color: var(--stage-finish); --stage-soft: var(--stage-finish-soft); }
+  .qs-eyebrow {
+    display: inline-block;
+    width: fit-content;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--stage-soft, var(--bg-alt));
+    color: var(--stage-color, var(--fg-muted));
+  }
+  .qs-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 1.02rem; font-weight: 700; }
+  .qs-code code { background: none; padding: 0; font-size: 1em; }
+  .qs-desc { font-size: 0.86rem; color: var(--fg-muted); margin: 0; }
+  .qs-card details { margin-top: 2px; }
+  .qs-card details summary {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent);
+    cursor: pointer;
+  }
+  .qs-card details p { margin: 6px 0 0; font-size: 0.82rem; color: var(--fg-muted); }
+
+  .cmd-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; }
+  .cmd-chip {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px 6px;
+    background: var(--code-bg);
+    border-radius: 6px;
+    padding: 3px 8px;
+    max-width: 100%;
+  }
+  .cmd-chip.optional { border: 1px dashed var(--fg-muted); background: none; }
+  .cmd-chip code { background: none; padding: 0; font-weight: 700; white-space: nowrap; }
+  .cmd-chip .chip-note { font-size: 0.7rem; color: var(--fg-muted); }
+  .cmd-arrow { color: var(--fg-muted); font-size: 0.8rem; }
+
+  /* ===== 流程圖 ===== */
+  figure.flow-figure { margin: 18px 0 8px; }
+  .flow-wrap { overflow-x: auto; padding-bottom: 6px; }
+  .flow-svg { display: block; min-width: 760px; width: 100%; height: auto; font-family: inherit; }
+  .flow-card { fill: var(--bg); stroke: var(--border); stroke-width: 1; }
+  .flow-header-text { font-size: 13px; font-weight: 700; fill: var(--bg); }
+  .flow-row { fill: var(--bg); stroke: var(--border); stroke-width: 1; }
+  .flow-row--tracks { fill: var(--bg); }
+  .flow-row-text { font-size: 11px; fill: var(--fg); }
+  .flow-track { stroke-width: 1; }
+  .flow-track-text { font-size: 9px; font-weight: 600; }
+  .flow-arrow { stroke: var(--fg-muted); stroke-width: 1.4; }
+  .flow-arrowhead { fill: var(--fg-muted); }
+  .flow-arrow-text { font-size: 10px; fill: var(--fg-muted); }
+  .flow-arrow--gate { stroke: var(--doing); stroke-width: 2; }
+  .flow-arrow-text--gate { fill: var(--doing); font-weight: 700; }
+  .flow-leader { stroke: var(--fg-muted); stroke-width: 1; opacity: 0.5; }
+
+  .flow-col--start .flow-header, .flow-col--start .flow-card { stroke: var(--stage-start); }
+  .flow-col--start .flow-header { fill: var(--stage-start); }
+  .flow-col--start .flow-row, .flow-col--start .flow-track { stroke: var(--stage-start); }
+  .flow-col--start .flow-track { fill: var(--stage-start-soft); }
+  .flow-col--start .flow-track-text { fill: var(--stage-start); }
+
+  .flow-col--build .flow-header, .flow-col--build .flow-card { stroke: var(--stage-build); }
+  .flow-col--build .flow-header { fill: var(--stage-build); }
+  .flow-col--build .flow-row, .flow-col--build .flow-track { stroke: var(--stage-build); }
+  .flow-col--build .flow-track { fill: var(--stage-build-soft); }
+  .flow-col--build .flow-track-text { fill: var(--stage-build); }
+
+  .flow-col--verify .flow-header, .flow-col--verify .flow-card { stroke: var(--stage-verify); }
+  .flow-col--verify .flow-header { fill: var(--stage-verify); }
+  .flow-col--verify .flow-row, .flow-col--verify .flow-track { stroke: var(--stage-verify); }
+  .flow-col--verify .flow-track { fill: var(--stage-verify-soft); }
+  .flow-col--verify .flow-track-text { fill: var(--stage-verify); }
+
+  .flow-col--review .flow-header, .flow-col--review .flow-card { stroke: var(--stage-review); }
+  .flow-col--review .flow-header { fill: var(--stage-review); }
+  .flow-col--review .flow-row, .flow-col--review .flow-track { stroke: var(--stage-review); }
+  .flow-col--review .flow-track { fill: var(--stage-review-soft); }
+  .flow-col--review .flow-track-text { fill: var(--stage-review); }
+
+  .flow-col--finish .flow-header, .flow-col--finish .flow-card { stroke: var(--stage-finish); }
+  .flow-col--finish .flow-header { fill: var(--stage-finish); }
+  .flow-col--finish .flow-row, .flow-col--finish .flow-track { stroke: var(--stage-finish); }
+  .flow-col--finish .flow-track { fill: var(--stage-finish-soft); }
+  .flow-col--finish .flow-track-text { fill: var(--stage-finish); }
+
+  figcaption.flow-caption {
+    font-size: 0.85rem;
+    color: var(--fg-muted);
+    margin-top: 8px;
+  }
+  .flow-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.8rem; color: var(--fg-muted); margin-top: 8px; }
+  .flow-legend .key { display: inline-flex; align-items: center; gap: 6px; }
+  .flow-legend .swatch { width: 22px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid var(--fg-muted); }
+  .flow-legend .swatch.dashed { border-style: dashed; }
+  .flow-legend .swatch.gate { background: var(--doing); border: none; }
+
+  /* ===== keyframes：mock band 的符號淡入淡出，循環 10 秒 ===== */
+  @keyframes tabIdle0 { 0% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes tabCurrent0 { 0% { opacity: 1; } 1.6% { opacity: 1; } 1.65% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes tabDone0 { 0% { opacity: 0; } 1.65% { opacity: 1; } 100% { opacity: 1; } }
+  @keyframes tabIdle1 { 0% { opacity: 1; } 19.95% { opacity: 1; } 20% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes tabCurrent1 { 0% { opacity: 0; } 19.95% { opacity: 0; } 20% { opacity: 1; } 21.6% { opacity: 1; } 21.65% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes tabDone1 { 0% { opacity: 0; } 21.65% { opacity: 1; } 100% { opacity: 1; } }
+  @keyframes tabIdle2 { 0% { opacity: 1; } 39.95% { opacity: 1; } 40% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes tabCurrent2 { 0% { opacity: 0; } 39.95% { opacity: 0; } 40% { opacity: 1; } 41.6% { opacity: 1; } 41.65% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes tabDone2 { 0% { opacity: 0; } 41.65% { opacity: 1; } 100% { opacity: 1; } }
+  @keyframes tabIdle3 { 0% { opacity: 1; } 59.95% { opacity: 1; } 60% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes tabCurrent3 { 0% { opacity: 0; } 59.95% { opacity: 0; } 60% { opacity: 1; } 61.6% { opacity: 1; } 61.65% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes tabDone3 { 0% { opacity: 0; } 61.65% { opacity: 1; } 100% { opacity: 1; } }
+  @keyframes tabIdle4 { 0% { opacity: 1; } 79.95% { opacity: 1; } 80% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes tabCurrent4 { 0% { opacity: 0; } 79.95% { opacity: 0; } 80% { opacity: 1; } 81.6% { opacity: 1; } 81.65% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes tabDone4 { 0% { opacity: 0; } 81.65% { opacity: 1; } 100% { opacity: 1; } }
+  @keyframes stepIdle0 { 0% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes stepCurrent0 { 0% { opacity: 1; } 6% { opacity: 1; } 6.1% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes stepDone0 { 0% { opacity: 0; } 6.1% { opacity: 1; } 100% { opacity: 1; } }
+  @keyframes stepIdle1 { 0% { opacity: 1; } 33.233% { opacity: 1; } 33.333% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes stepCurrent1 { 0% { opacity: 0; } 33.233% { opacity: 0; } 33.333% { opacity: 1; } 39.333% { opacity: 1; } 39.433% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes stepDone1 { 0% { opacity: 0; } 39.433% { opacity: 1; } 100% { opacity: 1; } }
+  @keyframes stepIdle2 { 0% { opacity: 1; } 66.567% { opacity: 1; } 66.667% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes stepCurrent2 { 0% { opacity: 0; } 66.567% { opacity: 0; } 66.667% { opacity: 1; } 72.667% { opacity: 1; } 72.767% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes stepDone2 { 0% { opacity: 0; } 72.767% { opacity: 1; } 100% { opacity: 1; } }
+
+  .mock-tab:nth-child(1) .mock-sym--idle { animation: tabIdle0 10s linear infinite; }
+  .mock-tab:nth-child(1) .mock-sym--current { animation: tabCurrent0 10s linear infinite; }
+  .mock-tab:nth-child(1) .mock-sym--done { animation: tabDone0 10s linear infinite; }
+  .mock-tab:nth-child(2) .mock-sym--idle { animation: tabIdle1 10s linear infinite; }
+  .mock-tab:nth-child(2) .mock-sym--current { animation: tabCurrent1 10s linear infinite; }
+  .mock-tab:nth-child(2) .mock-sym--done { animation: tabDone1 10s linear infinite; }
+  .mock-tab:nth-child(3) .mock-sym--idle { animation: tabIdle2 10s linear infinite; }
+  .mock-tab:nth-child(3) .mock-sym--current { animation: tabCurrent2 10s linear infinite; }
+  .mock-tab:nth-child(3) .mock-sym--done { animation: tabDone2 10s linear infinite; }
+  .mock-tab:nth-child(4) .mock-sym--idle { animation: tabIdle3 10s linear infinite; }
+  .mock-tab:nth-child(4) .mock-sym--current { animation: tabCurrent3 10s linear infinite; }
+  .mock-tab:nth-child(4) .mock-sym--done { animation: tabDone3 10s linear infinite; }
+  .mock-tab:nth-child(5) .mock-sym--idle { animation: tabIdle4 10s linear infinite; }
+  .mock-tab:nth-child(5) .mock-sym--current { animation: tabCurrent4 10s linear infinite; }
+  .mock-tab:nth-child(5) .mock-sym--done { animation: tabDone4 10s linear infinite; }
+  .mock-step:nth-child(1) .mock-sym--idle { animation: stepIdle0 10s linear infinite; }
+  .mock-step:nth-child(1) .mock-sym--current { animation: stepCurrent0 10s linear infinite; }
+  .mock-step:nth-child(1) .mock-sym--done { animation: stepDone0 10s linear infinite; }
+  .mock-step:nth-child(2) .mock-sym--idle { animation: stepIdle1 10s linear infinite; }
+  .mock-step:nth-child(2) .mock-sym--current { animation: stepCurrent1 10s linear infinite; }
+  .mock-step:nth-child(2) .mock-sym--done { animation: stepDone1 10s linear infinite; }
+  .mock-step:nth-child(3) .mock-sym--idle { animation: stepIdle2 10s linear infinite; }
+  .mock-step:nth-child(3) .mock-sym--current { animation: stepCurrent2 10s linear infinite; }
+  .mock-step:nth-child(3) .mock-sym--done { animation: stepDone2 10s linear infinite; }
+
+  /* 動畫偏好降低時：關掉動畫，停在一個有代表性的靜態畫面（開始／實作完成，驗收進行中，審查／收尾未開始；
+     步驟示意同理：第一條完成、第二條進行中、第三條未開始）。 */
+  @media (prefers-reduced-motion: reduce) {
+    .mock-sym { animation: none !important; opacity: 0 !important; }
+    .mock-tab:nth-child(1) .mock-sym--done,
+    .mock-tab:nth-child(2) .mock-sym--done,
+    .mock-tab:nth-child(3) .mock-sym--current,
+    .mock-tab:nth-child(4) .mock-sym--idle,
+    .mock-tab:nth-child(5) .mock-sym--idle,
+    .mock-step:nth-child(1) .mock-sym--done,
+    .mock-step:nth-child(2) .mock-sym--current,
+    .mock-step:nth-child(3) .mock-sym--idle {
+      opacity: 1 !important;
+    }
+  }
+
+  /* ===== 表格 ===== */
+  .table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--stage-color, var(--border));
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .table-scroll[data-stage="start"]  { --stage-color: var(--stage-start);  --stage-soft: var(--stage-start-soft); }
+  .table-scroll[data-stage="build"]  { --stage-color: var(--stage-build);  --stage-soft: var(--stage-build-soft); }
+  .table-scroll[data-stage="verify"] { --stage-color: var(--stage-verify); --stage-soft: var(--stage-verify-soft); }
+  .table-scroll[data-stage="review"] { --stage-color: var(--stage-review); --stage-soft: var(--stage-review-soft); }
+  .table-scroll[data-stage="finish"] { --stage-color: var(--stage-finish); --stage-soft: var(--stage-finish-soft); }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 560px;
+    font-size: 0.9rem;
+  }
+
+  caption {
+    text-align: left;
+    font-weight: 700;
+    padding: 10px 12px;
+    background: var(--stage-soft, var(--table-head));
+    color: var(--stage-color, var(--fg));
+  }
+
+  th, td {
+    border-bottom: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  thead th {
+    background: var(--table-head);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  tbody tr:nth-child(even) { background: var(--bg-alt); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  #commands .table-scroll { border-left-color: var(--border); }
+  #commands thead th { background: var(--accent-bg); color: var(--accent); }
+
+  .legend {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 14px;
+    margin: 16px 0;
+    font-size: 0.92rem;
+  }
+
+  .legend .sym {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    text-align: center;
+    font-weight: 700;
+  }
+
+  details {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    background: var(--bg-alt);
+  }
+
+  details[open] { border-color: var(--accent); }
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  details p, details ul {
+    margin-top: 10px;
+  }
+
+  footer {
+    color: var(--fg-muted);
+    font-size: 0.82rem;
+    text-align: center;
+    margin-top: 48px;
+  }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 1.35rem; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Mission 指南</h1>
+  <p class="subtitle">mission-band：掛在輸入框上方的任務進度提示。這份教學頁給第一次用的人看。</p>
+
+  <nav class="toc" aria-label="目錄">
+    <a href="#what">這是什麼</a>
+    <a href="#quickstart">五分鐘上手</a>
+    <a href="#flow">流程總覽</a>
+    <a href="#band">怎麼看 band</a>
+    <a href="#stages">五個階段與步驟</a>
+    <a href="#commands">指令速查</a>
+    <a href="#faq">常見情境 FAQ</a>
+  </nav>
+
+  <section id="what">
+    <h2>這是什麼</h2>
+    <div class="lead">
+      <p>
+        mission-band 是顯示在輸入框正上方的一條任務進度提示。它只做兩件事：顯示目前走到哪一步、在該提醒的時候提醒；
+        不會幫你操作、也不會卡住你繼續對話或打指令。進度是從實際發生過的事情推算出來的——打過哪個指令、讀過哪個檔案、
+        跑過哪個 git 或 glab 查詢——不是靠 AI 自己回報「這一步我做完了」。這樣就算你中途換了一個全新的對話，
+        只要任務還綁在同一個 worktree 或 session，band 一樣看得到正確的進度。
+      </p>
+      <p>重裝或交接給別人時，安裝步驟和前置條件見 mod 目錄的 <a href="../README.md">README.md</a>。</p>
+    </div>
+  </section>
+
+  <section id="quickstart">
+    <h2>五分鐘上手</h2>
+    <p>一個功能從頭走到尾的標準路徑；下面先看一段示意動畫，再看每一步要打什麼。</p>
+
+    <div class="mock-band" aria-hidden="true">
+      <div class="mock-tabs">
+        <span class="mock-tab"><span class="mock-symwrap"><span class="mock-sym mock-sym--idle">○</span><span class="mock-sym mock-sym--current">●</span><span class="mock-sym mock-sym--done">✓</span></span> 開始</span>
+        <span class="mock-tab"><span class="mock-symwrap"><span class="mock-sym mock-sym--idle">○</span><span class="mock-sym mock-sym--current">●</span><span class="mock-sym mock-sym--done">✓</span></span> 實作</span>
+        <span class="mock-tab"><span class="mock-symwrap"><span class="mock-sym mock-sym--idle">○</span><span class="mock-sym mock-sym--current">●</span><span class="mock-sym mock-sym--done">✓</span></span> 驗收</span>
+        <span class="mock-tab"><span class="mock-symwrap"><span class="mock-sym mock-sym--idle">○</span><span class="mock-sym mock-sym--current">●</span><span class="mock-sym mock-sym--done">✓</span></span> 審查</span>
+        <span class="mock-tab"><span class="mock-symwrap"><span class="mock-sym mock-sym--idle">○</span><span class="mock-sym mock-sym--current">●</span><span class="mock-sym mock-sym--done">✓</span></span> 收尾</span>
+      </div>
+      <div class="mock-steps">
+        <div class="mock-step"><span class="mock-symwrap"><span class="mock-sym mock-sym--idle">○</span><span class="mock-sym mock-sym--current">▶</span><span class="mock-sym mock-sym--done">✓</span></span> 步驟 A</div>
+        <div class="mock-step"><span class="mock-symwrap"><span class="mock-sym mock-sym--idle">○</span><span class="mock-sym mock-sym--current">▶</span><span class="mock-sym mock-sym--done">✓</span></span> 步驟 B</div>
+        <div class="mock-step"><span class="mock-symwrap"><span class="mock-sym mock-sym--idle">○</span><span class="mock-sym mock-sym--current">▶</span><span class="mock-sym mock-sym--done">✓</span></span> 步驟 C</div>
+      </div>
+    </div>
+    <p class="mock-caption">示意：階段 tab 依序前進、步驟從 ○ → ▶ → ✓（循環播放；偏好減少動態效果時停在單一畫面）。</p>
+
+    <div class="qs-grid">
+      <div class="qs-card" data-stage="start">
+        <span class="qs-eyebrow">開始</span>
+        <div class="qs-code"><code>/mission-start #473</code></div>
+        <p class="qs-desc">有對應的票就帶票號；沒有票就 <code>/mission-start 一個名稱</code>。</p>
+        <details><summary>細節</summary><p>任務名稱會自動變成「月日-#473」這種格式。</p></details>
+      </div>
+
+      <div class="qs-card" data-stage="start">
+        <span class="qs-eyebrow">開始</span>
+        <p class="qs-desc">「開始」階段照順序打：</p>
+        <div class="cmd-chips">
+          <span class="cmd-chip"><code>/grill-with-docs</code><span class="chip-note">把需求問清楚</span></span>
+          <span class="cmd-arrow">→</span>
+          <span class="cmd-chip"><code>/approach</code><span class="chip-note">檢查要用套件還是手寫</span></span>
+          <span class="cmd-arrow">→</span>
+          <span class="cmd-chip optional"><code>/prototype</code><span class="chip-note">可跳過</span></span>
+          <span class="cmd-arrow">→</span>
+          <span class="cmd-chip"><code>/to-spec</code><span class="chip-note">整理成規格</span></span>
+          <span class="cmd-arrow">→</span>
+          <span class="cmd-chip"><code>/to-acceptance</code><span class="chip-note">產驗收清單</span></span>
+          <span class="cmd-arrow">→</span>
+          <span class="cmd-chip optional"><code>/to-tickets</code><span class="chip-note">票數多才打，可跳過</span></span>
+          <span class="cmd-arrow">→</span>
+          <span class="cmd-chip"><code>orca worktree create</code><span class="chip-note">跟 AI 說、請它建（不要加 !）；之後 /mission-go 開新分頁</span></span>
+        </div>
+      </div>
+
+      <div class="qs-card" data-stage="build">
+        <span class="qs-eyebrow">實作</span>
+        <div class="qs-code"><code>/mission-next</code></div>
+        <p class="qs-desc">進入「實作」階段；任務綁在主 checkout 的 session 才會提示下一步。</p>
+        <details><summary>細節</summary><p>如果任務綁在主 checkout 的 session，<code>/mission-next</code> 的回覆文字會提示打 <code>/mission-go</code> 開一個新分頁（自動接到 worktree，而且會自動幫你打 <code>/mission-restore</code> 接回任務，不用自己再打一次）。</p></details>
+      </div>
+
+      <div class="qs-card" data-stage="build">
+        <span class="qs-eyebrow">實作</span>
+        <div class="qs-code"><code>/mission-restore #473</code></div>
+        <p class="qs-desc">只有自己手動開新分頁、或 orca 啟動失敗時才需要打；接回之後照 TDD 開始實作、commit。</p>
+      </div>
+
+      <div class="qs-card" data-stage="build">
+        <span class="qs-eyebrow">實作</span>
+        <div class="qs-code"><code>/pstack:no-comments</code></div>
+        <p class="qs-desc">清這個分支的註解，接受的問題也會直接改 code 修掉。</p>
+        <details><summary>細節</summary><p>除了刪註解，MUST KILL 問題會直接改 code（可能跑一次 /architect 先定形狀），確定要留的限制會停下來等你核准要不要編碼進型別或測試；理由要留文字照本專案規則縮成 issue 連結或寫 ADR（見下方 FAQ）。舊任務不需要就 <code>/mission-skip no-comments 理由</code>；要在 code review 之前跑，審查才看到乾淨的程式碼。</p></details>
+      </div>
+
+      <div class="qs-card" data-stage="build">
+        <span class="qs-eyebrow">實作</span>
+        <div class="qs-code"><code>/mattpocock-skills:code-review</code></div>
+        <p class="qs-desc">改動大或風險高改用 <code>/cr</code>。</p>
+        <details><summary>細節</summary><p>要 Codex 再審一次就 <code>/codex:rescue</code>，不需要就 <code>/mission-skip code-review:codex 理由</code>。</p></details>
+      </div>
+
+      <div class="qs-card" data-stage="verify">
+        <span class="qs-eyebrow">驗收</span>
+        <div class="qs-code"><code>/mission-next</code> → <code>/verify-acceptance</code></div>
+        <p class="qs-desc">進入「驗收」階段，逐條跑完驗收清單，回歸測試跟整體回歸也在這裡做完。</p>
+      </div>
+
+      <div class="qs-card" data-stage="review">
+        <span class="qs-eyebrow">審查</span>
+        <div class="qs-code"><code>/mission-next</code> → <code>/push</code></div>
+        <p class="qs-desc">進入「審查」階段，打 <code>/push</code> 開 MR（spec 會自動凍結到 issue 留言）。</p>
+        <details><summary>細節</summary><p>同事看過之後打 <code>/mission-review</code> 同步核准、回饋，該重驗、該 push、該回覆就照 band 的下一步做；MR 真的合併時，<code>/mission-review</code> 會自動帶你進「收尾」階段（沒自動進才需要自己打 <code>/mission-next</code>）。</p></details>
+      </div>
+
+      <div class="qs-card" data-stage="finish">
+        <span class="qs-eyebrow">收尾</span>
+        <div class="qs-code"><code>/retro</code></div>
+        <p class="qs-desc">進了「收尾」階段，回顧這次 session。</p>
+      </div>
+
+      <div class="qs-card" data-stage="finish">
+        <span class="qs-eyebrow">收尾</span>
+        <div class="qs-code"><code>/mission-finish</code></div>
+        <p class="qs-desc">清掉這個任務的紀錄。</p>
+        <details><summary>細節</summary><p>MR 沒合併就被關掉的話，改用 <code>/mission-finish 名稱 --force</code>。</p></details>
+      </div>
+
+      <div class="qs-card" data-stage="finish">
+        <span class="qs-eyebrow">收尾</span>
+        <div class="qs-code"><code>/cleanup</code></div>
+        <p class="qs-desc">任務紀錄清掉之後，刪掉 worktree 和分支。</p>
+        <details><summary>細節</summary><p>在主 checkout 要帶分支名或 #issue：<code>/cleanup &lt;分支&gt;</code> 或 <code>/cleanup #&lt;issue&gt;</code>。</p></details>
+      </div>
+    </div>
+
+    <div class="callout callout--tip">
+      <p>不確定現在卡在哪一步，隨時看 band，或打 <code>/mission-log</code> 看這個任務記錄過的所有事件。</p>
+    </div>
+  </section>
+
+  <section id="flow">
+    <h2>流程總覽</h2>
+    <p>五個階段由左到右，底下依序是這個階段要做的步驟；手機寬度請左右滑動查看。</p>
+
+    <figure class="flow-figure">
+      <div class="flow-wrap">
+        <svg class="flow-svg" viewBox="0 0 1066 297" role="img" aria-label="五個階段（開始、實作、驗收、審查、收尾）由左到右排列，每個階段底下依序列出要做的步驟，虛線框的步驟是選用、可以跳過；階段之間的箭頭標著 /mission-next，審查進收尾那一箭標著 MR 合併。">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="flow-arrowhead"/></marker></defs>
+<g class="flow-col flow-col--start">
+<rect x="16" y="28" width="178" height="259" rx="10" class="flow-card"/>
+<rect x="16" y="28" width="178" height="32" rx="10" class="flow-header"/>
+<text x="105.0" y="49.0" text-anchor="middle" class="flow-header-text">1　開始</text>
+<rect x="24" y="70" width="162" height="25" rx="6" class="flow-row"/>
+<text x="32" y="86.5" class="flow-row-text">grill-with-docs</text>
+<rect x="24" y="100" width="162" height="25" rx="6" class="flow-row"/>
+<text x="32" y="116.5" class="flow-row-text">approach</text>
+<rect x="24" y="130" width="162" height="25" rx="6" class="flow-row" stroke-dasharray="4 3"/>
+<text x="32" y="146.5" class="flow-row-text">prototype</text>
+<rect x="24" y="160" width="162" height="25" rx="6" class="flow-row"/>
+<text x="32" y="176.5" class="flow-row-text">to-spec</text>
+<rect x="24" y="190" width="162" height="25" rx="6" class="flow-row"/>
+<text x="32" y="206.5" class="flow-row-text">to-acceptance</text>
+<rect x="24" y="220" width="162" height="25" rx="6" class="flow-row" stroke-dasharray="4 3"/>
+<text x="32" y="236.5" class="flow-row-text">to-tickets</text>
+<rect x="24" y="250" width="162" height="25" rx="6" class="flow-row"/>
+<text x="32" y="266.5" class="flow-row-text">create-worktree</text>
+</g>
+<g class="flow-col flow-col--build">
+<rect x="230" y="28" width="178" height="148" rx="10" class="flow-card"/>
+<rect x="230" y="28" width="178" height="32" rx="10" class="flow-header"/>
+<text x="319.0" y="49.0" text-anchor="middle" class="flow-header-text">2　實作</text>
+<rect x="238" y="70" width="162" height="25" rx="6" class="flow-row"/>
+<text x="246" y="86.5" class="flow-row-text">implement</text>
+<rect x="238" y="100" width="162" height="25" rx="6" class="flow-row"/>
+<text x="246" y="116.5" class="flow-row-text">no-comments</text>
+<rect x="238" y="130" width="162" height="34" rx="6" class="flow-row flow-row--tracks"/>
+<text x="246" y="143" class="flow-row-text">code-review</text>
+<rect x="246" y="148" width="70.0" height="12" rx="4" class="flow-track"/>
+<text x="281.0" y="157" text-anchor="middle" class="flow-track-text">Claude</text>
+<rect x="322.0" y="148" width="70.0" height="12" rx="4" class="flow-track"/>
+<text x="357.0" y="157" text-anchor="middle" class="flow-track-text">Codex</text>
+</g>
+<g class="flow-col flow-col--verify">
+<rect x="444" y="28" width="178" height="199" rx="10" class="flow-card"/>
+<rect x="444" y="28" width="178" height="32" rx="10" class="flow-header"/>
+<text x="533.0" y="49.0" text-anchor="middle" class="flow-header-text">3　驗收</text>
+<rect x="452" y="70" width="162" height="25" rx="6" class="flow-row"/>
+<text x="460" y="86.5" class="flow-row-text">verify-acceptance</text>
+<rect x="452" y="100" width="162" height="25" rx="6" class="flow-row"/>
+<text x="460" y="116.5" class="flow-row-text">verify-acceptance/regression</text>
+<rect x="452" y="130" width="162" height="25" rx="6" class="flow-row"/>
+<text x="460" y="146.5" class="flow-row-text">verify-acceptance/overall</text>
+<rect x="452" y="160" width="162" height="25" rx="6" class="flow-row"/>
+<text x="460" y="176.5" class="flow-row-text">blast-radius</text>
+<rect x="452" y="190" width="162" height="25" rx="6" class="flow-row" stroke-dasharray="4 3"/>
+<text x="460" y="206.5" class="flow-row-text">interrogate</text>
+</g>
+<g class="flow-col flow-col--review">
+<rect x="658" y="28" width="178" height="259" rx="10" class="flow-card"/>
+<rect x="658" y="28" width="178" height="32" rx="10" class="flow-header"/>
+<text x="747.0" y="49.0" text-anchor="middle" class="flow-header-text">4　審查</text>
+<rect x="666" y="70" width="162" height="25" rx="6" class="flow-row"/>
+<text x="674" y="86.5" class="flow-row-text">open-mr</text>
+<rect x="666" y="100" width="162" height="25" rx="6" class="flow-row"/>
+<text x="674" y="116.5" class="flow-row-text">freeze-spec</text>
+<rect x="666" y="130" width="162" height="25" rx="6" class="flow-row"/>
+<text x="674" y="146.5" class="flow-row-text">await-review</text>
+<rect x="666" y="160" width="162" height="25" rx="6" class="flow-row"/>
+<text x="674" y="176.5" class="flow-row-text">verify-acceptance/overall</text>
+<rect x="666" y="190" width="162" height="25" rx="6" class="flow-row"/>
+<text x="674" y="206.5" class="flow-row-text">push-fix</text>
+<rect x="666" y="220" width="162" height="25" rx="6" class="flow-row"/>
+<text x="674" y="236.5" class="flow-row-text">reply</text>
+<rect x="666" y="250" width="162" height="25" rx="6" class="flow-row"/>
+<text x="674" y="266.5" class="flow-row-text">approved</text>
+</g>
+<g class="flow-col flow-col--finish">
+<rect x="872" y="28" width="178" height="109" rx="10" class="flow-card"/>
+<rect x="872" y="28" width="178" height="32" rx="10" class="flow-header"/>
+<text x="961.0" y="49.0" text-anchor="middle" class="flow-header-text">5　收尾</text>
+<rect x="880" y="70" width="162" height="25" rx="6" class="flow-row"/>
+<text x="888" y="86.5" class="flow-row-text">retro</text>
+<rect x="880" y="100" width="162" height="25" rx="6" class="flow-row" stroke-dasharray="4 3"/>
+<text x="888" y="116.5" class="flow-row-text">correct</text>
+</g>
+<line x1="198" y1="44.0" x2="226" y2="44.0" class="flow-arrow" marker-end="url(#arrow)"/>
+<line x1="212.0" y1="18" x2="212.0" y2="26" class="flow-leader"/>
+<text x="212.0" y="16" text-anchor="middle" class="flow-arrow-text">/mission-next</text>
+<line x1="412" y1="44.0" x2="440" y2="44.0" class="flow-arrow" marker-end="url(#arrow)"/>
+<line x1="426.0" y1="18" x2="426.0" y2="26" class="flow-leader"/>
+<text x="426.0" y="16" text-anchor="middle" class="flow-arrow-text">/mission-next</text>
+<line x1="626" y1="44.0" x2="654" y2="44.0" class="flow-arrow" marker-end="url(#arrow)"/>
+<line x1="640.0" y1="18" x2="640.0" y2="26" class="flow-leader"/>
+<text x="640.0" y="16" text-anchor="middle" class="flow-arrow-text">/mission-next</text>
+<line x1="840" y1="44.0" x2="868" y2="44.0" class="flow-arrow flow-arrow--gate" marker-end="url(#arrow)"/>
+<line x1="854.0" y1="18" x2="854.0" y2="26" class="flow-leader"/>
+<text x="854.0" y="16" text-anchor="middle" class="flow-arrow-text flow-arrow-text--gate">MR 合併</text>
+</svg>
+      </div>
+      <figcaption class="flow-caption">
+        圖上是 band 顯示的名稱。虛線框代表選用：沒做也不會擋 <code>/mission-next</code>；其他步驟沒做完會擋，但真的不需要仍可 <code>/mission-skip</code>；<code>code-review</code> 底下 Claude／Codex 兩個方塊是雙軌，各自跑過或被跳過即可完成。
+        箭頭標 <code>/mission-next</code> 是換階段的指令；審查進收尾那一箭換成「MR 合併」，因為那裡不是逐個節點判斷，是看 MR 真的合併了沒
+        （沒自動進才需要手動打 <code>/mission-next</code>）。換階段要不要 <code>/clear</code>、MR 沒合併要怎麼辦，見下面 FAQ。
+      </figcaption>
+      <div class="flow-legend">
+        <span class="key"><span class="swatch dashed"></span> 選用，沒做也不擋</span>
+        <span class="key"><span class="swatch gate"></span> 需要額外條件才能往下走（不是單純 /mission-next）</span>
+      </div>
+    </figure>
+  </section>
+
+  <section id="band">
+    <h2>怎麼看 band</h2>
+    <p>視窗夠寬（100 欄以上）時，band 會畫成兩個框：左邊「步驟」、右邊「資產」。例如審查階段走到第 3 輪：</p>
+    <pre>demo &gt; 1025-#473｜<span class="sym-done">✓</span> 開始 <span class="sym-done">✓</span> 實作 <span class="sym-done">✓</span> 驗收 <span class="sym-current">●</span> 審查（第 3 輪） <span class="sym-idle">○</span> 收尾｜上次同步 2 小時前    <span class="sym-accent">h: ?</span>
+<span class="sym-warn">⚠</span> 連續幾輪在修上一輪的修法，先停下來檢查前提
+╭ 步驟 ─────────────────────╮╭ 資產 ──────────────────────╮
+│ <span class="sym-done">✓</span> open-mr                 ││ • #473             issue    │
+│ <span class="sym-done">✓</span> freeze-spec              ││ • !493              MR      │
+│ <span class="sym-idle">○</span> await-review             ││ • GLOSSARY.md       文件    │
+│ <span class="sym-idle">○</span> verify-acceptance/overall││                              │
+│ <span class="sym-idle">○</span> push-fix                 ││                              │
+│ <span class="sym-idle">○</span> reply                    ││                              │
+│ <span class="sym-idle">○</span> approved                 ││                              │
+╰────────────────────────────╯╰──────────────────────────────╯
+下一步：等同事看過之後，跑 /mission-review 同步 MR 狀態</pre>
+    <p>每個部分對應：</p>
+    <div class="legend">
+      <div class="sym">第一行</div><div>階段 tab。<code class="sym-done">✓</code> 已經走過的階段、<code class="sym-current">●</code> 目前階段（粗體）、<code class="sym-idle">○</code> 還沒到的階段。審查階段第 2 輪起會附「（第 N 輪）」；同一行最後面可能還有「上次同步 X 前」（只在審查階段、同步過才顯示）。60 欄以上才會在最右側留一顆 <code class="sym-accent">h: ?</code> 說明按鈕，不到 60 欄縮成單行時沒有按鈕，開教學頁要用 <code>/mission-help</code>。</div>
+      <div class="sym">⚠ 開頭</div><div>警示列。常見三種：票數有變動要不要同步 issue 描述、規格改過要不要更新驗收清單、連續第 3 輪起都在修上一輪的修法該停下來檢查前提。</div>
+      <div class="sym">步驟框</div><div>目前階段每個節點的狀態。塞不下全部節點時，前面已完成或略過的會先收成一行「前面 N 項已完成或略過」；再塞不下就從後面截斷，顯示「另有 N 列」，目前卡住的那一步一定留著不會被擠掉。有些節點會在後面附進度細節，例如驗收階段的 <code>verify-acceptance</code> 可能顯示「AC 5/8，1 未過，2 受阻，1 後補」：後補是受阻、但驗不了時標了可後補的 AC，不擋這個節點。</div>
+      <div class="sym">資產框</div><div>這個任務收集到的連結（issue、MR、Figma、GLOSSARY.md 等），可以直接點開。還沒有資產時顯示提示文字，可以用 <code>/mission-link</code> 手動加。</div>
+      <div class="sym">最後一行</div><div>下一步該做什麼的提示文字。</div>
+    </div>
+    <p>步驟框裡每個節點的符號：</p>
+    <div class="legend">
+      <div class="sym sym-idle">○</div><div>還沒開始</div>
+      <div class="sym sym-doing">▶</div><div>進行中（已經有對應的事件，但還沒算完成）</div>
+      <div class="sym sym-done">✓</div><div>完成</div>
+      <div class="sym sym-skip">✗</div><div>被跳過（<code>/mission-skip</code> 手動跳過，或節點自己判斷不需要）</div>
+    </div>
+    <div class="callout callout--warn">
+      <p>
+        只有「對應事件」是指真的能偵測到的動作——打過某個 skill、讀過某份文件、跑過某個 Bash 指令——這類節點沒做完才會顯示 <code class="sym-doing">▶</code>。
+        完全靠 git 或 GitLab 狀態判斷完成與否的節點（例如 <code>await-review</code>、<code>push-fix</code>、<code>approved</code>）沒有這種中間事件，
+        沒做完一律是 <code class="sym-idle">○</code>，不會變成 <code class="sym-doing">▶</code>；一旦條件成立就直接變成 <code class="sym-done">✓</code>。
+      </p>
+    </div>
+    <p>寬度規則：不到 60 欄縮成一行摘要（沒有「?」按鈕）；60–99 欄只畫步驟框（沒有資產框，但有「?」按鈕）；100 欄以上兩框並排。高度最多 13 列，塞不下時一樣會退回單行摘要。</p>
+  </section>
+
+  <section id="stages">
+    <h2>五個階段與每個步驟</h2>
+    <p>流程固定五個階段：開始 → 實作 → 驗收 → 審查 → 收尾。下面每張表列出這個階段的節點、該做什麼、怎麼算完成、不需要時怎麼跳過。</p>
+
+    <div class="table-scroll" data-stage="start">
+    <table>
+      <caption>開始</caption>
+      <thead><tr><th>步驟</th><th>做什麼</th><th>怎麼算完成</th><th>不需要時</th></tr></thead>
+      <tbody>
+        <tr><td><code>grill-with-docs</code></td><td>打 /grill-with-docs，把需求問到能拿來驗收</td><td>偵測到打過這個 skill</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip grill-with-docs 理由</code></td></tr>
+        <tr><td><code>approach</code></td><td>打 /approach，檢查要用套件還是手寫、放哪裡、介面形狀、從哪裡開始</td><td>偵測到打過這個 skill</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip approach 理由</code></td></tr>
+        <tr><td><code>prototype</code>（選用）</td><td>有要做的設計決定才做 prototype</td><td>打過 /prototype，或讀過它的 playbook</td><td>選用節點：沒碰過不會擋路，也可以 <code>/mission-skip prototype 理由</code></td></tr>
+        <tr><td><code>to-spec</code></td><td>在同一段對話打 /to-spec，把討論整理成規格</td><td>偵測到打過</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip to-spec 理由</code></td></tr>
+        <tr><td><code>to-acceptance</code></td><td>打 /to-acceptance 產生驗收清單</td><td>驗收清單檔存在</td><td>舊任務不需要就 <code>/mission-skip to-acceptance 理由</code></td></tr>
+        <tr><td><code>to-tickets</code>（選用）</td><td>票數多才拆票；小票可以跳過</td><td>打過 /to-tickets</td><td>選用節點：沒碰過不會擋路</td></tr>
+        <tr><td><code>create-worktree</code></td><td>請 AI 用 orca 或 <code>git worktree add</code> 建 worktree（不要用 <code>!</code> 自己跑）</td><td>從 AI 跑的指令偵測到 worktree 路徑（orca 的 JSON、<code>--name</code> 對 <code>git worktree list</code>，或 cd 進 worktree）</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip create-worktree 理由</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="table-scroll" data-stage="build">
+    <table>
+      <caption>實作</caption>
+      <thead><tr><th>步驟</th><th>做什麼</th><th>怎麼算完成</th><th>不需要時</th></tr></thead>
+      <tbody>
+        <tr><td><code>implement</code></td><td>照 TDD 或打 /implement 開始寫 code</td><td>偵測到 commit</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip implement 理由</code></td></tr>
+        <tr><td><code>no-comments</code></td><td>打 /pstack:no-comments，清註解並直接修正接受的問題（可能改 code，確定要留的限制會等你核准才編碼）</td><td>偵測到打過這個 skill，或讀過它的 SKILL.md</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip no-comments 理由</code></td></tr>
+        <tr><td><code>code-review</code>（兩軌）</td><td>Claude 軌道打 /mattpocock-skills:code-review（或 /cr）；Codex 軌道打 /codex:rescue 或直接跑 codex exec</td><td>兩條軌道各自「跑過或被跳過」就算完成（不是只有 Codex 可以跳，兩邊規則一樣）</td><td>可以只跳 Codex 軌道、只跳 Claude 軌道，或整個節點一起跳：<code>/mission-skip code-review:codex 理由</code>、<code>/mission-skip code-review:claude 理由</code>，或 <code>/mission-skip code-review 理由</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="table-scroll" data-stage="verify">
+    <table>
+      <caption>驗收</caption>
+      <thead><tr><th>步驟（顯示名 / 跳過用的 id）</th><th>做什麼</th><th>怎麼算完成</th><th>不需要時</th></tr></thead>
+      <tbody>
+        <tr><td><code>verify-acceptance</code> / <code>acceptance-run</code></td><td>打 /verify-acceptance 逐條跑驗收清單</td><td>每條 AC 都是通過，或後補（受阻且驗不了時標了可後補）</td><td>舊任務沒有清單：<code>/mission-skip acceptance-run 理由</code></td></tr>
+        <tr><td><code>verify-acceptance/regression</code> / <code>regression-write</code></td><td>幫「回歸：是」的 AC 補寫回歸測試</td><td>清單上標記「回歸入庫：已寫」</td><td>沒有要進回歸的條目就不擋路，不用手動跳</td></tr>
+        <tr><td><code>verify-acceptance/overall</code> / <code>overall-regression</code></td><td>commit 之後跑一次整體回歸</td><td>清單記的整體回歸狀態是「通過」，而且記的 SHA 等於目前 HEAD（兩個條件都要成立）</td><td>沒有驗收清單的舊任務：<code>/mission-skip overall-regression 理由</code></td></tr>
+        <tr><td><code>blast-radius</code></td><td>讀 pstack 的 blast-radius 判準，確認改動波及的範圍</td><td>讀過那份文件</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip blast-radius 理由</code></td></tr>
+        <tr><td><code>interrogate</code>（選用）</td><td>不確定自己講不講得出改動原因就讀 pstack 的 interrogate</td><td>讀過那份文件</td><td>有把握可以跳過，不碰也不擋路</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="table-scroll" data-stage="review">
+    <table>
+      <caption>審查</caption>
+      <thead><tr><th>步驟</th><th>做什麼</th><th>怎麼算完成</th><th>不需要時</th></tr></thead>
+      <tbody>
+        <tr><td><code>open-mr</code></td><td>打 /push 開 MR</td><td>偵測到本專案的 MR 網址</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip open-mr 理由</code></td></tr>
+        <tr><td><code>freeze-spec</code></td><td>/push 開完 MR 會自動把 spec 凍結到 issue 留言；已經開過就再跑一次 /push 選「僅推送」補發</td><td>偵測到對任務 issue 留言</td><td>沒有對應 issue 或 spec：<code>/mission-skip freeze-spec 理由</code></td></tr>
+        <tr><td><code>await-review</code></td><td>等同事看過之後打 /mission-review 同步</td><td>同步到第一則別人的回饋，或 MR 已經 approved</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip await-review 理由</code></td></tr>
+        <tr><td><code>verify-acceptance/overall</code> / <code>reverify</code>（顯示名跟驗收階段那個相同，但是不同節點）</td><td>改完 code 或 rebase 之後要重跑整體回歸</td><td>整體回歸狀態是「通過」，而且記的 SHA 等於目前 HEAD</td><td>自動視為跳過：從來沒有整體回歸紀錄，或驗收階段本來就 <code>/mission-skip overall-regression</code> 跳過了；一般不用手動跳</td></tr>
+        <tr><td><code>push-fix</code></td><td>本機跟遠端不一致就要 push；rebase 過要 force-push，自己用 <code>! git push --force-with-lease</code> 執行</td><td>遠端分支 SHA 等於本機 HEAD</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip push-fix 理由</code></td></tr>
+        <tr><td><code>reply</code></td><td>逐則回覆或標 resolved；要用 glab api 發才算，貼在留言框不算</td><td>本輪回饋都已回覆或 resolved，或最後一則是自己</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip reply 理由</code></td></tr>
+        <tr><td><code>approved</code></td><td>打 /mission-review 同步核准狀態</td><td>MR 已經 approved</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip approved 理由</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="table-scroll" data-stage="finish">
+    <table>
+      <caption>收尾</caption>
+      <thead><tr><th>步驟</th><th>做什麼</th><th>怎麼算完成</th><th>不需要時</th></tr></thead>
+      <tbody>
+        <tr><td><code>retro</code></td><td>打 /retro 回顧這次 session</td><td>偵測到打過</td><td>必做；band 會一直提醒，但到了「收尾」階段後 <code>/mission-finish</code> 不會因為這步沒做而擋（只看階段是不是已經到最後），真的不需要可 <code>/mission-skip retro 理由</code></td></tr>
+        <tr><td><code>correct</code>（選用）</td><td>不確定就讀 pstack 的 correct</td><td>讀過那份文件</td><td>有把握可以跳過</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="callout callout--warn">
+      <p>
+        審查階段比較特別：不是節點全做完就能進收尾，是看 MR 真的合併了沒（<code>/mission-review</code> 同步出來的事實）。
+        節點全做完但 MR 還沒合併一樣會卡住；MR 被關閉沒合併，改走 <code>/mission-finish 名稱 --force</code>。
+      </p>
+    </div>
+  </section>
+
+  <section id="commands">
+    <h2>指令速查</h2>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>指令</th><th>參數</th><th>做什麼</th></tr></thead>
+      <tbody>
+        <tr><td><code>/mission-start</code></td><td><code>#&lt;issue&gt; | &lt;名稱&gt;</code></td><td>開始追蹤一個任務流程（名稱自動加日期）</td></tr>
+        <tr><td><code>/mission-list</code></td><td>-</td><td>列出所有任務</td></tr>
+        <tr><td><code>/mission-restore</code></td><td><code>#&lt;issue&gt; | &lt;名稱&gt;</code></td><td>把任務接到這個 session 或 worktree</td></tr>
+        <tr><td><code>/mission-skip</code></td><td><code>&lt;nodeId&gt;[:&lt;track&gt;] &lt;理由&gt;</code></td><td>跳過目前階段的一個節點，或雙軌節點（如 code-review）底下的一條軌道</td></tr>
+        <tr><td><code>/mission-next</code></td><td>-</td><td>進入下一個階段</td></tr>
+        <tr><td><code>/mission-go</code></td><td>-</td><td>在任務的 worktree 開新 claude 分頁並接回任務</td></tr>
+        <tr><td><code>/mission-review</code></td><td>-</td><td>同步審查階段的 MR 狀態、核准、討論回饋</td></tr>
+        <tr><td><code>/mission-finish</code></td><td><code>[名稱] [--force]</code></td><td>清除綁定在這裡的任務</td></tr>
+        <tr><td><code>/mission-log</code></td><td>-</td><td>列出綁定在這裡的任務事件</td></tr>
+        <tr><td><code>/mission-link</code></td><td><code>&lt;標籤&gt; &lt;網址&gt;</code></td><td>手動加入或覆蓋一筆資產</td></tr>
+        <tr><td><code>/mission-unlink</code></td><td><code>&lt;標籤&gt;</code></td><td>刪除一筆資產</td></tr>
+        <tr><td><code>/mission-cost</code></td><td><code>[#&lt;issue&gt; | &lt;名稱&gt;] [--sessions &lt;id&gt;,&lt;id&gt;]</code></td><td>量任務各階段的 token 用量（<code>/mission-finish</code> 也會先量一次）</td></tr>
+        <tr><td><code>/mission-help</code></td><td>-</td><td>開啟這份教學頁；跟 band 右上角「?」按鈕、聚焦 band 後按 <code>h</code> 效果一樣</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2>常見情境 FAQ</h2>
+
+    <details>
+      <summary>任務綁在主 checkout 還是 worktree，有什麼不一樣？</summary>
+      <p>
+        在主 checkout 打 <code>/mission-start</code>，任務是綁在這個 session；在 worktree 目錄裡打，任務是綁在那個路徑。
+        綁 session 的任務，每次 <code>/mission-next</code> 的回覆文字都會提示打 <code>/mission-go</code> 開一個新分頁，
+        自動接到 worktree 並幫你打好 <code>/mission-restore</code>；綁路徑的任務不用這一步，留在原來的分頁開發就可以。
+      </p>
+    </details>
+
+    <details>
+      <summary>換階段要不要 /clear？</summary>
+      <p>
+        任務綁在 worktree 路徑時，<code>/mission-next</code> 會建議先 <code>/clear</code> 再開始：每次呼叫模型都要重讀整段對話，
+        越後面的階段越貴，而且各階段要接的資料都在 spec、驗收清單跟任務紀錄裡，不靠對話記憶接續。需要帶著前面的討論就改用
+        <code>/compact</code>。唯一的例外是進入「收尾」階段前：這裡反而會提示先不要 <code>/clear</code>，因為 <code>/retro</code>
+        要回顧的就是這段對話本身。
+      </p>
+    </details>
+
+    <details>
+      <summary>某個步驟卡住了，想跳過怎麼辦？</summary>
+      <p>
+        打 <code>/mission-skip &lt;nodeId&gt; &lt;理由&gt;</code>。<code>nodeId</code> 用的是節點 id，不一定跟 band 畫出來的顯示名
+        一樣（例如驗收階段畫出來是「verify-acceptance」，但 id 是 <code>acceptance-run</code>；完整對照見上面「五個階段與每個步驟」）；
+        照 band 顯示的名字打也會被接受，mission-band 會自動換成對應的 id。雙軌節點（例如 code-review）要跳過其中一軌時，
+        格式是 <code>&lt;nodeId&gt;:&lt;track&gt;</code>，例如 <code>/mission-skip code-review:codex 這次不用 Codex</code>。
+      </p>
+    </details>
+
+    <details>
+      <summary>MR 被關閉、沒有合併，要怎麼收尾？</summary>
+      <p>
+        這種情況任務會停在「審查」階段，不會自動進「收尾」。改用 <code>/mission-finish &lt;名稱&gt; --force</code> 強制清除，
+        不需要先把所有節點都做完。清掉之後再打 <code>/cleanup</code> 刪掉 worktree 和分支。
+      </p>
+    </details>
+
+    <details>
+      <summary>任務紀錄清掉了，worktree 和分支要怎麼刪？</summary>
+      <p>
+        <code>/mission-finish</code> 只清任務紀錄，worktree 和分支還留著；回覆文字會提示接著打 <code>/cleanup</code>，
+        在主 checkout 要帶分支名或 #issue（<code>/cleanup &lt;分支&gt;</code> 或 <code>/cleanup #&lt;issue&gt;</code>）。
+      </p>
+    </details>
+
+    <details>
+      <summary>band 顯示「另有 N 列」是什麼意思？</summary>
+      <p>
+        代表目前的視窗高度塞不下全部步驟（或全部資產）：已經完成或略過的步驟會先收合成一行，還是塞不下才從後面截斷，
+        目前卡住的那一步一定留著不會被擠掉。<code>/mission-log</code> 列的是事件紀錄，補不回被截掉的那幾列。
+        步驟被截時，把終端機拉高可以看到更多（band 最多畫 13 列，拉寬不會多出步驟列）；資產超過上限時，
+        用 <code>/mission-unlink</code> 清掉不需要的資產，排到前面的就看得到了。
+      </p>
+    </details>
+
+    <details>
+      <summary>怎麼量這個任務花了多少 token？</summary>
+      <p>
+        打 <code>/mission-cost</code>，可以選帶 <code>#&lt;issue&gt;</code> 或名稱指定任務；如果任務綁定的 session 沒有自動記到
+        （例如很舊的任務），補 <code>--sessions &lt;id&gt;,&lt;id&gt;</code> 自己指定。<code>/mission-finish</code> 收尾時也會先
+        自動量一次、附在回覆裡。
+      </p>
+    </details>
+
+    <details>
+      <summary>no-comments 這步在做什麼？</summary>
+      <p>
+        打 <code>/pstack:no-comments</code> 會丟給 Comment Sicko 子代理審這個分支的 diff；留言只留五種——授權聲明、
+        外部依賴逼出的怪行為、<code>// prettier-ignore</code>（lint suppression 只在規則本身有問題、太囉嗦或只管風格時才留）、
+        公開 API 的 doc comment，以及解釋程式碼表達不了之限制的 issue／RFC 連結，其他一律刪。
+        範圍預設是比對 base 分支（預設 <code>main</code>）加上 working tree；從 <code>rc/*</code> 切出來的 hotfix 分支不是
+        比 main，打指令時要自己把要比對的 base 講清楚。
+      </p>
+      <p>
+        不只刪註解：接受的 <code>MUST KILL</code> 問題會直接改 code（改名、抽函式、補型別，或做最小範圍的根因修正），
+        形狀需要設計時會先跑一次 <code>/architect</code>；確定要留的限制會提議編碼進型別、執行期檢查、測試或 lint，
+        並停下來等你互動核准，核准才編碼，否則刪掉並回報這條限制還開著。想留文字說明理由的話，照本專案規則
+        （見 <code>comment-policy.md</code>）縮成一行 issue 連結，或跨票的決定寫成 <code>docs/adr/</code> 的 ADR——
+        這是我們自己的慣例，不是 pstack 本身要求的。排在 code-review 之前，是為了讓 Claude／Codex 審查時看到的是
+        清乾淨的程式碼。
+      </p>
+    </details>
+
+    <details>
+      <summary>這份教學頁要怎麼打開？</summary>
+      <p>
+        三種方式效果一樣：點 band 標題列最右側的「?」按鈕；或先用 <code>ctrl+x tab</code>（或點一下 band）讓它拿到鍵盤焦點，
+        再按 <code>h</code>（在一般的輸入框裡按不到，要先讓 band 拿到焦點）；或直接打 <code>/mission-help</code>。
+        開啟失敗（例如不是 macOS，沒有 <code>open</code> 這個指令）時會回傳檔案路徑，自己雙擊打開就好。
+      </p>
+    </details>
+  </section>
+
+  <footer>mission-band 使用說明</footer>
+</main>
+</body>
+</html>
