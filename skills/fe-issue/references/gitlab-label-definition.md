@@ -21,12 +21,15 @@
 
 ## 1. Type（`#`）
 
-Issue 的類型，從 PM Issue 帶回。
+Issue 的類型，從 PM Issue 帶回。專案 repo 有 `docs/agents/issue-tracker.md` 的類型對照表時，以它為準。
 
 | Label | 說明 | 使用場景 |
 |-------|------|---------|
 | `# type::feature` | 新功能 | 新增頁面、元件、功能 |
+| `# type::improvement` | 改善 | 調整既有功能的行為或體驗 |
 | `# type::bug` | 缺陷修復 | 修復已知問題 |
+| `# type::refactor` | 重構 | 不改行為的程式結構調整 |
+| `# type::maintenance` | 雜務 | 升套件、改設定、CI |
 
 ---
 
@@ -121,6 +124,6 @@ Build Spec → Ready To Develop → Developing → Review → On Dev
 
 - [ ] `FE` — 固定標籤
 - [ ] `workflow::Ready To Develop` — 固定初始狀態
-- [ ] `# type` — 從 PM Issue 帶回（`# type::feature` 或 `# type::bug`）
+- [ ] `# type` — 從 PM Issue 帶回（值見上面 Type 表）
 - [ ] `product` — 從 PM Issue 帶回
 - [ ] `$ priority` — 從 PM Issue 帶回（若有）

@@ -1,6 +1,6 @@
 ---
 name: retro
-description: Session 回顧與改進沉澱——從本次 session 找出可改進要點，四路分診（改 skill 提示詞／加 hook／建 rule／寫 memory），產出僅提案的改進清單，逐項核可後才執行。使用時機：(1) 用戶說要回顧這次 session、檢討這次工作, (2) 用戶問這次有什麼可以改進, (3) 用戶要沉澱教訓、強化 memory, (4) finish skill 收尾完成後自動接續執行, (5) session 結束前的總結整理。即使用戶只是說「這次做完了，幫我檢討一下」也應觸發此 skill。
+description: Session 回顧與改進沉澱——從本次 session 找出可改進要點，四路分診（改 skill 提示詞／加 hook／建 rule／寫 memory），產出僅提案的改進清單，逐項核可後才執行。使用時機：(1) 用戶說要回顧這次 session、檢討這次工作, (2) 用戶問這次有什麼可以改進, (3) 用戶要沉澱教訓、強化 memory, (4) 開發任務走到收尾階段（/mission-finish 之前）, (5) session 結束前的總結整理。即使用戶只是說「這次做完了，幫我檢討一下」也應觸發此 skill。
 ---
 
 # Session 回顧與改進沉澱
