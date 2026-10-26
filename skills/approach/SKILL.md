@@ -31,7 +31,7 @@ grill 問完需求、`/to-spec` 還沒整理規格書之前，先把「怎麼做
 - **放哪裡**：用 Skill 工具載入 `fe-arch` 判斷該放哪一層、哪個目錄；grep 既有同類模組，確認有沒有第二個使用者出現、要不要就近放置
 - **介面形狀**：列出這張票會新增的 hook／型別／狀態，標出「錯誤還是資料」這類建模決定（例：後端回的業務狀態該用 React Query 的 error 處理，還是當成一般資料渲染）
 - **介面形狀（測試打在哪）**：列出這張票的測試要打在哪些對外介面（Pocock 叫 seam：元件的 props 與畫面、hook 的回傳值、API 層函式），每個介面一行寫它抓得到什麼、抓不到什麼。這份清單就是 `implement` 說的「pre-agreed seams」。兩條規則：
-  - 測試只打在這些介面上：不測沒 export 的 helper，不 mock 自己寫的模組；只在系統邊界 mock（後端 API、時間、亂數）。判準見 Pocock `tdd/SKILL.md` 的 Anti-patterns 和 `tdd/mocking.md`
+  - 測試只打在這些介面上：不測沒 export 的 helper，不 mock 自己寫的模組；只在系統邊界 mock（後端 API、時間、亂數）。斷言結果不斷言呼叫：快取有沒有失效看 `getQueryState(key)?.isInvalidated`，不 spy `invalidateQueries`。判準見 Pocock `tdd/SKILL.md` 的 Anti-patterns 和 `tdd/mocking.md`
   - 想測的行為只能穿過介面才測得到時，代表介面形狀不對：把它列進「需要你決定」，提議把邏輯收進更少、更深的介面後面（詞彙見 Pocock `codebase-design`），不要為了測試把內部函式 export 出來
 - **從哪裡開始**：標出這張票裡風險最高、最沒把握的一塊（沒做過的技術、依賴還沒就位、跨多張票的第一步）
 
