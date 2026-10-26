@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: 刪除這張票的 worktree 與本地分支（MR 已合併才刪；未合併要使用者輸入 discard 丟棄），把 spec、驗收清單搬進 .claude/specs/archive/，刪除驗收證據目錄。是 /mission-finish 之後收尾的最後一步。worktree 內跑 /cleanup 清掉自己；主 checkout 跑 /cleanup <#issue 或分支名> 清掉指定的 worktree。使用者打 /cleanup 時使用。
+description: 刪除這張票的 worktree 與本地分支（MR 已合併、或 commit 已在 target 才刪；否則要使用者輸入 discard 丟棄），把 spec、驗收清單搬進 .claude/specs/archive/，刪除驗收證據目錄。是 /mission-finish 之後收尾的最後一步。worktree 內跑 /cleanup 清掉自己；主 checkout 跑 /cleanup <#issue 或分支名> 清掉指定的 worktree。使用者打 /cleanup 時使用。
 disable-model-invocation: true
 ---
 
@@ -48,15 +48,21 @@ disable-model-invocation: true
    ```
    - 任一筆是 `opened`（不論是否同時有 `merged`） → 停下：這個分支還有開著的 MR，等合併或先關閉
    - 沒有 `opened`、有一筆 `merged` → 正常路徑，記下該筆的 target 與 `sha`
-   - 沒有 merged、有 `closed` → 丟棄路徑（Step 3）
-   - 查無任何 MR：upstream 存在且去掉 `origin/` 後的短名 **不等於** `<branch>` → 停下，說明分支名跟遠端追蹤的名字不一樣、查詢可能查錯了，不進丟棄路徑；其餘情況 → 丟棄路徑
+   - 沒有 merged（只有 `closed`，或查無任何 MR）→ 先看 commit 是不是已經用別的方式進了 target（例：直接 push、別的分支帶進去）。target 取 closed MR 的 target，查無 MR 就用預設分支：
+     ```bash
+     git -C <wt> fetch origin
+     git -C <wt> merge-base --is-ancestor HEAD "origin/<target>"
+     ```
+     成立 → 已整合路徑：不會丟掉任何 commit，跟正常路徑一樣往下做，不用輸入 `discard`
+   - 不成立、有 `closed` → 丟棄路徑（Step 3）
+   - 不成立、查無任何 MR：upstream 存在且去掉 `origin/` 後的短名 **不等於** `<branch>` → 停下，說明分支名跟遠端追蹤的名字不一樣、查詢可能查錯了，不進丟棄路徑；其餘情況 → 丟棄路徑
 3. **正常路徑才做：證明分支上的東西沒有漏掉**——只比對 upstream 不夠，MR 合併之後還可能繼續 push：
    ```bash
    git -C <wt> fetch origin
    git -C <wt> merge-base --is-ancestor HEAD "origin/<target>"
    ```
    不成立就停下，說明分支上有 MR 合併之後才加的 commit，還沒進 `<target>`，請使用者確認這些 commit 要保留（另開 MR）還是要丟棄
-4. **沒有未提交／未追蹤的變更**（兩條路徑都查——worktree 整個目錄接下來會被刪掉）：
+4. **沒有未提交／未追蹤的變更**（每條路徑都查——worktree 整個目錄接下來會被刪掉）：
    ```bash
    git -C <wt> status --porcelain
    ```
@@ -74,7 +80,7 @@ git -C <wt> log --oneline "<target 或 origin/<預設分支>>..HEAD"
 
 ## Step 4：確認清單
 
-一次列給使用者看，等明確答覆才往下做：worktree 路徑、分支名、`<key>`；MR 的 iid／狀態／target（丟棄路徑寫「無」或「已關閉未合併」）；要歸檔的檔案（`spec-<key>-*.md`、`acceptance-<key>.md`，`<key>` 沒定案就寫「略過歸檔」）；要刪除的證據目錄 `<main>/.claude/verify-evidence/<key>/`；分支的 tip SHA（`git -C <main> rev-parse <branch>`）和救回指令 `git -C <main> branch <branch> <sha>`；「刪完要確認，在主 checkout 打 `orca worktree list`」。worktree 模式額外加一句**確認之後會一路做到刪除，這個視窗會關閉，之後不會再有回報**——worktree 模式下這份清單就是最後的回報，rm 之後視窗馬上關掉，再發訊息也看不到。
+一次列給使用者看，等明確答覆才往下做：worktree 路徑、分支名、`<key>`；MR 的 iid／狀態／target（已整合路徑寫「無 MR，commit 已在 origin/<target>」或「已關閉，commit 已在 origin/<target>」；丟棄路徑寫「無」或「已關閉未合併」）；要歸檔的檔案（`spec-<key>-*.md`、`acceptance-<key>.md`，`<key>` 沒定案就寫「略過歸檔」）；要刪除的證據目錄 `<main>/.claude/verify-evidence/<key>/`；分支的 tip SHA（`git -C <main> rev-parse <branch>`）和救回指令 `git -C <main> branch <branch> <sha>`；「刪完要確認，在主 checkout 打 `orca worktree list`」。worktree 模式額外加一句**確認之後會一路做到刪除，這個視窗會關閉，之後不會再有回報**——worktree 模式下這份清單就是最後的回報，rm 之後視窗馬上關掉，再發訊息也看不到。
 
 ## Step 5：執行
 
