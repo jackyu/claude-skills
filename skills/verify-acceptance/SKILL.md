@@ -106,6 +106,9 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
    - 定位注意：真瀏覽器的 ARIA role 可能跟 jsdom 測試不同（例：表頭 `<th>` 在 Chromium 是 `cell`）；同一段文字出現在多處（側欄、標題、麵包屑）要加 `nth` 或換定位
 2. 跑：`cd <wt> && node .claude/skills/verify-admin/scripts/drive.mjs --port <After port> --journey <證據目錄>/journeys/AC-<n>.json`
 3. 判定：exit 0、斷言都過才算過。順序、字數這類斷言寫不出來的，讀 capture 的 `.aria.txt` 核對，結果裡寫明「順序由 ARIA snapshot 核對」。有 `aborted-unmocked` 的請求要說明影不影響結果
+4. 判定前用 Read 看斷言後那張截圖：
+   - 畫面是錯誤、空白或載入失敗狀態（常見於 aborted-unmocked），而這條要證明的不是這個畫面 → 補 mock 讓畫面正常再拍；補不了就在結果寫明「截圖是 <狀態> 畫面，只證明 <斷言內容>」
+   - 看到跟這條無關的版面異常（例如沒對齊、被截斷）→ 不影響判定，回報時列為「既有問題候選」
 
 ### 截圖：client
 
@@ -113,6 +116,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 2. 寫兩個檔到 `<證據目錄>/journeys/`：`AC-<n>.actions.json`（動作陣列，「預期」寫成 `waitText`／`expectAbsentText`／`expectEnabled` 等）和 `AC-<n>.cmd.txt`（完整的 drive 指令，含 `--port --feature --route --scenario --wait-text --widths --actions`）
 3. 跑 `AC-<n>.cmd.txt` 那行（在 `<wt>`）。預設有沒 mock 到的 `/api/*` 就整體失敗：先看是不是情境不夠；確認不影響這條的判定才加 `--allow-unmocked`，並在結果裡寫明
 4. 判定：每個寬度都 `PASS`。順序類的讀 capture 的 `.aria.yml` 核對
+5. 判定前每個寬度的截圖都照 admin 第 4 步看一次
 
 ### 截圖：收證據
 
