@@ -7,11 +7,11 @@ Session 結束前的回顧：從這次 session 挖出可改進的地方，分成
 補上開發生命週期的最後一環——讓每次 session 的教訓真的留下來，而不是下次再踩一遍：
 
 ```
-/start  →  開發  →  /push  →  finish  →  retro
-建 worktree      開 MR    收尾清理    沉澱改進
+/start  →  開發  →  /push  →  retro  →  /mission-finish  →  /cleanup
+建 worktree      開 MR    沉澱改進    量用量、清任務       刪 worktree
 ```
 
-`finish` 收完尾之後會**自動接著跑 retro，不會問你要不要跑**。retro 只產出提案，收尾結果不受它影響；不想採納就一項都不勾。
+retro 要回顧這段對話，所以排在 `/cleanup` 前面：`/cleanup` 刪掉 worktree 時會一起關掉 session。retro 只產出提案，不想採納就一項都不勾。
 
 它**不做**的事：不自己改設定、不自己寫 memory、不在你沒點頭前碰任何檔案。
 

@@ -87,7 +87,7 @@ cd claude-skills
 |---|---|
 | [find-skills](skills/find-skills/) | 從開放 skills 生態系中探索與安裝 agent skills |
 | [verification-before-completion](skills/verification-before-completion/) | 在宣稱完成前強制執行驗證指令，證據先於斷言 |
-| [finish](skills/finish/) | 開發分支收尾：判斷合併狀態後提供選項（開 MR／保留／丟棄／清理 worktree），丟棄需輸入 discard |
+| [cleanup](skills/cleanup/) | MR 合併後刪掉這張票的 worktree 與本地分支，spec、驗收清單搬進 archive；沒合併要輸入 discard 才丟棄 |
 | [retro](skills/retro/) | Session 回顧與改進沉澱：五類訊號、四路分診（skill／hook／rule／memory），僅提案，逐項核可後才執行 |
 
 ### 開發輔助
