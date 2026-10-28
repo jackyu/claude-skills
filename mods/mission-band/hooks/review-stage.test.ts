@@ -121,6 +121,32 @@ describe('classifyDiscussion', () => {
   test('lastOtherNoteId is undefined when nobody else ever posted (or ids are missing)', () => {
     expect(classifyDiscussion({ id: 'd1', notes: [{ body: 'solo', author: { username: 'me' } }] }, 'me')?.lastOtherNoteId).toBeUndefined()
   })
+
+  test('a thread started by the CI bot account with no human reply is not feedback', () => {
+    const raw: RawReviewDiscussion = { id: 'd1', notes: [{ id: 3, body: 'Claude finished the review', author: { username: 'project_499_bot_abc123' } }] }
+    const result = classifyDiscussion(raw, 'me')
+    expect(result?.isFeedback).toBe(false)
+    expect(result?.lastOtherNoteId).toBeUndefined()
+  })
+
+  test('a review summary carrying the claude-review marker is not feedback even under another username', () => {
+    const raw: RawReviewDiscussion = { id: 'd1', notes: [{ body: '## Review\n<!-- claude-review -->', author: { username: 'someone' } }] }
+    expect(classifyDiscussion(raw, 'me')?.isFeedback).toBe(false)
+  })
+
+  test('a human reply under a bot thread turns it into feedback, tracking only the human note id', () => {
+    const raw: RawReviewDiscussion = {
+      id: 'd1',
+      notes: [
+        { id: 3, body: 'bot summary', author: { username: 'project_499_bot_abc123' } },
+        { id: 4, body: '這點我同意，要改', author: { username: 'reviewer' } },
+        { id: 5, body: 'bot follow-up', author: { username: 'project_499_bot_abc123' } },
+      ],
+    }
+    const result = classifyDiscussion(raw, 'me')
+    expect(result?.isFeedback).toBe(true)
+    expect(result?.lastOtherNoteId).toBe(4)
+  })
 })
 
 describe('applyReviewSync', () => {

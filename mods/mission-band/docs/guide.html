@@ -864,7 +864,7 @@
         <tr><td><code>await-review</code></td><td>等同事看過之後打 /mission-review 同步</td><td>同步到第一則別人的回饋，或 MR 已經 approved</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip await-review 理由</code></td></tr>
         <tr><td><code>verify-acceptance/overall</code> / <code>reverify</code>（顯示名跟驗收階段那個相同，但是不同節點）</td><td>改完 code 或 rebase 之後要重跑整體回歸</td><td>整體回歸狀態是「通過」，而且記的 SHA 等於目前 HEAD</td><td>自動視為跳過：從來沒有整體回歸紀錄，或驗收階段本來就 <code>/mission-skip overall-regression</code> 跳過了；一般不用手動跳</td></tr>
         <tr><td><code>push-fix</code></td><td>本機跟遠端不一致就要 push；rebase 過要 force-push，自己用 <code>! git push --force-with-lease</code> 執行</td><td>遠端分支 SHA 等於本機 HEAD</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip push-fix 理由</code></td></tr>
-        <tr><td><code>reply</code></td><td>逐則回覆或標 resolved；要用 glab api 發才算，貼在留言框不算</td><td>本輪回饋都已回覆或 resolved，或最後一則是自己</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip reply 理由</code></td></tr>
+        <tr><td><code>reply</code></td><td>逐則回覆或標 resolved；要用 glab api 發才算，貼在留言框不算</td><td>本輪回饋都已回覆或 resolved，或最後一則是自己；CI bot（<code>project_&lt;id&gt;_bot_…</code> 帳號或含 <code>&lt;!-- claude-review --&gt;</code>）開的串，沒有真人回覆就不算回饋</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip reply 理由</code></td></tr>
         <tr><td><code>approved</code></td><td>打 /mission-review 同步核准狀態</td><td>MR 已經 approved</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip approved 理由</code></td></tr>
       </tbody>
     </table>

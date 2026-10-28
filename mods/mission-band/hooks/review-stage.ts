@@ -31,6 +31,15 @@ function isBySelf(note: RawReviewNote, selfUsername: string | undefined): boolea
   return selfUsername !== undefined && note.author?.username === selfUsername
 }
 
+// CI 的 Claude bot 用 GitLab 專案 bot 帳號（project_<id>_bot_…）留言，API 的 author.bot 卻是 false，
+// 只能靠帳號名稱或 review 摘要裡的標記認。
+const BOT_USERNAME_PATTERN = /^project_\d+_bot/
+const BOT_REVIEW_MARKER = '<!-- claude-review -->'
+
+function isBot(note: RawReviewNote): boolean {
+  return BOT_USERNAME_PATTERN.test(note.author?.username ?? '') || note.body.includes(BOT_REVIEW_MARKER)
+}
+
 /** 別人發的 note 裡最大的 note id；GitLab note id 全站單調遞增，比這個就不用比時間戳。 */
 function maxNoteId(notes: readonly RawReviewNote[]): number | undefined {
   const ids = notes.map(note => note.id).filter((id): id is number => id !== undefined)
@@ -39,7 +48,7 @@ function maxNoteId(notes: readonly RawReviewNote[]): number | undefined {
 
 /**
  * 單一討論分類成 ReviewDiscussion；系統 note 先濾掉，濾完沒有任何 note 就不是討論（回 undefined）。
- * isFeedback 只排除「導覽註解、且沒有別人回覆」那一種——用標記判斷，不用作者判斷：自己留的
+ * isFeedback 只排除「導覽註解或 bot 開的串、且沒有真人回覆」那兩種——導覽註解用標記判斷，不用作者判斷：自己留的
  * 非導覽提醒（例如「這裡還要改」）照樣算回饋討論，只是因為最後一則就是自己，reply 節點本來
  * 就會判斷完成，不需要額外排除。導覽註解底下只要有別人回覆，整串就轉成一般回饋討論。
  */
@@ -48,9 +57,9 @@ export function classifyDiscussion(raw: RawReviewDiscussion, selfUsername: strin
   const first = notes[0]
   if (first === undefined) return undefined
 
-  const othersNotes = notes.filter(note => !isBySelf(note, selfUsername))
-  const isTourWithNoReply = isTourNote(first) && othersNotes.length === 0
-  const isFeedback = !isTourWithNoReply
+  const othersNotes = notes.filter(note => !isBySelf(note, selfUsername) && !isBot(note))
+  const hasNoHumanReply = othersNotes.length === 0
+  const isFeedback = !((isTourNote(first) || isBot(first)) && hasNoHumanReply)
 
   const lastNote = notes.at(-1)
   const lastBySelf = lastNote !== undefined && isBySelf(lastNote, selfUsername)
