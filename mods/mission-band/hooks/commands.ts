@@ -6,6 +6,7 @@ import type { CommandSpec } from 'claude-code'
 export const MISSION_COMMANDS: readonly CommandSpec[] = [
   { name: 'mission-start', description: '開始追蹤一個任務流程（名稱自動加日期）', argumentHint: '#<issue> | <名稱>' },
   { name: 'mission-list', description: '列出所有任務' },
+  { name: 'mission-rename', description: '幫任務改名（保留日期前綴），可貼 issue 網址', argumentHint: '<目前名稱或 #issue> <新的 #issue、網址或名稱>' },
   { name: 'mission-restore', description: '把任務接到這個 session 或 worktree', argumentHint: '#<issue> | <名稱>' },
   { name: 'mission-skip', description: '跳過目前階段的一個節點，或雙軌節點（例如 code-review）底下的一條軌道', argumentHint: '<nodeId>[:<track>] <理由>' },
   { name: 'mission-next', description: '進入下一個階段' },

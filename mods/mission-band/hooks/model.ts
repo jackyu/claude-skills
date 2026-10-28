@@ -5,7 +5,7 @@
 // /mission-list 與 /mission-log 的文字格式化在 hooks/reporting.ts，各自獨立成檔；這裡只留
 // 指令解析與任務的增刪改查。
 import type { Mission, MissionEvent, MissionFlow, MissionStage, Missions, NodeId } from '../types'
-import { addCollectedAssets, ownIssueAsset } from './assets'
+import { addCollectedAssets, dedupeKey, ownIssueAsset } from './assets'
 import { normalizeLabel } from './command-args'
 import { isBlocking, nodeStates, REVIEW_STAGE_ID, stageAt, stageEnteredAt } from './node-states'
 
@@ -153,6 +153,42 @@ export function startMission(
     stageEnteredAt: [now],
   }
   return { ok: true, missions: { ...missions, [name]: mission }, text: `已建立任務「${name}」` }
+}
+
+const DATE_PREFIX_PATTERN = /^\d{4}-/
+
+/** 改名保留原本的日期前綴；issue 號換了就把自己的 issue 資產換成新的，其他資產不動。 */
+export function renameMission(missions: Missions, query: string, label: string, now: number, issueUrl?: string): CommandOutcome {
+  const resolved = resolveMissionName(missions, query)
+  if ('error' in resolved) return { ok: false, text: resolved.error }
+  const oldName = resolved.name
+  const current = missions[oldName]
+  if (current === undefined) return { ok: false, text: `找不到任務「${query}」，用 /mission-list 看有哪些` }
+
+  const newName = `${DATE_PREFIX_PATTERN.exec(oldName)?.[0] ?? ''}${label.replace(DATE_PREFIX_PATTERN, '')}`
+  if (newName === oldName) return { ok: false, text: `任務已經叫「${newName}」` }
+  if (newName in missions) return { ok: false, text: `任務「${newName}」已經存在，換一個名稱` }
+
+  const iid = issueIidFromMissionName(newName)
+  const sameIssue = iid === undefined ? undefined : Object.keys(missions).find(name => name !== oldName && issueIidFromMissionName(name) === iid)
+  if (sameIssue !== undefined) return { ok: false, text: `任務「${sameIssue}」已經用了 #${iid}，換一個名稱` }
+
+  const newIssueKey = issueUrl === undefined ? undefined : dedupeKey(issueUrl)
+  const otherAssets = (current.assets ?? []).filter(asset => asset.source !== 'issue' && dedupeKey(asset.url) !== newIssueKey)
+  const ownAssets = issueUrl !== undefined && iid !== undefined ? [ownIssueAsset(issueUrl, iid, now)] : []
+  const renamed: Mission = { ...current, name: newName, assets: [...otherAssets, ...ownAssets] }
+  const rest = withoutMission(missions, oldName)
+  const text = `已把任務「${oldName}」改名成「${newName}」${acceptanceRenameReminder(current, newName, iid)}`
+  return { ok: true, missions: { ...rest, [newName]: renamed }, text }
+}
+
+// 驗收清單靠任務名裡的 #<n> 或檔內 meta 的 mission 欄位對回任務，改名後要手動跟上。
+function acceptanceRenameReminder(mission: Mission, newName: string, iid: string | undefined): string {
+  const path = mission.acceptance?.resolvedPath
+  if (mission.acceptance?.exists !== true || path === undefined) return ''
+  const file = path.split('/').at(-1) ?? path
+  const fix = iid === undefined ? `把檔內 meta 的 mission 改成「${newName}」` : `檔名要是 acceptance-${iid}.md，檔內 meta 的 mission 改成「${newName}」`
+  return `\n驗收清單 ${file} 還記著舊名稱：${fix}，不然 band 會找不到它`
 }
 
 export function restoreMission(missions: Missions, binding: string, query: string): CommandOutcome {

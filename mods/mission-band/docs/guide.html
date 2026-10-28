@@ -565,7 +565,7 @@
       <div class="qs-card" data-stage="start">
         <span class="qs-eyebrow">開始</span>
         <div class="qs-code"><code>/mission-start #473</code></div>
-        <p class="qs-desc">有對應的票就帶票號；沒有票就 <code>/mission-start 一個名稱</code>。</p>
+        <p class="qs-desc">有對應的票就帶票號，也可以直接貼這個 repo 的 issue 網址；別的專案（例如 rsc-pm）的網址會被擋下，請改用前端 RD 票號。沒有票就 <code>/mission-start 一個名稱</code>。名稱取錯了用 <code>/mission-rename</code> 改。</p>
         <details><summary>細節</summary><p>任務名稱會自動變成「月日-#473」這種格式。</p></details>
       </div>
 
@@ -895,7 +895,8 @@
     <table>
       <thead><tr><th>指令</th><th>參數</th><th>做什麼</th></tr></thead>
       <tbody>
-        <tr><td><code>/mission-start</code></td><td><code>#&lt;issue&gt; | &lt;名稱&gt;</code></td><td>開始追蹤一個任務流程（名稱自動加日期）</td></tr>
+        <tr><td><code>/mission-start</code></td><td><code>#&lt;issue&gt; | &lt;issue 網址&gt; | &lt;名稱&gt;</code></td><td>開始追蹤一個任務流程（名稱自動加日期）；網址只收這個 repo 的 issue／work item</td></tr>
+        <tr><td><code>/mission-rename</code></td><td><code>&lt;目前名稱或 #issue&gt; &lt;新的 #issue、網址或名稱&gt;</code></td><td>幫任務改名，保留原本的日期前綴；換成 #issue 會一併換掉資產裡的 issue 連結</td></tr>
         <tr><td><code>/mission-list</code></td><td>-</td><td>列出所有任務</td></tr>
         <tr><td><code>/mission-restore</code></td><td><code>#&lt;issue&gt; | &lt;名稱&gt;</code></td><td>把任務接到這個 session 或 worktree</td></tr>
         <tr><td><code>/mission-skip</code></td><td><code>&lt;nodeId&gt;[:&lt;track&gt;] &lt;理由&gt;</code></td><td>跳過目前階段的一個節點，或雙軌節點（如 code-review）底下的一條軌道</td></tr>

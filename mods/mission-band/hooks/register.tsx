@@ -4,10 +4,10 @@ import type { Register } from 'claude-code'
 import { NEW_FEATURE_FLOW } from '../flows/new-feature'
 import { handleAcceptanceFileWrite, maybeRefreshAcceptance } from './acceptance-events'
 import { linkAsset, parseLinkArgs, parseUnlinkArgs, unlinkAsset } from './asset-commands'
-import { extractCandidateUrls, isGrillWithDocsPrompt, issueUrlFromRemote, looksLikeIssueReadCommand, projectNameFor } from './assets'
+import { extractCandidateUrls, isGrillWithDocsPrompt, issueUrlFromRemote, looksLikeIssueReadCommand, projectNameFor, projectPathFromRemote } from './assets'
 import { bandPlan } from './band'
 import { renderRow, stepsBox } from './band-render'
-import { parseFinishArgs, parseRestoreArgs, parseSkipArgs, parseStartArgs } from './command-args'
+import { parseFinishArgs, parseRenameArgs, parseRestoreArgs, parseSkipArgs, parseStartArgs } from './command-args'
 import { MISSION_COMMANDS } from './commands'
 import { finishWithCost, missionCostText, rememberSession, runMutationAndRemember } from './cost'
 import { missionGoText } from './handoff'
@@ -18,6 +18,7 @@ import {
   findBoundMission,
   issueIidFromMissionName,
   nextStage,
+  renameMission,
   restoreMission,
   skipNode,
   startMission,
@@ -208,7 +209,8 @@ export const register: Register = on => {
 
   on('command.run', { command: 'mission-start' }, async ($, e) => {
     const now = await $.clock.now()
-    const parsed = parseStartArgs(e.args, now)
+    const repo = await $.session.repo()
+    const parsed = parseStartArgs(e.args, now, projectPathFromRemote(repo?.remote))
     if ('error' in parsed) return { text: parsed.error }
 
     const gaps = setupGaps(await gatherSetupFacts($))
@@ -216,7 +218,6 @@ export const register: Register = on => {
 
     const binding = await currentBinding($)
     const iid = issueIidFromMissionName(parsed.name)
-    const repo = await $.session.repo()
     const issueUrl = iid === undefined ? undefined : issueUrlFromRemote(repo?.remote ?? null, iid)
 
     return runMutationAndRemember($, missions => startMission(missions, parsed.name, binding, now, issueUrl, iid))
@@ -228,6 +229,17 @@ export const register: Register = on => {
 
     const binding = await currentBinding($)
     return runMutationAndRemember($, missions => restoreMission(missions, binding, parsed.name))
+  })
+
+  on('command.run', { command: 'mission-rename' }, async ($, e) => {
+    const repo = await $.session.repo()
+    const parsed = parseRenameArgs(e.args, projectPathFromRemote(repo?.remote))
+    if ('error' in parsed) return { text: parsed.error }
+
+    const iid = issueIidFromMissionName(parsed.label)
+    const issueUrl = iid === undefined ? undefined : issueUrlFromRemote(repo?.remote ?? null, iid)
+    const now = await $.clock.now()
+    return runMutation($, missions => renameMission(missions, parsed.query, parsed.label, now, issueUrl))
   })
 
   on('command.run', { command: 'mission-skip' }, async ($, e) => {

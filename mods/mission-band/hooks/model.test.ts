@@ -12,6 +12,7 @@ import {
   nextStage,
   nextStepHint,
   nodeStates,
+  renameMission,
   resolveMissionName,
   restoreMission,
   routeEvent,
@@ -1361,6 +1362,83 @@ describe('restoreMission', () => {
     const outcome = restoreMission(missions, 'session:sess-1', 'demo')
     expect(outcome.ok).toBe(true)
     if (outcome.ok) expect(outcome.missions.demo?.worktreePath).toBe('/old-repo/.claude/worktrees/feat_x')
+  })
+})
+
+describe('renameMission', () => {
+  const URL_NAME = '1027-https://git.example/group/app/-/work_items/473'
+  const ISSUE_URL = 'https://git.example/group/app/-/issues/473'
+
+  test('moves the mission to the new name, keeping the original date prefix and everything else', () => {
+    const missions: Missions = { [URL_NAME]: mission({ name: URL_NAME, stage: 2, binding: '/wt' }) }
+    const outcome = renameMission(missions, URL_NAME, '#473', 5, ISSUE_URL)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(Object.keys(outcome.missions)).toEqual(['1027-#473'])
+    expect(outcome.missions['1027-#473']).toMatchObject({ name: '1027-#473', stage: 2, binding: '/wt' })
+    expect(outcome.text).toContain('1027-#473')
+  })
+
+  test('replaces the own-issue asset and keeps the other assets', () => {
+    const assets = [
+      { url: 'https://git.example/group/app/-/issues/1', label: '#1', description: '', source: 'issue' as const, at: 0 },
+      { url: 'https://figma.com/x', label: 'figma', description: '', source: 'manual' as const, at: 0 },
+    ]
+    const missions: Missions = { '1027-#1': mission({ name: '1027-#1', assets }) }
+    const outcome = renameMission(missions, '#1', '#473', 5, ISSUE_URL)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    const renamed = outcome.missions['1027-#473']
+    expect(renamed?.assets?.map(asset => asset.label)).toEqual(['figma', '#473'])
+    expect(renamed?.assets?.find(asset => asset.source === 'issue')?.url).toBe(ISSUE_URL)
+  })
+
+  test('drops the own-issue asset when the new name has no issue number', () => {
+    const assets = [{ url: ISSUE_URL, label: '#473', description: '', source: 'issue' as const, at: 0 }]
+    const missions: Missions = { '1027-#473': mission({ name: '1027-#473', assets }) }
+    const outcome = renameMission(missions, '#473', '銀行按鈕', 5)
+    expect(outcome.ok).toBe(true)
+    if (outcome.ok) expect(outcome.missions['1027-銀行按鈕']?.assets).toEqual([])
+  })
+
+  test('drops an auto-collected copy of the same issue so it is listed once', () => {
+    const assets = [{ url: `${ISSUE_URL}#note_1`, label: '#473', description: '', source: 'tool' as const, at: 0 }]
+    const missions: Missions = { [URL_NAME]: mission({ name: URL_NAME, assets }) }
+    const outcome = renameMission(missions, URL_NAME, '#473', 5, ISSUE_URL)
+    expect(outcome.ok).toBe(true)
+    if (outcome.ok) expect(outcome.missions['1027-#473']?.assets?.map(asset => asset.source)).toEqual(['issue'])
+  })
+
+  test('refuses an issue number another mission already uses', () => {
+    const missions: Missions = { '1026-#473': mission({ name: '1026-#473' }), '1027-x': mission({ name: '1027-x' }) }
+    const outcome = renameMission(missions, '1027-x', '#473', 5)
+    expect(outcome.ok).toBe(false)
+    expect(outcome.text).toContain('1026-#473')
+  })
+
+  test('does not double the date prefix when the new label already has one', () => {
+    const missions: Missions = { '1027-a': mission({ name: '1027-a' }) }
+    const outcome = renameMission(missions, '1027-a', '1028-b', 5)
+    expect(outcome.ok).toBe(true)
+    if (outcome.ok) expect(Object.keys(outcome.missions)).toEqual(['1027-b'])
+  })
+
+  test('reminds to update the acceptance checklist when the mission has one', () => {
+    const acceptance = { exists: true, resolvedPath: '/repo/.claude/specs/acceptance-bank.md' } as Mission['acceptance']
+    const missions: Missions = { '1027-bank': mission({ name: '1027-bank', acceptance }) }
+    const outcome = renameMission(missions, '1027-bank', 'banking', 5)
+    expect(outcome.ok).toBe(true)
+    expect(outcome.text).toContain('acceptance-bank.md')
+    expect(outcome.text).toContain('1027-banking')
+  })
+
+  test('refuses an unknown mission, a taken name, or the same name', () => {
+    const missions: Missions = { '1027-a': mission({ name: '1027-a' }), '1027-b': mission({ name: '1027-b' }) }
+    expect(renameMission(missions, 'zzz', 'c', 5).ok).toBe(false)
+    const taken = renameMission(missions, '1027-a', 'b', 5)
+    expect(taken.ok).toBe(false)
+    expect(taken.text).toContain('1027-b')
+    expect(renameMission(missions, '1027-a', 'a', 5).ok).toBe(false)
   })
 })
 
