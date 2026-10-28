@@ -661,7 +661,7 @@
 
     <figure class="flow-figure">
       <div class="flow-wrap">
-        <svg class="flow-svg" viewBox="0 0 1066 297" role="img" aria-label="五個階段（開始、實作、驗收、審查、收尾）由左到右排列，每個階段底下依序列出要做的步驟，虛線框的步驟是選用、可以跳過；階段之間的箭頭標著 /mission-next，審查進收尾那一箭標著 MR 合併。">
+        <svg class="flow-svg" viewBox="0 0 1066 327" role="img" aria-label="五個階段（開始、實作、驗收、審查、收尾）由左到右排列，每個階段底下依序列出要做的步驟，虛線框的步驟是選用、可以跳過；階段之間的箭頭標著 /mission-next，審查進收尾那一箭標著 MR 合併。">
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="flow-arrowhead"/></marker></defs>
 <g class="flow-col flow-col--start">
 <rect x="16" y="28" width="178" height="259" rx="10" class="flow-card"/>
@@ -713,7 +713,7 @@
 <text x="460" y="206.5" class="flow-row-text">interrogate</text>
 </g>
 <g class="flow-col flow-col--review">
-<rect x="658" y="28" width="178" height="259" rx="10" class="flow-card"/>
+<rect x="658" y="28" width="178" height="289" rx="10" class="flow-card"/>
 <rect x="658" y="28" width="178" height="32" rx="10" class="flow-header"/>
 <text x="747.0" y="49.0" text-anchor="middle" class="flow-header-text">4　審查</text>
 <rect x="666" y="70" width="162" height="25" rx="6" class="flow-row"/>
@@ -721,15 +721,17 @@
 <rect x="666" y="100" width="162" height="25" rx="6" class="flow-row"/>
 <text x="674" y="116.5" class="flow-row-text">freeze-spec</text>
 <rect x="666" y="130" width="162" height="25" rx="6" class="flow-row"/>
-<text x="674" y="146.5" class="flow-row-text">await-review</text>
+<text x="674" y="146.5" class="flow-row-text">mr-reading-map</text>
 <rect x="666" y="160" width="162" height="25" rx="6" class="flow-row"/>
-<text x="674" y="176.5" class="flow-row-text">verify-acceptance/overall</text>
+<text x="674" y="176.5" class="flow-row-text">await-review</text>
 <rect x="666" y="190" width="162" height="25" rx="6" class="flow-row"/>
-<text x="674" y="206.5" class="flow-row-text">push-fix</text>
+<text x="674" y="206.5" class="flow-row-text">verify-acceptance/overall</text>
 <rect x="666" y="220" width="162" height="25" rx="6" class="flow-row"/>
-<text x="674" y="236.5" class="flow-row-text">reply</text>
+<text x="674" y="236.5" class="flow-row-text">push-fix</text>
 <rect x="666" y="250" width="162" height="25" rx="6" class="flow-row"/>
-<text x="674" y="266.5" class="flow-row-text">approved</text>
+<text x="674" y="266.5" class="flow-row-text">reply</text>
+<rect x="666" y="280" width="162" height="25" rx="6" class="flow-row"/>
+<text x="674" y="296.5" class="flow-row-text">approved</text>
 </g>
 <g class="flow-col flow-col--finish">
 <rect x="872" y="28" width="178" height="109" rx="10" class="flow-card"/>
@@ -772,10 +774,9 @@
     <pre>demo &gt; 1025-#473｜<span class="sym-done">✓</span> 開始 <span class="sym-done">✓</span> 實作 <span class="sym-done">✓</span> 驗收 <span class="sym-current">●</span> 審查（第 3 輪） <span class="sym-idle">○</span> 收尾｜上次同步 2 小時前    <span class="sym-accent">h: ?</span>
 <span class="sym-warn">⚠</span> 連續幾輪在修上一輪的修法，先停下來檢查前提
 ╭ 步驟 ─────────────────────╮╭ 資產 ──────────────────────╮
-│ <span class="sym-done">✓</span> open-mr                 ││ • #473             issue    │
-│ <span class="sym-done">✓</span> freeze-spec              ││ • !493              MR      │
-│ <span class="sym-idle">○</span> await-review             ││ • GLOSSARY.md       文件    │
-│ <span class="sym-idle">○</span> verify-acceptance/overall││                              │
+│ <span class="sym-done">✓</span> 前面 3 項已完成或略過    ││ • #473             issue    │
+│ <span class="sym-idle">○</span> await-review             ││ • !493              MR      │
+│ <span class="sym-idle">○</span> verify-acceptance/overall││ • GLOSSARY.md       文件    │
 │ <span class="sym-idle">○</span> push-fix                 ││                              │
 │ <span class="sym-idle">○</span> reply                    ││                              │
 │ <span class="sym-idle">○</span> approved                 ││                              │
@@ -859,6 +860,7 @@
       <tbody>
         <tr><td><code>open-mr</code></td><td>打 /push 開 MR</td><td>偵測到本專案的 MR 網址</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip open-mr 理由</code></td></tr>
         <tr><td><code>freeze-spec</code></td><td>/push 開完 MR 會自動把 spec 凍結到 issue 留言；已經開過就再跑一次 /push 選「僅推送」補發</td><td>偵測到對任務 issue 留言</td><td>沒有對應 issue 或 spec：<code>/mission-skip freeze-spec 理由</code></td></tr>
+        <tr><td><code>mr-reading-map</code></td><td>打 /mr-reading-map &lt;MR 號&gt; 在 diff 上發導覽註解、把閱讀地圖插進 MR 描述；skill 會先判斷需不需要，不需要會直接告訴你，發完會告訴你下一步</td><td>呼叫過 /mr-reading-map（判斷不需要也算）</td><td>確定不需要：<code>/mission-skip mr-reading-map 理由</code>；MR 已核准還沒跑會自動顯示成已跳過</td></tr>
         <tr><td><code>await-review</code></td><td>等同事看過之後打 /mission-review 同步</td><td>同步到第一則別人的回饋，或 MR 已經 approved</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip await-review 理由</code></td></tr>
         <tr><td><code>verify-acceptance/overall</code> / <code>reverify</code>（顯示名跟驗收階段那個相同，但是不同節點）</td><td>改完 code 或 rebase 之後要重跑整體回歸</td><td>整體回歸狀態是「通過」，而且記的 SHA 等於目前 HEAD</td><td>自動視為跳過：從來沒有整體回歸紀錄，或驗收階段本來就 <code>/mission-skip overall-regression</code> 跳過了；一般不用手動跳</td></tr>
         <tr><td><code>push-fix</code></td><td>本機跟遠端不一致就要 push；rebase 過要 force-push，自己用 <code>! git push --force-with-lease</code> 執行</td><td>遠端分支 SHA 等於本機 HEAD</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip push-fix 理由</code></td></tr>

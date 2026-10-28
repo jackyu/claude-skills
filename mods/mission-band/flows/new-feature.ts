@@ -1,4 +1,4 @@
-import { reverifySkipReason } from '../hooks/review-stage'
+import { latestMrIid, reverifySkipReason } from '../hooks/review-stage'
 import type { MissionFlow } from '../types'
 
 // MR 描述要有的段落關鍵字；跟 fe-mr-generator 的段落順序對齊（第 2 項定案後再調整）。
@@ -156,6 +156,13 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
           id: 'freeze-spec',
           doneWhen: 'issue-note',
           hint: '/push 開完 MR 會接著把 spec 凍結到 issue 留言；MR 已經開過就再跑一次 /push 選「僅推送」補發；沒有對應 issue 或 spec 就 /mission-skip freeze-spec <理由>',
+        },
+        {
+          id: 'mr-reading-map',
+          matchSkill: 'mr-reading-map',
+          skipWhen: mission => (mission.review?.approved === true ? 'MR 已核准，不用再發閱讀地圖' : undefined),
+          hint: mission =>
+            `輸入 /mr-reading-map ${latestMrIid(mission) ?? '<MR 號>'} 發閱讀地圖；skill 會先判斷這個 MR 需不需要，不需要會直接告訴你。確定不需要就 /mission-skip mr-reading-map <理由>`,
         },
         {
           id: 'await-review',

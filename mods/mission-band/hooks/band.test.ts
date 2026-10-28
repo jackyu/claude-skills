@@ -485,7 +485,7 @@ describe('bandPlan step detail', () => {
   // 顯示出來，跟使用者打 /mission-skip 的樣式（✗ 加原因）一致。
   test('reverify auto-skipped (no acceptance checklist) shows the ✗ symbol with its derived reason, via state.detail not mission.skips', () => {
     const m = mission({ stage: 3, review: { round: 1, roundStartedAt: 0, discussions: [] } })
-    const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 10, undefined)
+    const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 13, undefined)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     const reverifyRow = plan.steps.find(row => row.key === 'reverify')
     expect(reverifyRow).toEqual({
@@ -530,8 +530,8 @@ describe('bandPlan tickets-changed warning', () => {
   })
 
   test('maxRows=10 with the warning shown leaves room for 1 fewer inner row than without it', () => {
-    // 真實 flow 節點數最多的是審查階段（7 個），剛好打平 MAX_INNER_ROWS（7），看不出差
-    // 1 列的效果；自己搭一個 8 節點的 build 階段才能把截斷逼出來。
+    // 真實 flow 節點數最多的是審查階段（8 個），剛好打平 MAX_INNER_ROWS（8），看不出差
+    // 1 列的效果；自己搭一個 8 節點的 build 階段、maxRows=10 才能把截斷逼出來。
     const manyNodesFlow: MissionFlow = {
       name: 'new-feature',
       stages: [
@@ -635,27 +635,26 @@ describe('bandPlan review stage (round label, sync time, round warning)', () => 
     expect(plan.warnings).toEqual([])
   })
 
-  // bug 修正：審查階段的 7 個節點（開 MR、凍結 spec、等審查、重驗、push、回覆、核准）原本
-  // 因為「上次同步」佔掉一列警示，加上舊的 MAX_INNER_ROWS（6）天花板，怎麼樣都塞不下全部
-  // 7 個，使用者又沒辦法在 band 裡滑動看剩下的。「上次同步」搬到 tabs 列、框內上限拉到 7
-  // 之後，全部 7 個節點配合足夠的 maxRows 應該整個顯示，不再出現「另有」。
-  test('a review-stage mission with all 7 nodes fits entirely (no 「另有」row) once maxRows is at least 13, with the sync time on the tabs row', () => {
+  // 審查階段的 8 個節點（開 MR、凍結 spec、閱讀地圖、等審查、重驗、push、回覆、核准）使用者
+  // 沒辦法在 band 裡滑動看剩下的，「上次同步」放在 tabs 列、框內上限 8，maxRows 夠大時要整個
+  // 顯示，不出現「另有」。
+  test('a review-stage mission with all 8 nodes fits entirely (no 「另有」row) once maxRows is at least 13, with the sync time on the tabs row', () => {
     const m = mission({ stage: 3, review: { round: 1, roundStartedAt: 0, lastSyncAt: 1_000, discussions: [] } })
     const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 13, undefined, 1_000 + 90 * 60 * 1000)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
-    expect(plan.steps).toHaveLength(7)
+    expect(plan.steps).toHaveLength(8)
     expect(plan.steps.some(row => row.key === 'more')).toBe(false)
     expect(plan.tabs.segments.at(-1)).toEqual({ text: '上次同步 1 小時前', dim: true })
   })
 
-  // maxRows 還是不夠大時，7 個節點一樣要照既有的截斷規則處理，不會因為把「上次同步」
+  // maxRows 還是不夠大時，8 個節點一樣要照既有的截斷規則處理，不會因為把「上次同步」
   // 搬走就變成「永遠塞得下」。
-  test('with a small maxRows (9), the 7 review-stage nodes still truncate correctly with a 「另有」row', () => {
+  test('with a small maxRows (9), the 8 review-stage nodes still truncate correctly with a 「另有」row', () => {
     const m = mission({ stage: 3, review: { round: 1, roundStartedAt: 0, discussions: [] } })
     const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 9, undefined)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     expect(plan.steps).toHaveLength(4)
-    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 4 列', dim: true }] })
+    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 5 列', dim: true }] })
   })
 
   // 加上後綴會讓 tabs 整行超過 bodyColumns 時整個不加——寧可少顯示一行資訊，也不要讓

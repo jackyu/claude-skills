@@ -10,7 +10,7 @@ import { displayName, isBlocking } from './node-states'
 const NARROW_COLUMNS = 60
 const WIDE_COLUMNS = 100
 const MAX_BAND_ROWS = 13
-const MAX_INNER_ROWS = 7
+const MAX_INNER_ROWS = 8
 // 框線上下各 1 行＋標題 1 行＋tabs 1 行＋下一步 1 行＝固定佔掉 5 行，剩下才是框內能放的列數；
 // 票數變動、規格改過、連續輪次這幾種提示各多佔 1 行，見 bandPlan 的 fixedRows。「上次同步」
 // 不算在這裡——它是 tabs 列自己的後綴，不是獨立的一列。
@@ -245,7 +245,7 @@ function relativeTimeText(deltaMs: number): string {
 /**
  * band 的版面：寬度不到 60 欄維持單行；60–99 欄只畫步驟框；100 欄以上步驟／資產框並排。
  * 高度上限取 13 跟引擎給的 maxRows 中較小的；扣掉 tabs／下一步／框線上下／標題（固定 5 行，
- * 每多一條警示列再多佔 1 行）後框內最多放 7 列，算出來連 1 列都放不下時，不管寬度多少都直接
+ * 每多一條警示列再多佔 1 行）後框內最多放 8 列，算出來連 1 列都放不下時，不管寬度多少都直接
  * 退回單行摘要。now 只有審查階段的「上次同步 X 前」要用，沒給就不顯示那段文字；有給的話會
  * 接在 tabs 列最後面當一個 dim 後綴，不占用框內列數的預算（見 withSyncSuffix），加上去會讓
  * tabs 整列超過 bodyColumns 就整個不加，不讓它折成兩行。

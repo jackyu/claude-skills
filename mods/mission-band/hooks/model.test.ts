@@ -1203,7 +1203,7 @@ describe('nextStage', () => {
         },
       })
       const states = nodeStates(reviewNodes, m)
-      expect(states.map(s => [s.node.id, s.status])).toEqual(states.map(s => [s.node.id, 'done']))
+      expect(states.map(s => [s.node.id, s.status])).toEqual(states.map(s => [s.node.id, s.node.id === 'mr-reading-map' ? 'skip' : 'done']))
       expect(nextStepHint(NEW_FEATURE_FLOW, m)).toBe('跑 /mission-review 同步 MR 狀態；合併後才能進入下一階段')
     })
 
@@ -1553,5 +1553,47 @@ describe('withSessionId', () => {
   test('returns the same reference when nothing is bound here', () => {
     const missions: Missions = { '1022-#473': mission({ name: '1022-#473', binding: '/elsewhere' }) }
     expect(withSessionId(missions, wt, 'sess-a')).toBe(missions)
+  })
+})
+
+describe('mr-reading-map 節點（審查階段）', () => {
+  const reviewNodes = NEW_FEATURE_FLOW.stages[3]?.nodes ?? []
+  const mrOpened = [
+    { at: 1, kind: 'product' as const, name: 'mr', missingSections: [], mrIid: '512' },
+    { at: 2, kind: 'product' as const, name: 'issue-note' },
+  ]
+
+  test('排在 freeze-spec 之後、await-review 之前', () => {
+    const ids = reviewNodes.map(node => node.id)
+    expect(ids.indexOf('mr-reading-map')).toBe(ids.indexOf('freeze-spec') + 1)
+    expect(ids.indexOf('await-review')).toBe(ids.indexOf('mr-reading-map') + 1)
+  })
+
+  test('開完 MR、凍結 spec 後，下一步提示帶入 MR 號，並說明不需要時怎麼辦', () => {
+    const m = mission({ stage: 3, events: mrOpened })
+    const hint = nextStepHint(NEW_FEATURE_FLOW, m)
+    expect(hint).toContain('/mr-reading-map 512')
+    expect(hint).toContain('不需要')
+    expect(hint).toContain('/mission-skip mr-reading-map')
+  })
+
+  test('還不知道 MR 號時提示用佔位字', () => {
+    const node = reviewNodes.find(n => n.id === 'mr-reading-map')
+    if (node === undefined) throw new Error('missing node')
+    expect(resolveNodeHint(node, mission({ stage: 3 }))).toContain('/mr-reading-map <MR 號>')
+  })
+
+  test('跑過 /mr-reading-map 就算完成，下一步換成等審查', () => {
+    const m = mission({ stage: 3, events: [...mrOpened, { at: 3, kind: 'skill', name: 'mr-reading-map' }] })
+    expect(nodeStates(reviewNodes, m).find(s => s.node.id === 'mr-reading-map')?.status).toBe('done')
+    expect(nextStepHint(NEW_FEATURE_FLOW, m)).toBe('等同事看過之後，跑 /mission-review 同步 MR 狀態')
+  })
+
+  test('MR 已核准還沒跑過就自動顯示成已跳過，不擋路', () => {
+    const m = mission({ stage: 3, events: mrOpened, review: { round: 1, roundStartedAt: 0, discussions: [], approved: true } })
+    const state = nodeStates(reviewNodes, m).find(s => s.node.id === 'mr-reading-map')
+    if (state === undefined) throw new Error('missing node')
+    expect(state.status).toBe('skip')
+    expect(isBlocking(state)).toBe(false)
   })
 })

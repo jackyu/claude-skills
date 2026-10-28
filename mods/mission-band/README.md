@@ -11,7 +11,7 @@ Claude Code 的 mod：在輸入框上方顯示開發任務走到哪一步（開�
 | Claude Code 2.1.310 以上（以這版實測） | mod 引擎 | 舊版可能缺 API，mod 載入失敗 |
 | [mattpocock-skills](https://github.com/mattpocock/skills)，並在專案跑過 `/setup-matt-pocock-skills` | 開始、實作階段的 grill、to-spec、tdd 等步驟；`/mission-start` 會檢查專案 `CLAUDE.md` 有 `## Agent skills`、`docs/agents/issue-tracker.md` 存在 | `/mission-start` 列出缺項，不建任務 |
 | pstack，並跑過 `/setup-pstack` | no-comments、blast-radius、interrogate 節點；`/mission-start` 會檢查 `~/.claude/rules/pstack-models.md` | 同上 |
-| 本 repo 的 skill：`approach`、`to-acceptance`、`verify-acceptance`、`cleanup`（`./scripts/install.sh` 安裝） | 對應的流程節點；驗收清單格式定義在 `skills/_shared/acceptance/format.md` | 節點的提示指令打不出來 |
+| 本 repo 的 skill：`approach`、`to-acceptance`、`verify-acceptance`、`mr-reading-map`、`cleanup`（`./scripts/install.sh` 安裝） | 對應的流程節點；驗收清單格式定義在 `skills/_shared/acceptance/format.md` | 節點的提示指令打不出來 |
 | `orca` CLI | `/mission-go` 在 worktree 開新的 Claude 分頁 | `/mission-go` 失敗，要自己開 Claude 再打 `/mission-restore` |
 | `glab`（已登入 GitLab） | `/mission-review` 同步 MR 狀態、偵測 MR | 審查階段的節點不會更新 |
 | `python3` | `/mission-cost` 解析 transcript 算 token 用量 | 量不到用量，`/mission-finish` 照常完成 |

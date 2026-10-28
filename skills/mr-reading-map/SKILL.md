@@ -50,7 +50,7 @@ disable-model-invocation: true
 
 依 `references/picking-lines.md`，從 `git diff <diff_refs.base_sha> <diff_refs.head_sha>` 挑行，產生清單。
 
-清單是空的 → 告訴使用者這個 MR 不需要閱讀地圖。`--full` 時描述裡的舊地圖區塊整塊刪掉（用 `mr-update.sh` 寫回），然後結束。
+清單是空的 → 告訴使用者這個 MR 不需要閱讀地圖，附一句為什麼（例：只改 2 個檔、diff 從上往下讀就是動線），並照第 4 步最後一行給下一步。`--full` 時描述裡的舊地圖區塊整塊刪掉（用 `mr-update.sh` 寫回），然後結束。
 
 ### 3. 發文、組串、寫描述
 
@@ -63,6 +63,7 @@ disable-model-invocation: true
 - 閱讀地圖：已插入｜已更新｜寫入失敗（data 已印給你，見 Phase C）
 - 有討論、沒動的註解：列連結，提醒它們的 `[i/M]` 和「接著看」可能已經對不上
 - 提醒：導覽註解是可 resolve 的 thread，專案要求全部 resolve 才能合併的話，review 完自己 resolve
+- 下一步（最後一行，不需要地圖時也要給）：MR 還是 draft 就轉 ready、請同事 review；用 mission-band 的話，有人回饋後跑 `/mission-review` 同步
 
 ## 重跑
 
@@ -83,7 +84,7 @@ disable-model-invocation: true
 
 **GitLab 更新註解位置可能比 diff_refs 慢。** 第一次查完只要有任何一則判成過時，就用背景迴圈等 30 秒，重讀 discussions 再判一次，用第二次的結果。
 
-待重發是 0 則 → 回報「閱讀地圖不用更新」，結束。
+待重發是 0 則 → 回報「閱讀地圖不用更新」，附第 4 步的下一步，結束。
 
 ### 2. 重寫待重發的那幾則
 
