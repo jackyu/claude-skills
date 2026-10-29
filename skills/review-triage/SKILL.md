@@ -1,25 +1,26 @@
 ---
 name: review-triage
-description: 在 code review 交回 finding 之後、派人修正之前，逐筆判定每個 finding 是不是使用者真的會碰到的問題：標重現層級、從真實入口複核可達性、必要時用 verify-admin／verify-client 實跑，判成確認／待驗證／撤銷／防禦性建議，確認的附真人照做就能重現的步驟；修正後重跑時核對上一輪確認的有沒有關掉，並抓出「在修上一輪修法」的訊號。兩道審查（Pocock code-review 或 /cr，加上 Codex）都交回後，由主對話把原始 finding 存檔再呼叫。
+description: 在 code review 交回 finding、或 reviewer 在 MR 留言之後，派人修正或回覆之前，逐筆判定：先分成指出 bug／質疑前提／提問／風格四類；指出 bug 的標重現層級、從真實入口複核可達性、必要時用 verify-admin／verify-client 實跑，判成確認／待驗證／撤銷／防禦性建議；質疑前提的追出處、交使用者決定。修正後重跑時核對上一輪確認的有沒有關掉，並抓出「在修上一輪修法」的訊號。由主對話把原始 finding 或 reviewer 留言照貼存檔後呼叫。
 context: fork
 background: false
 ---
 
-# review-triage：判定 review finding
+# review-triage：判定 review finding 與 reviewer 留言
 
 只判定，不修程式、不 commit、不發 GitLab。判定標準以 `references/reachability.md` 為準，先讀它。
 
 **用法**：`/review-triage <finding 檔的絕對路徑>`
 
-這個 skill 跑在乾淨的上下文，看不到主對話。所以呼叫前，主對話要先把審查交回的原始內容存成 finding 檔（見「主對話的準備」），參數只給路徑。沒有參數或檔案不存在 → 回報「請主對話先存 finding 檔」並結束。
+這個 skill 跑在乾淨的上下文，看不到主對話。呼叫前主對話要先把原文存成 finding 檔，參數只給路徑。沒有參數或檔案不存在 → 回報「請主對話先存 finding 檔」並結束。
 
 ## 主對話的準備（呼叫前）
 
 1. 定 `<key>`：照 `/cleanup` 的方式從參數、驗收清單 meta 的 `branch` 找；找不到就用 `branch-<分支名，底線換成連字號>`。必須符合 `^[a-z0-9-]+$`
 2. 定輪次 `<N>`：`<main>/.claude/verify-evidence/<key>/` 底下已有幾份 `review-triage-r*.md` 再加 1
 3. 寫 `<main>/.claude/verify-evidence/<key>/review-findings-r<N>.md`：
-   - 開頭 meta：worktree 絕對路徑、base（預設 `origin/<預設分支>`）、目前 HEAD SHA、spec 與驗收清單路徑（沒有就寫無）
-   - 每道審查一節，**原文照貼**（Pocock code-review 的兩軸報告、`/cr` 報告、Codex 的回報），標明來源
+   - 開頭 meta：來源（`ai-review` 或 `reviewer`）、worktree 絕對路徑、base（預設 `origin/<預設分支>`）、目前 HEAD SHA、spec 與驗收清單路徑（沒有就寫無）；來源是 reviewer 時另附 MR iid
+   - `ai-review`：每道審查一節，**原文照貼**（Pocock code-review、`/cr`、Codex 的回報），標明來源
+   - `reviewer`：每則還沒處理的別人留言一節，標 discussion id 與 **note id**、作者、貼在哪個檔案哪一行（inline 的話），**原文照貼**；附件（影片、截圖）列出連結。用 `/mission-review` 同步過的討論串，每串都要列到它最新那則別人的 note
    - 不附主對話自己的判斷、實作者的辯護或開發對話
 4. 呼叫 `/review-triage <那個檔的絕對路徑>`
 
@@ -28,15 +29,25 @@ background: false
 - finding 檔、`references/reachability.md`
 - 上一輪 `review-triage-r<N-1>.md`（有的話）和它記的 HEAD
 - `cd <wt> && git diff <base>...HEAD`；有上一輪時另看 `git diff <上一輪 HEAD> HEAD`（這一輪的修正）
-- spec、驗收清單（有的話），用來判斷 Spec 類 finding
+- spec、驗收清單（有的話）
+- 來源是 reviewer 時，留言引用到的其他 note 要讀原文（`glab api "projects/:id/merge_requests/<iid>/discussions"`，唯讀），不要把 reviewer 的提問當成定案
 
-## Step 2：整理候選
+## Step 2：拆筆、分類
 
-- 把各道審查的 finding 拆成一筆一筆，同一個問題被兩道都報的合併成一筆、註明兩個來源
-- 純風格、命名、文件類（沒有行為後果的）直接列進「非行為類」，不做可達性複核，照原 finding 轉述給主對話決定
-- 有上一輪時，每筆標記：**新的**，或**上一輪某筆的延續**（同一個根因還在）
+- 拆成一筆一筆；同一個問題被多個來源報的合併成一筆、註明全部來源
+- 有上一輪時，每筆標記**新的**或**上一輪某筆的延續**（同一個根因還在）
+- 每筆分成四類之一：
 
-## Step 3：逐筆判定
+| 類型 | 判斷 | 走哪條 |
+|---|---|---|
+| 指出 bug | 說某個操作或情境會產生錯誤結果 | Step 3 |
+| 質疑前提 | 質疑某個行為該不該存在、做法對不對（「這個根本不用回報吧」「你們一直在對抗 X」） | Step 4 |
+| 提問 | 問為什麼這樣寫、這是什麼意思，沒有主張錯誤 | 只寫一段回答要點 |
+| 風格、文件、原則 | 命名、格式、文件寫法、跨模組原則，沒有行為後果 | 只轉述，標「照文件化原則判斷或另開原則票」 |
+
+沒把握就歸到要求較嚴的那類（質疑前提 ＞ 指出 bug ＞ 風格 ＞ 提問），並寫出另一個可能的分類。問句形式的留言特別要看它貼在哪段 code 上：「401 是不是不用回報」貼在 catch 上是質疑前提，不是提問。
+
+## Step 3：指出 bug → 可達性判定
 
 照 `references/reachability.md` 第一節逐步走，判成四種之一：
 
@@ -47,38 +58,65 @@ background: false
 | 撤銷 | 必要操作被證實擋住、沒有其他入口 | 擋住它的防護 `檔案:行號` 與生效時機 |
 | 防禦性建議 | 不是使用者會碰到的 bug，但加強有價值 | 一句理由 |
 
-**要不要實跑 UI**：finding 牽涉 UI 時序、生命週期、遮罩或導航，而程式碼讀不出定論 → 用 `<wt>/.claude/skills/verify-admin` 或 `verify-client` 的 drive 走真實入口（起 app、port 規則、cleanup 照各自 SKILL.md；不碰 3000、3001）。證據放 `<main>/.claude/verify-evidence/<key>/triage-r<N>/`。跑不起來就判待驗證、寫明卡在哪，不要用直接呼叫 handler 的測試冒充。
+**要不要實跑 UI**：牽涉 UI 時序、生命週期、遮罩或導航，而程式碼讀不出定論 → 用 `<wt>/.claude/skills/verify-admin` 或 `verify-client` 的 drive 走真實入口（起 app、port 規則、cleanup 照各自 SKILL.md；不碰 3000、3001）。reviewer 描述了操作或附了影片，就照它走。證據放 `<main>/.claude/verify-evidence/<key>/triage-r<N>/`。跑不起來就判待驗證、寫明卡在哪，不要用直接呼叫 handler 的測試冒充。
 
-## Step 4：修正輪的檢查（有上一輪才做）
+## Step 4：質疑前提 → 追出處
+
+1. 把被質疑的行為講成一句話（例：「401 錯誤要回報 Sentry」「410 是讀取失敗」）
+2. 追出處，依序查：spec 與 issue、使用者或 PM 的裁決紀錄（issue 留言）、`docs/adr/` 與 `.claude/reference/`、reviewer 引用的 note 原文。結論三選一：**有出處且涵蓋這個情境**／**有出處但沒涵蓋 reviewer 講的情況**／**找不到出處**（實作時自己推的）
+3. 量這個前提撐起多少 code：列出為了它存在的程式碼，對照這些訊號——直接 `setState` 改 query 內部狀態、為了避免自己觸發自己而開的排除條件、越加越多的特例、跨輪在修同一段
+4. 給使用者兩案，不自己選：
+   - **保留**：回覆要附的出處
+   - **推翻**：要拿掉或改的範圍、spec 與驗收清單要改的地方（spec 已凍結就要補 issue 留言；跨票的決定要寫 ADR），以及照「修在哪裡」規則該在哪修
+
+## Step 5：修正輪的檢查（有上一輪才做）
 
 - **上一輪確認的關掉沒**：每筆對照這一輪的修正 diff 和對應測試，標「已關／未關／部分」。已關要看到測試在修正前會紅（實作者的紅轉綠紀錄或自己重跑），而且測試層級不低於確認時的重現層級；只有 hook 測試、但當初是在實際 UI 確認的，算部分
-- **在修上一輪修法**：這一輪的新 finding 指向的程式碼，落在上一輪修正 diff 改過的範圍，而且跟上一輪同一個根因或同一段邏輯 → 標成 ⚠ 並在報告最前面寫出來。這是前提可能錯了的訊號，要使用者重看建模，不建議繼續派修
+- **在修上一輪修法**：新 finding 指向的程式碼落在上一輪修正 diff 改過的範圍，而且跟上一輪同一個根因或同一段邏輯 → 標 ⚠，改走 Step 4 追前提，不建議繼續派修
 
-## Step 5：寫報告
+## Step 6：寫報告
 
-寫到 `<main>/.claude/verify-evidence/<key>/review-triage-r<N>.md`：
+寫到 `<main>/.claude/verify-evidence/<key>/review-triage-r<N>.md`。**第一行固定是機器讀的 meta**（mission-band 靠它判斷審查階段的 review-triage 節點），JSON 單行、不換行：
 
-1. meta：輪次、worktree、base、HEAD、finding 檔路徑、是否實跑 UI
+```
+<!-- review-triage: {"round":<N>,"head":"<HEAD sha>","notes":[<這次判定涵蓋的 GitLab note id，數字>],"counts":{"confirmed":0,"pending":0,"withdrawn":0,"defensive":0,"premise":0},"warn":false} -->
+```
+
+- `notes`：來源是 reviewer 時，列 finding 檔裡所有 note id（包含分類成提問、風格的）；來源是 ai-review 時是空陣列
+- `counts`：確認、待驗證、撤銷、防禦性建議、質疑前提各幾筆
+- `warn`：有 ⚠ 時是 true
+
+meta 之後：
+
+1. 輪次、來源、worktree、base、HEAD、finding 檔路徑、是否實跑 UI
 2. ⚠ 訊號（有的話）
-3. 總表：編號、來源、一句話、判定、重現層級
-4. 每筆細節：照 Step 3 表格的「必附」
+3. 總表：編號、來源（含 note id）、分類、一句話、判定、重現層級
+4. 每筆細節：照 Step 3、Step 4 的「必附」
 5. 上一輪確認項的關閉狀態（修正輪才有）
-6. 非行為類清單
 
-## Step 6：回報主對話
+## Step 7：回報主對話
 
 最後一則訊息就是回報，主對話只看得到它：
 
-- 報告路徑
-- 總表（判定、重現層級、一句話）
-- ⚠ 訊號原文
-- 建議下一步：
-  - 確認的 → 派修，要求先寫跟重現層級一致、修正前會紅的測試
-  - 待驗證的 → 請使用者選：補驗證、收進追蹤票、當防禦性建議放掉
-  - 有 ⚠ → 先停下來問使用者，不派修
+- 報告路徑、總表、⚠ 訊號原文
+- 建議下一步，照判定：
+
+| 判定 | 建議動作 | 回覆 reviewer 的方向（來源是 reviewer 才寫） |
+|---|---|---|
+| 確認 | 照「修在哪裡」決定位置；同一張 MR 修就先寫跟重現層級一致、修前會紅的測試 | 感謝＋一句話講問題 →「已在 `<commit>` 修正」 |
+| 撤銷 | 不改 | 說明原本的設計與流程就收尾，證據不貼進回覆 |
+| 防禦性建議 | 收進追蹤票 | 感謝建議 →「已開票處理 #N」 |
+| 待驗證 | 先自己補驗證；重現不了再請使用者決定要不要問 reviewer | 結論前只回「感謝，我先重現看看」 |
+| 質疑前提 | 停下來，把保留／推翻兩案交給使用者 | 等使用者決定 |
+| 提問 | 不改 | 回答要點 |
+
+**修在哪裡**：還在這張票的 spec 內 → 同一張 MR；超出 spec、要動到別的模組或共用套件 → 另開票；MR 已核准 → 先問使用者。
+
+有 ⚠ 或質疑前提時，回報第一行就寫「先停下來，有前提要使用者決定」。
 
 ## 不做的事
 
-- 不改程式、不寫測試、不 commit
+- 不改程式、不寫測試、不 commit、不發 GitLab 留言
 - 不自己再審一次找新 finding；只判定交進來的
 - 不把待驗證包裝成確認，也不把未知寫成「不可能」
+- 不替使用者決定前提要保留還是推翻

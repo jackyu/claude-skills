@@ -6,6 +6,7 @@ import { nextStepHint, nodeStates, REVIEW_STAGE_ID, stageAt, stageLabelFor, tick
 // isBlocking 沒有被 model.ts 重新 export（那裡只內部用），直接從 node-states.ts 拿；
 // node-states.ts 沒有反過來 import band.ts，不會繞出循環依賴。
 import { displayName, isBlocking } from './node-states'
+import { reviewTriageWarn } from './review-triage'
 
 const NARROW_COLUMNS = 60
 const WIDE_COLUMNS = 100
@@ -108,16 +109,23 @@ function withSyncSuffix(tabs: BandRow, suffixText: string | undefined, bodyColum
   return rowWidth(candidate) <= bodyColumns ? candidate : tabs
 }
 
+const REVIEW_TRIAGE_NODE_ID = 'review-triage'
+const WARN_SYMBOL = '⚠'
+const WARN_COLOR = 'warning'
+
 // symbol 固定寬度 2，label 文字長度不同也不會把後面的欄位擠歪。
 // 跳過的原因優先顯示：使用者打 /mission-skip 的那句留在 mission.skips，自動跳過
 // （node.skipWhen）的原因留在 state.detail，兩者都沒有才看一般 doneWhen 的 detail
-// （commit 數、MR 缺的段落）。
+// （commit 數、MR 缺的段落）。review-triage 節點另外看最新一份報告的 warn：有的話不管
+// 原本依 status 畫出來的符號／顏色是什麼，一律蓋成黃色 ⚠——有 reviewer 留言可能在修上一輪
+// 修法這種事，即使節點本身已經判完（done）也要讓使用者看到。
 function stepRow(state: NodeState, mission: Mission): BandRow {
-  const symbol = STEP_SYMBOL[state.status]
+  const warn = state.node.id === REVIEW_TRIAGE_NODE_ID && reviewTriageWarn(mission)
+  const symbol = warn ? WARN_SYMBOL : STEP_SYMBOL[state.status]
   const name = displayName(state.node)
   const suffix = state.status === 'skip' ? mission.skips[state.node.id] ?? state.detail : state.detail
   const label = truncateText(suffix === undefined ? name : `${name}（${suffix}）`, MAX_STEP_TEXT_LENGTH)
-  const color = STEP_COLOR[state.status]
+  const color = warn ? WARN_COLOR : STEP_COLOR[state.status]
   const symbolSegment: BandSegment = color === undefined ? { text: symbol, dim: true, width: 2 } : { text: symbol, color, width: 2 }
   const labelSegment: BandSegment = color === undefined ? { text: label, dim: true } : { text: label, color }
   return { key: state.node.id, segments: [symbolSegment, labelSegment] }

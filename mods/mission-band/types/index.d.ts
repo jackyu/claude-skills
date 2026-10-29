@@ -17,6 +17,7 @@ export type DoneWhen =
   | 'regression-write'
   | 'overall-regression'
   | 'await-review'
+  | 'review-triage'
   | 'reverify'
   | 'push-fix'
   | 'reply'
@@ -161,6 +162,11 @@ export type Mission = {
   // 第八版才加的欄位：用過這個任務的 session id（/clear 之後會換新的），/mission-cost 靠它找
   // transcript；舊資料沒有這個欄位，當作空陣列。
   sessionIds?: string[]
+  // 第九版才加的欄位：`/review-triage` 寫在 `<main>/.claude/verify-evidence/<key>/
+  // review-triage-r<N>.md` 的報告，讀進來的精簡 meta 清單（見 hooks/review-triage.ts 的
+  // parseReviewTriageMeta）；離開審查階段還留著，舊任務或還沒跑過 `/review-triage` 的任務
+  // 當作沒有報告。
+  reviewTriage?: MissionReviewTriage
 }
 
 // ===== 審查階段（/mission-review 同步狀態）=====
@@ -297,6 +303,42 @@ export type MissionAcceptance = {
   // 段落有沒有漏提到哪個 AC 時要用；存這裡省得開 MR 那一刻還要重讀一次清單檔。
   acIds?: readonly string[]
   readAt: number
+}
+
+// ===== review-triage 報告（<main>/.claude/verify-evidence/<key>/review-triage-r<N>.md）=====
+// 報告格式契約見 skills/review-triage/SKILL.md 的 Step 6；解析層在 hooks/review-triage.ts。
+
+/** review-triage 報告 meta 的 counts 欄位：確認／待驗證／撤銷／防禦性建議／質疑前提各幾筆。 */
+export type ReviewTriageCounts = {
+  confirmed: number
+  pending: number
+  withdrawn: number
+  defensive: number
+  premise: number
+}
+
+/**
+ * 報告第一行 `<!-- review-triage: {...} -->` 解析出來的精簡資料（見 hooks/review-triage.ts
+ * 的 parseReviewTriageMeta）。notes 是這份報告判定涵蓋的 GitLab note id；來源是 reviewer 時
+ * 列出全部 note id（含分類成提問、風格的），來源是 ai-review 時是空陣列。
+ */
+export type ReviewTriageReportMeta = {
+  round: number
+  head: string
+  notes: readonly number[]
+  counts: ReviewTriageCounts
+  warn: boolean
+}
+
+/**
+ * mission-band 讀到的 review-triage 報告清單（見 hooks/review-triage-events.ts 的
+ * maybeRefreshReviewTriage）；只存每份報告第一行解析出的 meta，不存報告全文。
+ */
+export type MissionReviewTriage = {
+  reports: readonly ReviewTriageReportMeta[]
+  // 單份報告格式不對（解析失敗）時記的訊息，只在跟上次不同才重新 $.ui.log，
+  // 跟 MissionAcceptance.lastReadError 同一套邏輯。
+  lastReadError?: string
 }
 
 export type Missions = Record<string, Mission>

@@ -1189,7 +1189,7 @@ describe('nextStage', () => {
   describe('reverify／push-fix 看現狀，不看輪次（第四輪設計）', () => {
     const reviewNodes = NEW_FEATURE_FLOW.stages[3]?.nodes ?? []
 
-    test('approved with no feedback: open-mr/freeze-spec/await-review/reverify/push-fix/reply/approved 全部完成，下一步提示同步合併狀態', () => {
+    test('approved with no feedback: open-mr/freeze-spec/await-review/reverify/push-fix/reply/approved 全部完成，review-triage 沒有回饋留言可判定自動跳過，下一步提示同步合併狀態', () => {
       const m = mission({
         stage: 3,
         events: [
@@ -1209,7 +1209,8 @@ describe('nextStage', () => {
         },
       })
       const states = nodeStates(reviewNodes, m)
-      expect(states.map(s => [s.node.id, s.status])).toEqual(states.map(s => [s.node.id, s.node.id === 'mr-reading-map' ? 'skip' : 'done']))
+      const autoSkippedIds = new Set(['mr-reading-map', 'review-triage'])
+      expect(states.map(s => [s.node.id, s.status])).toEqual(states.map(s => [s.node.id, autoSkippedIds.has(s.node.id) ? 'skip' : 'done']))
       expect(nextStepHint(NEW_FEATURE_FLOW, m)).toBe('跑 /mission-review 同步 MR 狀態；合併後才能進入下一階段')
     })
 

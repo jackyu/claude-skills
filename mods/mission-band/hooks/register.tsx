@@ -28,6 +28,7 @@ import { maybeRecordIssueNoteEvent, maybeRecordMrEvent, maybeUpdateBranchCommits
 import { codexCliReviewNamesIn, looksLikeMrCommand, pstackReadNames, pstackReadsInBashCommand } from './products'
 import { confirmProgressContext, resetProgressContext, withProgressContext } from './prompt-context'
 import { maybeRecordDiscussionReply, maybeRefreshReviewHeads, syncReview } from './review-events'
+import { handleReviewTriageFileWrite, maybeRefreshReviewTriage } from './review-triage-events'
 import { listMissionsText, missionLogText } from './reporting'
 import { formatSetupGaps, setupGaps } from './setup'
 import { gatherSetupFacts } from './setup-facts'
@@ -163,12 +164,14 @@ export const register: Register = on => {
   on('tool.call', { tool: 'Write' }, async ($, e, next) => {
     const result = await next(e)
     await handleAcceptanceFileWrite($, e.file_path)
+    await handleReviewTriageFileWrite($, e.file_path)
     return result
   }).catch(($, e, next) => next(e))
 
   on('tool.call', { tool: 'Edit' }, async ($, e, next) => {
     const result = await next(e)
     await handleAcceptanceFileWrite($, e.file_path)
+    await handleReviewTriageFileWrite($, e.file_path)
     return result
   }).catch(($, e, next) => next(e))
 
@@ -202,6 +205,7 @@ export const register: Register = on => {
       await maybeUpdateBranchCommits($, binding)
       await runStep($, '驗收清單刷新', () => maybeRefreshAcceptance($, binding))
       await runStep($, '審查本機／遠端 HEAD', () => maybeRefreshReviewHeads($, binding))
+      await runStep($, 'review-triage 報告刷新', () => maybeRefreshReviewTriage($, binding))
     }
 
     return r

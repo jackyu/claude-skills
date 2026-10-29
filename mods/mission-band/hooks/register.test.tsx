@@ -2512,9 +2512,12 @@ describe('acceptance refresh', () => {
     const storeMap = mockStoreMap(on)
     setupRepoRoot(on)
     let listCalls = 0
-    on('fs.list', () => {
-      listCalls += 1
-      return { value: [{ name: 'acceptance-tour-notes.md', kind: 'file', size: 0, mtimeMs: 0, isLink: false }] }
+    // review-triage 的刷新也會打 $.fs.list（列 .claude/verify-evidence/<key>/），跟這裡
+    // 要驗證的「.claude/specs 快取有沒有命中」是兩件事，只數對 specs 目錄本身的呼叫。
+    on('fs.list', (_, e) => {
+      if (e.path === '/repo/.claude/specs') listCalls += 1
+      if (e.path === '/repo/.claude/specs') return { value: [{ name: 'acceptance-tour-notes.md', kind: 'file', size: 0, mtimeMs: 0, isLink: false }] }
+      return { value: [] }
     })
     let missionName = ''
     on('fs.exists', () => ({ value: true }))
@@ -2550,9 +2553,12 @@ describe('acceptance refresh', () => {
     const storeMap = mockStoreMap(on)
     setupRepoRoot(on)
     let listCalls = 0
-    on('fs.list', () => {
-      listCalls += 1
-      return { value: [{ name: 'acceptance-tour-notes.md', kind: 'file', size: 0, mtimeMs: 0, isLink: false }] }
+    // review-triage 的刷新也會打 $.fs.list（列 .claude/verify-evidence/<key>/），跟這裡
+    // 要驗證的「.claude/specs 快取有沒有命中」是兩件事，只數對 specs 目錄本身的呼叫。
+    on('fs.list', (_, e) => {
+      if (e.path === '/repo/.claude/specs') listCalls += 1
+      if (e.path === '/repo/.claude/specs') return { value: [{ name: 'acceptance-tour-notes.md', kind: 'file', size: 0, mtimeMs: 0, isLink: false }] }
+      return { value: [] }
     })
     let missionName = ''
     // metaMission 是這份清單檔案目前宣告自己屬於哪個任務；一開始跟真正的任務名一樣，
@@ -2998,6 +3004,127 @@ describe('acceptance refresh', () => {
 
     const after = storeMap.get('missions') as Missions
     expect(Object.values(after)[0]?.acceptance?.overallStale).toBe(false)
+  })
+})
+
+describe('review-triage refresh', () => {
+  const REPO = { root: '/repo', remote: null, internal: true, name: 'repo' }
+  const EVIDENCE_DIR = '/repo/.claude/verify-evidence/473'
+  const REPORT_PATH = `${EVIDENCE_DIR}/review-triage-r1.md`
+  const REPORT_TEXT =
+    '<!-- review-triage: {"round":1,"head":"abc123","notes":[101],"counts":{"confirmed":1,"pending":0,"withdrawn":0,"defensive":0,"premise":0},"warn":false} -->\n\n# review-triage r1\n...'
+
+  function setupRepoRoot(on: On) {
+    on('session.start', (_, e) => ({ cwd: e.cwd }))
+    on('session.root', () => ({ value: '/repo' }))
+    on('session.repo', () => ({ value: REPO }))
+    on('session.id', () => ({ value: 'sess-1' }))
+    on('command.register', (_, e) => ({ value: { command: e.name } }))
+    on('skill.prompt', (_, e) => ({ text: e.text }))
+    on('turn.complete', (_, e) => ({ text: e.answer }))
+    on('tool.call', () => ({ result: {} }))
+    mock.env(on, { HOME: '/home/x' })
+  }
+
+  test('a Write to a review-triage report under .claude/verify-evidence/<key>/ parses its meta onto the mission', async ($, on) => {
+    mock.clock(on)
+    const storeMap = mockStoreMap(on)
+    setupRepoRoot(on)
+    on('fs.exists', () => ({ value: true }))
+    on('fs.read', (_, e) => ({ value: e.path === REPORT_PATH ? REPORT_TEXT : '# x\n\n## Agent skills\n' }))
+    on('fs.list', (_, e) => ({ value: e.path === EVIDENCE_DIR ? [{ name: 'review-triage-r1.md', kind: 'file', size: 0, mtimeMs: 0, isLink: false }] : [] }))
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    await $.command.run({ command: 'mission-start', args: '#473', origin: { kind: 'composer' }, presentation: PRESENTATION })
+    await $.tool.call({ tool: 'Write', file_path: REPORT_PATH, content: REPORT_TEXT })
+
+    const after = storeMap.get('missions') as Missions
+    expect(Object.values(after)[0]?.reviewTriage?.reports).toEqual([{ round: 1, head: 'abc123', notes: [101], counts: { confirmed: 1, pending: 0, withdrawn: 0, defensive: 0, premise: 0 }, warn: false }])
+  })
+
+  test('an Edit to the report also refreshes it', async ($, on) => {
+    mock.clock(on)
+    const storeMap = mockStoreMap(on)
+    setupRepoRoot(on)
+    on('fs.exists', () => ({ value: true }))
+    on('fs.read', (_, e) => ({ value: e.path === REPORT_PATH ? REPORT_TEXT : '# x\n\n## Agent skills\n' }))
+    on('fs.list', (_, e) => ({ value: e.path === EVIDENCE_DIR ? [{ name: 'review-triage-r1.md', kind: 'file', size: 0, mtimeMs: 0, isLink: false }] : [] }))
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    await $.command.run({ command: 'mission-start', args: '#473', origin: { kind: 'composer' }, presentation: PRESENTATION })
+    await $.tool.call({ tool: 'Edit', file_path: REPORT_PATH, old_string: 'x', new_string: 'x' })
+
+    const after = storeMap.get('missions') as Missions
+    expect(Object.values(after)[0]?.reviewTriage?.reports).toHaveLength(1)
+  })
+
+  test('turn.complete also refreshes (covers a background Bash writing the report)', async ($, on) => {
+    mock.clock(on)
+    const storeMap = mockStoreMap(on)
+    setupRepoRoot(on)
+    on('fs.exists', () => ({ value: true }))
+    on('fs.read', (_, e) => ({ value: e.path === REPORT_PATH ? REPORT_TEXT : '# x\n\n## Agent skills\n' }))
+    on('fs.list', (_, e) => ({ value: e.path === EVIDENCE_DIR ? [{ name: 'review-triage-r1.md', kind: 'file', size: 0, mtimeMs: 0, isLink: false }] : [] }))
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    await $.command.run({ command: 'mission-start', args: '#473', origin: { kind: 'composer' }, presentation: PRESENTATION })
+    await $.turn.complete({ answer: '', durationMs: 1, isAborted: false, turnId: 't1', reason: 'answer' })
+
+    const after = storeMap.get('missions') as Missions
+    expect(Object.values(after)[0]?.reviewTriage?.reports).toHaveLength(1)
+  })
+
+  test('a Write to an unrelated file never touches $.fs — no refresh attempted', async ($, on) => {
+    mock.clock(on)
+    mock.store(on)
+    setupRepoRoot(on)
+    let fsCalled = false
+    on('fs.exists', () => {
+      fsCalled = true
+      return { value: true }
+    })
+    on('fs.read', () => {
+      fsCalled = true
+      return { value: '# x\n\n## Agent skills\n' }
+    })
+    on('fs.list', () => {
+      fsCalled = true
+      return { value: [] }
+    })
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    await $.command.run({ command: 'mission-start', args: '#473', origin: { kind: 'composer' }, presentation: PRESENTATION })
+    fsCalled = false
+    await $.tool.call({ tool: 'Write', file_path: '/repo/.claude/specs/spec-473-foo.md', content: 'irrelevant' })
+
+    expect(fsCalled).toBe(false)
+  })
+
+  // 單份報告格式壞掉（缺 warn）只記一次 log，不是每次刷新都洗一次同一句——跟
+  // acceptance-events.ts 的 recordReadFailure 同一套「訊息沒變就不重複記」原則。
+  test('a malformed report（JSON 缺欄位）is ignored, logged once, and never written as a report', async ($, on) => {
+    mock.clock(on)
+    const storeMap = mockStoreMap(on)
+    setupRepoRoot(on)
+    mockProcessRun(on, {})
+    let logCalls = 0
+    on('ui.log', () => {
+      logCalls += 1
+      return { value: undefined }
+    })
+    const brokenText = '<!-- review-triage: {"round":1,"head":"abc123","notes":[101],"counts":{"confirmed":1,"pending":0,"withdrawn":0,"defensive":0,"premise":0}} -->\n'
+    on('fs.exists', () => ({ value: true }))
+    on('fs.read', (_, e) => ({ value: e.path === REPORT_PATH ? brokenText : '# x\n\n## Agent skills\n' }))
+    on('fs.list', (_, e) => ({ value: e.path === EVIDENCE_DIR ? [{ name: 'review-triage-r1.md', kind: 'file', size: 0, mtimeMs: 0, isLink: false }] : [] }))
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    await $.command.run({ command: 'mission-start', args: '#473', origin: { kind: 'composer' }, presentation: PRESENTATION })
+    await $.turn.complete({ answer: '', durationMs: 1, isAborted: false, turnId: 't1', reason: 'answer' })
+    await $.turn.complete({ answer: '', durationMs: 2, isAborted: false, turnId: 't2', reason: 'answer' })
+
+    const after = storeMap.get('missions') as Missions
+    expect(Object.values(after)[0]?.reviewTriage?.reports).toEqual([])
+    expect(logCalls).toBe(1)
   })
 })
 

@@ -1,4 +1,5 @@
 import { latestMrIid, reverifySkipReason } from '../hooks/review-stage'
+import { reviewTriageSkipReason } from '../hooks/review-triage'
 import type { MissionFlow } from '../types'
 
 // MR 描述要有的段落關鍵字；跟 fe-mr-generator 的段落順序對齊（第 2 項定案後再調整）。
@@ -168,6 +169,13 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
           id: 'await-review',
           doneWhen: 'await-review',
           hint: '等同事看過之後，跑 /mission-review 同步 MR 狀態',
+        },
+        {
+          id: 'review-triage',
+          matchSkill: 'review-triage',
+          skipWhen: reviewTriageSkipReason,
+          doneWhen: 'review-triage',
+          hint: 'reviewer 有新留言：請 Claude 把還沒處理的留言照貼存成 finding 檔（標 note id），再跑 /review-triage 判定，判完才修或回覆',
         },
         {
           id: 'reverify',

@@ -10,6 +10,7 @@ import {
 } from './acceptance'
 import { evaluateMrDoneWhen } from './mr-evidence'
 import { evaluateDoneWhen, type DoneWhenResult } from './products'
+import { evaluateReviewTriageDoneWhen } from './review-triage'
 import {
   evaluateApprovedDoneWhen,
   evaluateAwaitReviewDoneWhen,
@@ -31,6 +32,7 @@ function evaluateDoneWhenAny(doneWhen: DoneWhen, mission: Mission, enteredAt: nu
   if (doneWhen === 'reverify') return evaluateReverifyDoneWhen(mission)
   if (doneWhen === 'mr') return evaluateMrDoneWhen(mission, enteredAt)
   if (doneWhen === 'await-review') return evaluateAwaitReviewDoneWhen(mission)
+  if (doneWhen === 'review-triage') return evaluateReviewTriageDoneWhen(mission)
   if (doneWhen === 'push-fix') return evaluatePushFixDoneWhen(mission)
   if (doneWhen === 'reply') return evaluateReplyDoneWhen(mission)
   if (doneWhen === 'approved') return evaluateApprovedDoneWhen(mission)

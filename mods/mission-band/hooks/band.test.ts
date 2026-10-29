@@ -498,6 +498,66 @@ describe('bandPlan step detail', () => {
   })
 })
 
+describe('bandPlan review-triage node', () => {
+  test('not started yet, with a pending note and no reports: plain ○ symbol, no counts detail', () => {
+    const m = mission({ stage: 3, review: { round: 1, roundStartedAt: 0, discussions: [{ id: 'd1', isFeedback: true, resolved: false, lastBySelf: false, lastOtherNoteId: 101 }] } })
+    const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 13, undefined)
+    if (plan.mode !== 'steps-only') throw new Error('unreachable')
+    const row = plan.steps.find(r => r.key === 'review-triage')
+    expect(row).toEqual({ key: 'review-triage', segments: [{ text: '○', dim: true, width: 2 }, { text: 'review-triage', dim: true }] })
+  })
+
+  test('partial coverage shows the latest report’s counts summary, zero categories omitted, joined with ／', () => {
+    const m = mission({
+      stage: 3,
+      review: {
+        round: 1,
+        roundStartedAt: 0,
+        discussions: [
+          { id: 'd1', isFeedback: true, resolved: false, lastBySelf: false, lastOtherNoteId: 101 },
+          { id: 'd2', isFeedback: true, resolved: false, lastBySelf: false, lastOtherNoteId: 102 },
+        ],
+      },
+      reviewTriage: {
+        reports: [{ round: 1, head: 'abc', notes: [101], counts: { confirmed: 2, pending: 1, withdrawn: 0, defensive: 0, premise: 1 }, warn: false }],
+      },
+    })
+    const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 13, undefined)
+    if (plan.mode !== 'steps-only') throw new Error('unreachable')
+    const row = plan.steps.find(r => r.key === 'review-triage')
+    expect(row).toEqual({
+      key: 'review-triage',
+      segments: [
+        { text: '○', dim: true, width: 2 },
+        { text: 'review-triage（確認 2／待驗證 1／前提 1）', dim: true },
+      ],
+    })
+  })
+
+  // warn:true 覆蓋原本依狀態決定的符號／顏色——這裡故意讓節點已經「完成」（全部 note 都被
+  // 涵蓋），證明警示不是只在未完成時才出現：即使 doneWhen 判定完成，有 ⚠ 時符號跟顏色一樣
+  // 要變成黃色警示，不照 STEP_SYMBOL／STEP_COLOR 原本依 status 的對照表畫。
+  test('warn:true overrides the symbol and color to a yellow ⚠, even when the node is otherwise done', () => {
+    const m = mission({
+      stage: 3,
+      review: { round: 1, roundStartedAt: 0, discussions: [{ id: 'd1', isFeedback: true, resolved: false, lastBySelf: false, lastOtherNoteId: 101 }] },
+      reviewTriage: {
+        reports: [{ round: 1, head: 'abc', notes: [101], counts: { confirmed: 1, pending: 0, withdrawn: 0, defensive: 0, premise: 1 }, warn: true }],
+      },
+    })
+    const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 13, undefined)
+    if (plan.mode !== 'steps-only') throw new Error('unreachable')
+    const row = plan.steps.find(r => r.key === 'review-triage')
+    expect(row).toEqual({
+      key: 'review-triage',
+      segments: [
+        { text: '⚠', color: 'warning', width: 2 },
+        { text: 'review-triage（確認 1／前提 1）', color: 'warning' },
+      ],
+    })
+  })
+})
+
 describe('bandPlan tickets-changed warning', () => {
   test('shows a warning row once to-tickets ran again after entering the build stage', () => {
     const m = mission({ stage: 1, stageEnteredAt: [0, 10], events: [{ at: 20, kind: 'skill', name: 'x:to-tickets' }] })
@@ -635,26 +695,26 @@ describe('bandPlan review stage (round label, sync time, round warning)', () => 
     expect(plan.warnings).toEqual([])
   })
 
-  // 審查階段的 8 個節點（開 MR、凍結 spec、閱讀地圖、等審查、重驗、push、回覆、核准）使用者
-  // 沒辦法在 band 裡滑動看剩下的，「上次同步」放在 tabs 列、框內上限 8，maxRows 夠大時要整個
-  // 顯示，不出現「另有」。
-  test('a review-stage mission with all 8 nodes fits entirely (no 「另有」row) once maxRows is at least 13, with the sync time on the tabs row', () => {
+  // 審查階段的 9 個節點（開 MR、凍結 spec、閱讀地圖、等審查、review-triage、重驗、push、
+  // 回覆、核准）超過框內列數上限（MAX_INNER_ROWS 8），不管 maxRows 給多大都會截斷；這裡改
+  // 驗證「上次同步」仍正常接在 tabs 列，步驟列照既有截斷規則留下卡住的節點（open-mr）。
+  test('a review-stage mission with 9 nodes still truncates (inner rows capped at 8) even with maxRows at least 13; the sync time still lands on the tabs row', () => {
     const m = mission({ stage: 3, review: { round: 1, roundStartedAt: 0, lastSyncAt: 1_000, discussions: [] } })
     const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 13, undefined, 1_000 + 90 * 60 * 1000)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     expect(plan.steps).toHaveLength(8)
-    expect(plan.steps.some(row => row.key === 'more')).toBe(false)
+    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 2 列', dim: true }] })
     expect(plan.tabs.segments.at(-1)).toEqual({ text: '上次同步 1 小時前', dim: true })
   })
 
-  // maxRows 還是不夠大時，8 個節點一樣要照既有的截斷規則處理，不會因為把「上次同步」
+  // maxRows 還是不夠大時，9 個節點一樣要照既有的截斷規則處理，不會因為把「上次同步」
   // 搬走就變成「永遠塞得下」。
-  test('with a small maxRows (9), the 8 review-stage nodes still truncate correctly with a 「另有」row', () => {
+  test('with a small maxRows (9), the 9 review-stage nodes still truncate correctly with a 「另有」row', () => {
     const m = mission({ stage: 3, review: { round: 1, roundStartedAt: 0, discussions: [] } })
     const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 9, undefined)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     expect(plan.steps).toHaveLength(4)
-    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 5 列', dim: true }] })
+    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 6 列', dim: true }] })
   })
 
   // 加上後綴會讓 tabs 整行超過 bodyColumns 時整個不加——寧可少顯示一行資訊，也不要讓
