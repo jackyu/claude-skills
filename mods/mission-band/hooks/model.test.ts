@@ -292,6 +292,11 @@ describe('nodeStates', () => {
   // code-review 併了兩條軌道（Claude、Codex）；至少一條跑過才算「開始」，兩條都跑過
   // （或 Codex 被跳過）才算「完成」——不再要求事後有 commit。它是 build 階段最後一個節點。
   describe('code-review tracks (Claude／Codex)', () => {
+    test('node hint tells the user to triage findings with /review-triage once both reviews are back', () => {
+      const node = NEW_FEATURE_FLOW.stages.flatMap((s) => s.nodes).find((n) => n.id === 'code-review')
+      expect(node?.hint).toContain('/review-triage')
+    })
+
     const buildNodes = NEW_FEATURE_FLOW.stages[1]?.nodes ?? []
     const codeReviewIndex = buildNodes.findIndex(node => node.id === 'code-review')
 
