@@ -422,7 +422,7 @@ describe('nodeStates', () => {
         branchCommits: [{ hash: 'a', at: 11.5 }],
       })
       expect(nextStepHint(NEW_FEATURE_FLOW, m)).toBe(
-        '進行中：code-review　Codex 還沒審：叫 /codex:rescue 用 $fe-code-review 審這個分支、跳過爆炸半徑，或直接跑 codex exec -s read-only -C <worktree> \'$fe-code-review 審這個分支，跳過爆炸半徑\'（codex review 的 --base 不能跟 prompt 一起用）；不用就 /mission-skip code-review:codex <理由>',
+        '進行中：code-review　Codex 還沒審：叫 /codex:rescue 用 $codex-evidence-review 審這個分支，或直接跑 codex exec -s read-only -C <worktree> \'$codex-evidence-review 審這個分支（base origin/main），附 spec 與驗收清單路徑\'（codex review 的 --base 不能跟 prompt 一起用）；不用就 /mission-skip code-review:codex <理由>',
       )
     })
   })

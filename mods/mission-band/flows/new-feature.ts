@@ -73,7 +73,7 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
           // Codex 不是獨立的一步，是 code review 的第二意見，所以跟 Claude 的審查併成同一個
           // 節點的兩條軌道，而不是後面接著的另一個節點；兩條都跑過、或 Codex 被跳過，才算完成。
           id: 'code-review',
-          hint: '實作完輸入 /mattpocock-skills:code-review 審 Spec、Standards 兩軸（改動大或風險高再改用 /cr），順便跑 node ~/.claude/scripts/jev-xray/precheck.js --base origin/main 看重複程式碼和沒人用的檔案；要 Codex 再審一次就 /codex:rescue 或 codex exec -s read-only -C <worktree> \'$fe-code-review 審這個分支，跳過爆炸半徑\'；不用 Codex 就 /mission-skip code-review:codex <理由>',
+          hint: '實作完輸入 /mattpocock-skills:code-review 審 Spec、Standards 兩軸（改動大或風險高再改用 /cr），順便跑 node ~/.claude/scripts/jev-xray/precheck.js --base origin/main 看重複程式碼和沒人用的檔案；要 Codex 再審一次就 /codex:rescue 用 $codex-evidence-review 審，或 codex exec -s read-only -C <worktree> \'$codex-evidence-review 審這個分支（base origin/main），附 spec 與驗收清單路徑\'；不用 Codex 就 /mission-skip code-review:codex <理由>',
           tracks: [
             {
               id: 'claude',
@@ -92,7 +92,7 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
               // 合併前 codex-review 是獨立節點，舊資料的 skip key 沒有冒號；併進來後要當
               // 這條軌道被跳過，不然舊任務重新接回會變成還要再審一次。
               legacySkipIds: ['codex-review'],
-              hint: 'Codex 還沒審：叫 /codex:rescue 用 $fe-code-review 審這個分支、跳過爆炸半徑，或直接跑 codex exec -s read-only -C <worktree> \'$fe-code-review 審這個分支，跳過爆炸半徑\'（codex review 的 --base 不能跟 prompt 一起用）；不用就 /mission-skip code-review:codex <理由>',
+              hint: 'Codex 還沒審：叫 /codex:rescue 用 $codex-evidence-review 審這個分支，或直接跑 codex exec -s read-only -C <worktree> \'$codex-evidence-review 審這個分支（base origin/main），附 spec 與驗收清單路徑\'（codex review 的 --base 不能跟 prompt 一起用）；不用就 /mission-skip code-review:codex <理由>',
             },
           ],
         },
