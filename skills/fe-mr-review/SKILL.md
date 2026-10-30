@@ -11,7 +11,7 @@ AI 輔助 GitLab Merge Request 審查工具，支援兩種模式：
 | 模式 | 觸發情境 | 核心產出 |
 |------|---------|---------|
 | **審查模式 (Review)** | 審核成員發出的 MR | 風險分流 + 技術審查 + 合併建議 |
-| **回覆評估模式 (Reply)** | MR 上有 review comments 需處理 | Accept / Dismiss / Discuss 分類回覆 |
+| **回覆評估模式 (Reply)** | MR 上有 review comments 需處理 | 交給 review-triage 判定，照判定修並逐則回覆 |
 
 ## 審查哲學：嚴謹搬家，但有一塊不能搬
 
@@ -166,95 +166,33 @@ R3 沒有任何 finding 就跳過這步。
 
 ## 回覆評估模式 (Reply Mode)
 
-完成共用步驟後，執行以下步驟。
+處理自己 MR 上 reviewer 的留言。判定交給 `review-triage`（fork、乾淨上下文），這個模式只負責收留言、照判定修、逐則回覆。
 
-核心價值：本地 AI 能讀整個專案，理解元件關係與 Business Logic，能判斷 review comment 在「這個專案的脈絡下」到底合不合理。Reviewer 只看 diff，本地 AI 看全貌。
+### Step P1: 收集留言
 
-### Step P1: 收集 Review Comments
+從 Step 1 的 `mr_discussions` 取出所有未解決、別人留的留言。每則記下：discussion id、note id、作者、錨定的檔案與行號（DiffNote 的 `position.new_path`／`new_line`）、附件（影片、截圖）。資訊不足就請使用者貼上留言或指定要處理哪幾則。
 
-從 Step 1 的 `mr_discussions` 中提取所有未解決的 review comments。
+### Step P2: 交給 review-triage 判定
 
-若 discussions 資訊不足，請用戶補充：
-- 直接貼上 review comments 的文字內容
-- 指定要處理哪些 comments
+照 review-triage「主對話的準備」存 finding 檔：來源 `reviewer`，留言原文照貼並附 P1 記下的欄位；不附自己的判斷。呼叫 `/review-triage <finding 檔>`，等回報。
 
-同時確認：
-- **MR 編號**：用於回覆時標註
-- **關聯 Issue**：用於理解這個 MR 的開發目的
+回報裡有質疑前提或 ⚠ → 先停下來，把保留／推翻兩案交給使用者，不修也不回。
 
-### Step P2: 讀取專案 Context
+### Step P3: 照判定處理
 
-這是本地 AI 的關鍵優勢。在分析 review comments 之前，先讀取：
+| 判定 | 處理 |
+|---|---|
+| 確認 | 照回報的「修在哪裡」決定位置。在這張 MR 修：先寫跟重現層級一致、修正前會紅的測試，再修；回報標成「一類」的，照它的掃描結果一起修。commit subject 寫具體修了什麼，不寫 `address code review feedback` |
+| 待驗證 | 先自己補驗證（照 reviewer 的描述用 drive 實跑）；重現不了再請使用者決定要不要向 reviewer 要步驟 |
+| 撤銷、提問 | 不改程式 |
+| 防禦性建議 | 照專案慣例收進追蹤票 |
+| 質疑前提 | 使用者決定後才動 |
 
-1. **每條 comment 錨定的那一行程式碼**（最優先，不可略過）：DiffNote 帶 `position.new_path` 與 `position.new_line`，`mr-context.sh` 與 `mr-load-discussion.sh` 已輸出為 `file`／`line`。**用 Read 把那一行連同上下文讀出來，確認 reviewer 指的是哪一段，再讀他的文字。**
-   > ⚠️ comment 文字常用指代詞（「這邊」「這個更新」「這樣寫」），光讀文字很容易讀成別的東西——**錨定行才是他真正指的目標**。答錯題會浪費整輪往返，而且 reviewer 通常只會客氣地回一句「好像跟我說的不太是一件事？」，不會直說你答錯了。
-2. **CLAUDE.md**：取得專案的 coding convention 和架構資訊
-3. **本次 MR 變更的檔案**：透過 Step 2 的 diff 取得完整變更內容（不只是 diff，還要看周邊邏輯）
-4. **相關的既有程式碼**：被變更檔案 import 的模組、共用元件、型別定義
+落在高風險區（身分驗證、審核狀態機、權限、個資、多步驟表單）的確認項，動手前先跟使用者對一次業務規則。
 
-### Step P3: 逐條分析
+### Step P4: 逐則回覆
 
-對每一條 review comment 進行分析，分類為三種：
-
-**✅ 採納（Accept）**
-建議在專案脈絡下是合理的，應該修正。
-- 說明為什麼合理
-- 直接修正程式碼
-- 記錄修正的 commit hash
-
-**⏭️ 不採納（Dismiss）**
-建議在通用場景可能對，但在這個專案的脈絡下不適用。
-- 說明不適用的原因（引用具體的專案脈絡，例如：coding convention 規定、既有 pattern、業務邏輯需求）
-- 這是本地 AI 最有價值的判斷
-
-**💬 需討論（Discuss）**
-建議涉及設計決策或架構層面，AI 無法單獨判斷，需要人工 reviewer 介入。
-- 說明為什麼需要討論
-- 提供兩方觀點讓 reviewer 參考
-
-分析原則：
-- 不要盲目全部採納，review comments 有一定的 false positive 率
-- 不要為了省事全部不採納，確實有道理的建議要接受
-- 拿不準的就標為「需討論」，寧可多討論也不要自己亂判斷
-- 若 comment 涉及高風險區（身分驗證/審核狀態機/權限/個資/表單完整性），即使看起來可採納，也傾向標為「需討論」並對齊業務規則後再動
-
-### Step P3.5: 軸向擴散（每個採納項必做）
-
-每一條判為「採納」的 comment，動手修之前先回答一個問題：
-**reviewer 指的是一個點，還是一類？**
-
-一類的判準：這個問題來自某個可以機械搜尋的特徵——某個寫法形狀、某個旗標、某個缺少的測試案例、某個型別。只要答案是「一類」，就先對整個 diff 掃那一類（跨出 diff 才判得準的就掃整個 repo），再決定要修幾處。
-
-掃描結果一律寫進回覆：找到幾處、分別怎麼處置。即使只有 reviewer 點的那一處，也要講「掃過，只有這處」——否則分不出是驗過沒事還是沒看。
-
-**禁止只修被錨定的那一行就進 Step P4。** 同一輪沒掃，下一輪 reviewer 就會再抓一個同類的；這是本 skill 反覆出現的失敗形態（!458 連續四輪只補到被點名的那幾處，第六輪人類 reviewer 才抓到 `fetch` 沒包 try，而同一支 MR 裡還有第二處同病）。
-
-### Step P4: 執行修正
-
-對於標記為「✅ 採納」的項目，直接在本地修正程式碼，commit 後記錄 hash。
-
-```bash
-# 修正完成後
-git add <修改的檔案>
-git commit -m "fix: address code review feedback"
-```
-
-### Step P5: 產出回覆
-
-依照 `references/reply-template.md` 的格式，產出統一的一筆 MR Comment。
-
-產出規則：
-- 直接輸出 Markdown，不加 code block 包裹
-- 每條 review comment 都要有對應的回覆，不能遺漏
-- 採納的項目要附上 commit hash
-- 不採納的項目要有具體的專案脈絡解釋，不能只說「不適用」
-- 需討論的項目要 @mention reviewer
-
-產出後提醒用戶：
-1. 確認回覆內容是否合理
-2. 確認修正的程式碼是否正確
-3. 推上去後將回覆貼到 MR Comment
-4. 如果有「需討論」的項目，主動找 reviewer 對齊
+照 `references/reply-template.md` 在每則留言的討論串下各自回覆，不合成一筆總回覆。回覆方式（thread reply 或 individual note）與發完後的驗證見下方「Review comment 是 individual note」。
 
 ---
 
@@ -315,4 +253,4 @@ glab api "projects/<enc-path>/merge_requests/<iid>/notes?per_page=100" \
 - `references/high-risk-zones.md` — 申請／審核前端高風險區定義（Step R1 風險分流用）
 - `references/review-focus.md` — 各類型（Feature / Bugfix / Refactor）審查焦點 + 資深同儕跨類型優劣鏡片（收斂邊界、介面複雜度、語意精準）+ 資深 reviewer 實戰關注點（跨專案蒸餾：錯誤與副作用分層、既有基建優先、state/cache 跨頁、robustness 雙面、契約與取數職責、死碼/驗證/測試品質、Next.js App Router/a11y/design token/相容性等）；Step R2 校準類型、Step R3 技術審查時參照
 - `references/output-format-review.md` — 審查模式輸出格式 skeleton（Step R4 組裝輸出時參照）
-- `references/reply-template.md` — 回覆評估模式輸出範本
+- `references/reply-template.md` — 回覆評估模式逐則回覆的寫法

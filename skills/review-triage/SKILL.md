@@ -32,6 +32,7 @@ background: false
 - 上一輪 `review-triage-r<N-1>.md`（有的話）和它記的 HEAD
 - `cd <wt> && git diff <base>...HEAD`（`others-mr` 把 HEAD 換成 MR 的 head SHA，程式碼一律用 `git show <head sha>:<路徑>` 讀，不 checkout 對方的分支）；有上一輪時另看 `git diff <上一輪 HEAD> HEAD`（這一輪的修正）
 - spec、驗收清單（有的話）
+- 來源是 reviewer 時，**先讀每則留言錨定的那一行**（含上下文），確認他指的是哪一段，再讀他的文字。留言常用「這邊」「這樣寫」這類指代詞，光讀文字很容易讀成別的東西
 - 來源是 reviewer 時，留言引用到的其他 note 要讀原文（`glab api "projects/:id/merge_requests/<iid>/discussions"`，唯讀），不要把 reviewer 的提問當成定案
 
 ## Step 2：拆筆、分類
@@ -55,10 +56,12 @@ background: false
 
 | 判定 | 條件 | 必附 |
 |---|---|---|
-| 確認 | 真實流程可達、有實際損害 | 第二節的操作步驟、重現層級、防護為什麼沒擋住 |
+| 確認 | 真實流程可達、有實際損害 | 第二節的操作步驟、重現層級、防護為什麼沒擋住、點或一類（一類附掃描結果） |
 | 待驗證 | 底層重現了，但實務可達性沒證實 | 已重現到哪一層、缺什麼證據、最小下一步 |
 | 撤銷 | 必要操作被證實擋住、沒有其他入口 | 擋住它的防護 `檔案:行號` 與生效時機 |
 | 防禦性建議 | 不是使用者會碰到的 bug，但加強有價值 | 一句理由 |
+
+**判成確認後：一個點還是一類**。問題如果來自可以機械搜尋的特徵（某種寫法形狀、某個旗標、某個缺少的測試案例、某個型別），就是「一類」：對整個 diff 掃那一類（跨出 diff 才判得準的就掃整個 repo），列出找到的每一處。只有被點名那一處也要寫「掃過，只有這處」，否則分不出是驗過沒事還是沒看。只掃描、不修。
 
 **要不要實跑 UI**：牽涉 UI 時序、生命週期、遮罩或導航，而程式碼讀不出定論 → 用 `<wt>/.claude/skills/verify-admin` 或 `verify-client` 的 drive 走真實入口（起 app、port 規則、cleanup 照各自 SKILL.md；不碰 3000、3001）。reviewer 描述了操作或附了影片，就照它走。證據放 `<main>/.claude/verify-evidence/<key>/triage-r<N>/`。跑不起來就判待驗證、寫明卡在哪，不要用直接呼叫 handler 的測試冒充。
 

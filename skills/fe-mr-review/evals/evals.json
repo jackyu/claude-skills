@@ -42,19 +42,18 @@
     {
       "id": 3,
       "prompt": "MR 上有 review comments 幫我看一下要怎麼回覆（MR 有 5 條 review 建議，涵蓋命名規範、效能優化、型別安全）",
-      "expected_output": "回覆評估模式：每條 comment 分類為 Accept/Dismiss/Discuss，附具體專案脈絡解釋",
+      "expected_output": "回覆評估模式：留言照貼存成 finding 檔交給 review-triage 判定，照判定處理並逐則回覆",
       "files": [],
       "expectations": [
         "正確判定為回覆評估模式（Reply Mode）",
         "輸出使用繁體中文",
-        "每條 review comment 都有對應的回覆，無遺漏",
-        "分類為 ✅ 採納、⏭️ 不採納、💬 需討論三種",
-        "採納項目包含修正說明和 commit hash",
-        "不採納項目引用具體專案脈絡（如 CLAUDE.md 規定、既有 pattern）",
-        "需討論項目提供兩方觀點",
-        "包含「📊 總覽」統計表格",
-        "依照 references/reply-template.md 格式產出",
-        "產出後提醒用戶確認回覆內容和修正程式碼"
+        "每則留言記下 discussion id、note id、錨定的檔案與行號",
+        "把留言原文照貼存成 finding 檔（來源 reviewer）並呼叫 /review-triage，不附自己的判斷",
+        "有質疑前提或 ⚠ 時先停下來交給使用者",
+        "確認的項目先寫會紅的測試再修，commit subject 具體",
+        "每則留言在自己的討論串下各自回覆，不合成一筆總回覆",
+        "回覆照 references/reply-template.md：先感謝、句尾不展開、結尾是已修正 commit 或已開票",
+        "待驗證的只回「感謝，我先重現看看」"
       ]
     },
     {

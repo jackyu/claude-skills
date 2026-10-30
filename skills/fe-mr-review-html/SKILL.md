@@ -109,7 +109,7 @@ description: 將 GitLab Merge Request 審查結果產出為單一自包含 HTML 
 
 1. 將 HTML 寫入路徑 `/tmp/mr-review-{project_slug}-{mr_iid}.html`
 2. 用 `SendUserFile` 將檔案以 `proactive` status 發送給用戶，caption 簡述焦點區與 findings 總數
-3. 詢問後續行動（對齊 fe-mr-review R7）：
+3. 詢問後續行動（對齊 fe-mr-review R5）：
    1. **回覆 MR comment** — 將審查建議回覆在對應討論串
    2. **執行修復** — 依「需要修正」項目修改程式碼
    3. **Codex 作者視角回答 review 問題** — 交給本機 Codex 逐題回答，附 MR comment 草稿（需 Codex CLI；流程見 `fe-mr-review/references/codex-author-reply.md`）

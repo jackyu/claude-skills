@@ -1,6 +1,6 @@
 # Codex 作者視角回答 review 問題（編排規格）
 
-由 `fe-mr-review` Step R7 的「第三選項」觸發。把剛產出的 review 問題交給本機 **Codex**，由 Codex 以 `fe-mr-walkthrough` 的「扮演作者答疑」模式逐題回答，完成後推播通知並附 MR comment 草稿。
+由 `fe-mr-review-html` 後續行動的「第三選項」觸發。把剛產出的 review 問題交給本機 **Codex**，由 Codex 以 `fe-mr-walkthrough` 的「扮演作者答疑」模式逐題回答，完成後推播通知並附 MR comment 草稿。
 
 > **定位**：Codex 與本次 review 看的是同一份 diff。🟢/🟡 是「草擬答覆 + 跨模型複核」，🔴（業務規則／架構決策／產品優先序）仍須真人作者——輸出務必區分這兩類，**絕不讓 Codex 編造作者意圖**。
 
