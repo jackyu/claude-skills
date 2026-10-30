@@ -61,6 +61,8 @@ discussion_id=$(jq -r '.id' <<<"$out")
 
 body 一律從 data 的純內容重新組，不要把線上的 body 讀回來改：線上的 body 帶著上一輪的首行和尾行，讀回來改會疊在一起。單則失敗記成「這則缺導引」，不中止。
 
+Bash 工具是 zsh，陣列從 1 開始。逐則 PUT 時不要寫 `ids=(…)` 再用 `${ids[$i]}` 從 0 取值，否則第一則的 id 會是空的、其餘錯開一格，body 會寫到別則上。改成每則各寫一行，note id 和 discussion id 直接寫明。全部 PUT 完重抓每則的首行，跟預期的 `[i/M]` 核對。
+
 ## Phase C：寫進描述
 
 只要 Phase A 有發出任何一則，Phase C 就要跑，data 一定要寫進去，不然下次重跑找不到。
