@@ -51,7 +51,7 @@ fe-arch 把這些變成查表題：走 Phase 1–6 的決策樹，出來就是�
 |---|---|---|
 | 需求拆解 | `fe-issue` | Subtask 的「產出」欄要寫出符合 fe-arch 的檔案路徑 |
 | **建檔／實作** | **`fe-arch`** | **決定檔案位置的唯一來源** |
-| 推送前預審 | `fe-code-review` | 跑 fe-arch 的 Code Review 檢查清單 |
+| 推送前預審 | Pocock `code-review` | Standards 軸跑 fe-arch 的 Code Review 檢查清單 |
 | MR 描述 | `fe-mr-generator` | 位置不符時在「注意事項」標注 |
 | MR 審查 | `fe-mr-review` | 架構違規分級：位置錯 → Minor；高風險域缺 `parse()` → Critical |
 | MR 學習筆記 | `fe-mr-read`（Phase 3） | 結構決策列為「架構決策」類學習點 |

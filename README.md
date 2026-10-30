@@ -43,16 +43,15 @@ cd claude-skills
 | [fe-arch](skills/fe-arch/) | 前端專案架構規範：檔案／目錄放置的決策流程（feature-based，建檔前必讀） |
 | [fe-guardrails](skills/fe-guardrails/) | 偵測專案的品質護欄設定（複雜度、函式長度、重複偵測、pre-commit、coverage、TS 嚴格度），缺的提示、核可後代裝 |
 | [fe-issue](skills/fe-issue/) | 將 PM 需求 Issue 轉換為前端技術 Issue 草稿，含 Subtask 拆解 |
-| [fe-code-review](skills/fe-code-review/) | 前端程式碼審查：Spec／Standards 兩軸主幹，加正確性、爆炸半徑副作用追蹤與無害區對抗挑戰 |
 | [fe-mr-review](skills/fe-mr-review/) | AI 輔助 GitLab MR 審查與 Review Comment 回覆（雙模式），含選用的 TL 視角補充 |
 | [fe-mr-review-html](skills/fe-mr-review-html/) | fe-mr-review 的 HTML artifact 輸出版本：內嵌 diff + 嚴重程度色標 + 焦點區深度說明（streaming/cache/並行控制等） |
 | [fe-mr-read](skills/fe-mr-read/) | 讀懂 GitLab MR 並可沉澱成學習筆記：導讀（白話化說明、流程圖、AI 扮演作者答疑、好做法雷達）→ 問要不要存筆記 → 補 Review 討論分析寫進 Heptabase |
 
-> **架構規範的單一真相來源**：檔案該放哪一律以 [`fe-arch`](skills/fe-arch/) 為準；`fe-issue`／`fe-mr-generator`／`fe-mr-review`／`fe-code-review`／`fe-mr-read` 只引用不複製，改規範只改一處。
+> **架構規範的單一真相來源**：檔案該放哪一律以 [`fe-arch`](skills/fe-arch/) 為準；`fe-issue`／`fe-mr-generator`／`fe-mr-review`／`fe-mr-read` 只引用不複製，改規範只改一處。
 
-> **品質門檻的單一真相來源**：函式長度、複雜度、巢狀深度、單檔行數、重複率的數字，一律以 [`fe-guardrails/references/thresholds.md`](skills/fe-guardrails/references/thresholds.md) 為準；`fe-code-review`／`fe-mr-review`／`fe-mr-review-html` 只引用不寫死。**review skill 產出的是建議，`fe-guardrails` 裝的是 pre-commit 硬閘**，兩者互補。
+> **品質門檻的單一真相來源**：函式長度、複雜度、巢狀深度、單檔行數、重複率的數字，一律以 [`fe-guardrails/references/thresholds.md`](skills/fe-guardrails/references/thresholds.md) 為準；`fe-mr-review`／`fe-mr-review-html` 只引用不寫死。**review skill 產出的是建議，`fe-guardrails` 裝的是 pre-commit 硬閘**，兩者互補。
 
-> **fe-mr-\* 系列的時機分工**：`fe-code-review`（作者推送前的多 agent 預審）→ `fe-mr-read` Phase 1（reviewer review **前**的導讀）→ `fe-mr-review`（review **中**的審查與 comment 產出）→ `fe-mr-read` Phase 3（導讀或 review **之後**的 Heptabase 學習筆記，`fe-mr-review` 審完也可直接接）。共用判準（流程圖規則、好做法目錄、難度分級等）放在 [`skills/_shared/fe-mr-common/`](skills/_shared/fe-mr-common/)。
+> **fe-mr-\* 系列的時機分工**：Pocock `/mattpocock-skills:code-review`（Spec／Standards 兩軸）＋ Codex `$codex-evidence-review`（作者推送前的雙軌預審，結果交 `/review-triage`；爆炸半徑由驗收階段的 pstack `blast-radius` 負責）→ `fe-mr-read` Phase 1（reviewer review **前**的導讀）→ `fe-mr-review`（review **中**的審查與 comment 產出）→ `fe-mr-read` Phase 3（導讀或 review **之後**的 Heptabase 學習筆記，`fe-mr-review` 審完也可直接接）。共用判準（流程圖規則、好做法目錄、難度分級等）放在 [`skills/_shared/fe-mr-common/`](skills/_shared/fe-mr-common/)。
 
 ### 設計整合
 
@@ -138,7 +137,7 @@ Skills 以 symlink 方式從本儲存庫安裝至 agent 的 skills 目錄，編�
 ./scripts/install.sh -t cursor
 
 # 安裝單一 skill
-./scripts/install.sh -s fe-code-review
+./scripts/install.sh -s fe-mr-review
 
 # 解除安裝所有 skills
 ./scripts/install.sh --uninstall
@@ -185,7 +184,6 @@ claude-skills/
 │   │   ├── assets/            # 輸出範本與資源（選用）
 │   │   └── rules/             # 領域特定規則檔案（選用）
 │   ├── figma/
-│   ├── fe-code-review/
 │   └── ...                    # 共 25 個 skills
 ├── mods/
 │   └── mission-band/          # Claude Code mod（安裝見其 README）

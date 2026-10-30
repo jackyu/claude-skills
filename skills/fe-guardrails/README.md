@@ -4,7 +4,7 @@
 
 ## 為什麼有這支 skill
 
-repo 裡其他 review skill（`fe-code-review`、`fe-mr-review`）產出的是**建議**——人或 AI 讀了才會照做。這支裝的是 **pre-commit 硬閘**，機器直接擋，不看心情。
+repo 裡其他 review skill（`fe-mr-review`）產出的是**建議**——人或 AI 讀了才會照做。這支裝的是 **pre-commit 硬閘**，機器直接擋，不看心情。
 
 補的是兩個具體缺口：
 
@@ -102,6 +102,6 @@ fe-guardrails/
 
 ## 與其他 skill 的關係
 
-`references/thresholds.md` 是**全 repo 靜態分析門檻的單一真相來源**。`fe-code-review` 與 `fe-mr-review` 的數字檢查項引用同一份，不各自寫死——比照 `fe-arch` 當架構規範單一真相來源的模式。
+`references/thresholds.md` 是**全 repo 靜態分析門檻的單一真相來源**。`fe-mr-review` 的數字檢查項引用同一份，不各自寫死——比照 `fe-arch` 當架構規範單一真相來源的模式。
 
 調整門檻只改 `thresholds.md`，引用方不用動。

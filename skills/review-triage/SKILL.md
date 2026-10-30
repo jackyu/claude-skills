@@ -20,7 +20,7 @@ background: false
 3. 寫 `<main>/.claude/verify-evidence/<key>/review-findings-r<N>.md`：
    - 開頭 meta：來源（`ai-review`、`reviewer` 或 `others-mr`）、worktree 絕對路徑、base（預設 `origin/<預設分支>`）、目前 HEAD SHA、spec 與驗收清單路徑（沒有就寫無）；來源是 reviewer 時另附 MR iid
    - 來源是 `others-mr`（審別人的 MR）時：`<key>` 用 `mr-<iid>`；worktree 改寫成「本機能讀到這個 MR 的目錄」，HEAD 改寫成 MR 的 head SHA；另附 MR iid、R1 標的高風險區
-   - `ai-review`：每道審查一節，**原文照貼**（Pocock code-review、`/cr`、Codex 的回報），標明來源
+   - `ai-review`：每道審查一節，**原文照貼**（Pocock code-review、Codex 的回報），標明來源
    - `reviewer`：每則還沒處理的別人留言一節，標 discussion id 與 **note id**、作者、貼在哪個檔案哪一行（inline 的話），**原文照貼**；附件（影片、截圖）列出連結。用 `/mission-review` 同步過的討論串，每串都要列到它最新那則別人的 note
    - `others-mr`：fe-mr-review R3 的 finding 原文照貼
    - 不附主對話自己的判斷、實作者的辯護或開發對話

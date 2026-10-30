@@ -440,7 +440,7 @@ describe('bandPlan step detail', () => {
     const bothRan = mission({
       stage: 1,
       events: [
-        { at: 1, kind: 'skill', name: 'x:cr' },
+        { at: 1, kind: 'skill', name: 'x:code-review' },
         { at: 2, kind: 'agent', name: 'codex:codex-rescue' },
       ],
     })
@@ -453,7 +453,7 @@ describe('bandPlan step detail', () => {
     const codexSkipped = mission({
       stage: 1,
       skips: { 'code-review:codex': '不需要第二意見' },
-      events: [{ at: 1, kind: 'skill', name: 'x:cr' }],
+      events: [{ at: 1, kind: 'skill', name: 'x:code-review' }],
     })
     const skippedPlan = bandPlan(codexSkipped, NEW_FEATURE_FLOW, 80, 10, undefined)
     if (skippedPlan.mode !== 'steps-only') throw new Error('unreachable')

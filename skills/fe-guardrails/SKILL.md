@@ -112,6 +112,6 @@ npx eslint .                    # config 載得起來、規則真的生效
 
 ## 參考
 
-- `references/thresholds.md` — 門檻數字與依據。**這是全 repo 的單一真相來源**，`fe-code-review`、`fe-mr-review` 也引用同一份
+- `references/thresholds.md` — 門檻數字與依據。**這是全 repo 的單一真相來源**，`fe-mr-review` 也引用同一份
 - `references/baseline-strategy.md` — 既有專案怎麼漸進導入
 - `assets/` — 可直接套用的 config 範本

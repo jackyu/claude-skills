@@ -24,7 +24,7 @@ disable-model-invocation: true
 
 | Skill | 時機 | 視角 | 產出 |
 |---|---|---|---|
-| `fe-code-review` | 作者推送前 | 多 agent 預審 | review 建議 |
+| Pocock `code-review` + Codex | 作者推送前 | 兩軸（Spec／Standards）加 Codex 正確性與無害區挑戰 | review 建議 |
 | **`fe-mr-read` Phase 1** | **review 前** | **理解** | **導讀報告 + 互動問答** |
 | `fe-mr-review` | review 中 | 找問題 | review comments |
 | **`fe-mr-read` Phase 3** | **導讀或 review 之後** | **學習** | **Heptabase 學習筆記** |

@@ -306,11 +306,22 @@ describe('nodeStates', () => {
       expect(state?.status).toBe('not-started')
     })
 
-    test('Claude track only (via cr/code-review/fe-code-review skill): started', () => {
-      for (const name of ['cr', 'code-review', 'fe-code-review']) {
+    test('Claude track only (via the code-review skill): started', () => {
+      const m = mission({ stage: 1, events: [{ at: 1, kind: 'skill', name: 'mattpocock-skills:code-review' }] })
+      expect(nodeStates(buildNodes, m)[codeReviewIndex]?.status).toBe('started')
+    })
+
+    test('the retired /cr and fe-code-review no longer count as the Claude track', () => {
+      for (const name of ['cr', 'fe-code-review']) {
         const m = mission({ stage: 1, events: [{ at: 1, kind: 'skill', name: `x:${name}` }] })
-        expect(nodeStates(buildNodes, m)[codeReviewIndex]?.status).toBe('started')
+        expect(nodeStates(buildNodes, m)[codeReviewIndex]?.status).toBe('not-started')
       }
+    })
+
+    test('node hints no longer mention /cr', () => {
+      const node = NEW_FEATURE_FLOW.stages.flatMap((s) => s.nodes).find((n) => n.id === 'code-review')
+      const hints = [node?.hint, ...(node?.tracks ?? []).map((t) => t.hint)].join('\n')
+      expect(hints).not.toContain('/cr')
     })
 
     test('Codex track only, via the rescue skill (plugin-prefixed): started', () => {
@@ -348,7 +359,7 @@ describe('nodeStates', () => {
       const m = mission({
         stage: 1,
         events: [
-          { at: 1, kind: 'skill', name: 'x:cr' },
+          { at: 1, kind: 'skill', name: 'x:code-review' },
           { at: 2, kind: 'agent', name: 'codex:codex-rescue' },
         ],
       })
@@ -361,7 +372,7 @@ describe('nodeStates', () => {
       const m = mission({
         stage: 1,
         skips: { 'code-review:codex': '不需要第二意見' },
-        events: [{ at: 1, kind: 'skill', name: 'x:cr' }],
+        events: [{ at: 1, kind: 'skill', name: 'x:code-review' }],
       })
       const state = nodeStates(buildNodes, m)[codeReviewIndex]
       expect(state?.status).toBe('done')
@@ -372,7 +383,7 @@ describe('nodeStates', () => {
       const m = mission({
         stage: 1,
         skips: { 'codex-review': '舊資料，沒有冒號' },
-        events: [{ at: 1, kind: 'skill', name: 'x:cr' }],
+        events: [{ at: 1, kind: 'skill', name: 'x:code-review' }],
       })
       const state = nodeStates(buildNodes, m)[codeReviewIndex]
       expect(state?.status).toBe('done')
@@ -380,7 +391,7 @@ describe('nodeStates', () => {
     })
 
     test('an event before the stage was entered does not start the Claude track', () => {
-      const m = mission({ stage: 1, stageEnteredAt: [0, 10], events: [{ at: 5, kind: 'skill', name: 'x:cr' }] })
+      const m = mission({ stage: 1, stageEnteredAt: [0, 10], events: [{ at: 5, kind: 'skill', name: 'x:code-review' }] })
       expect(nodeStates(buildNodes, m)[codeReviewIndex]?.status).toBe('not-started')
     })
 
@@ -422,7 +433,7 @@ describe('nodeStates', () => {
         events: [
           { at: 11, kind: 'skill', name: 'x:implement' },
           { at: 11.6, kind: 'skill', name: 'x:no-comments' },
-          { at: 12, kind: 'skill', name: 'x:cr' },
+          { at: 12, kind: 'skill', name: 'x:code-review' },
         ],
         branchCommits: [{ hash: 'a', at: 11.5 }],
       })
@@ -1093,7 +1104,7 @@ describe('nextStage', () => {
         events: [
           { at: 11, kind: 'skill', name: 'x:implement' },
           { at: 11.6, kind: 'skill', name: 'x:no-comments' },
-          { at: 12, kind: 'skill', name: 'x:cr' },
+          { at: 12, kind: 'skill', name: 'x:code-review' },
         ],
         branchCommits: [{ hash: 'a', at: 11.5 }],
       }),

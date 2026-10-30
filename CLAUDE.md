@@ -33,9 +33,9 @@ description: What this skill does. Use when [trigger scenario 1], [trigger scena
 ---
 ```
 
-- `name` is kebab-case (e.g., `fe-code-review`).
+- `name` is kebab-case (e.g., `fe-mr-review`).
 - `description` must include at least two trigger scenarios so the agent knows when to activate the skill.
-- Frontend-specific skills use the `fe-` prefix (e.g., `fe-code-review`).
+- Frontend-specific skills use the `fe-` prefix (e.g., `fe-mr-review`).
 
 ### SKILL.md Body
 
@@ -128,5 +128,5 @@ skill-name/
 ## Naming Conventions
 
 - Use kebab-case: `my-skill-name`
-- Frontend skills: `fe-` prefix (e.g., `fe-code-review`)
+- Frontend skills: `fe-` prefix (e.g., `fe-mr-review`)
 - Names should intuitively reflect the skill's purpose

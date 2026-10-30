@@ -612,7 +612,6 @@
       <div class="qs-card" data-stage="build">
         <span class="qs-eyebrow">實作</span>
         <div class="qs-code"><code>/mattpocock-skills:code-review</code></div>
-        <p class="qs-desc">改動大或風險高改用 <code>/cr</code>。</p>
         <details><summary>細節</summary><p>要 Codex 再審一次就 <code>/codex:rescue</code>，一律點名 <code>$codex-evidence-review</code>，不需要就 <code>/mission-skip code-review:codex 理由</code>。兩道都交回後，請 Claude 把原始 finding 存檔再跑 <code>/review-triage</code>，逐筆判定是不是使用者真的會碰到，確認的才派修。</p></details>
       </div>
 
@@ -838,7 +837,7 @@
       <tbody>
         <tr><td><code>implement</code></td><td>照 TDD 或打 /implement 開始寫 code</td><td>偵測到 commit</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip implement 理由</code></td></tr>
         <tr><td><code>no-comments</code></td><td>打 /pstack:no-comments，清註解並直接修正接受的問題（可能改 code，確定要留的限制會等你核准才編碼）</td><td>偵測到打過這個 skill，或讀過它的 SKILL.md</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip no-comments 理由</code></td></tr>
-        <tr><td><code>code-review</code>（兩軌）</td><td>Claude 軌道打 /mattpocock-skills:code-review（或 /cr）；Codex 軌道打 /codex:rescue 或直接跑 codex exec</td><td>兩條軌道各自「跑過或被跳過」就算完成（不是只有 Codex 可以跳，兩邊規則一樣）</td><td>可以只跳 Codex 軌道、只跳 Claude 軌道，或整個節點一起跳：<code>/mission-skip code-review:codex 理由</code>、<code>/mission-skip code-review:claude 理由</code>，或 <code>/mission-skip code-review 理由</code></td></tr>
+        <tr><td><code>code-review</code>（兩軌）</td><td>Claude 軌道打 /mattpocock-skills:code-review；Codex 軌道打 /codex:rescue 或直接跑 codex exec</td><td>兩條軌道各自「跑過或被跳過」就算完成（不是只有 Codex 可以跳，兩邊規則一樣）</td><td>可以只跳 Codex 軌道、只跳 Claude 軌道，或整個節點一起跳：<code>/mission-skip code-review:codex 理由</code>、<code>/mission-skip code-review:claude 理由</code>，或 <code>/mission-skip code-review 理由</code></td></tr>
       </tbody>
     </table>
     </div>

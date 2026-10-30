@@ -47,7 +47,7 @@
 
 ### 備援：pptx skill 拒絕被程式呼叫
 
-`Skill` tool 回 `disable-model-invocation` 錯誤時（`../fe-code-review/SKILL.md` 的工具清單一節記錄過同類問題），不要重試。改成直接照 `~/.claude/plugins/marketplaces/anthropic-agent-skills/skills/pptx/SKILL.md` 的做法，用 pptxgenjs 自己產，投影片對應與約束照上表。
+`Skill` tool 回 `disable-model-invocation` 錯誤時（設了 `disable-model-invocation` 的 skill，`Skill` tool 都載入不了），不要重試。改成直接照 `~/.claude/plugins/marketplaces/anthropic-agent-skills/skills/pptx/SKILL.md` 的做法，用 pptxgenjs 自己產，投影片對應與約束照上表。
 
 找不到那份 SKILL.md 就停下來，請使用者確認 pptx skill 的位置，不要自己亂猜路徑。
 

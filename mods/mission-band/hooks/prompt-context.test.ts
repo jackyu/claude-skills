@@ -51,7 +51,7 @@ describe('progressText', () => {
   })
 
   test('shows the track detail and the pending track hint for a two-track node', () => {
-    const m = mission({ stage: BUILD, events: [{ at: 1, kind: 'skill', name: 'cr' }] })
+    const m = mission({ stage: BUILD, events: [{ at: 1, kind: 'skill', name: 'code-review' }] })
     const text = progressText(NEW_FEATURE_FLOW, m)
     expect(text).toContain('- code-review：進行中（Claude ✓ · Codex ○）。提示：Codex 還沒審')
   })

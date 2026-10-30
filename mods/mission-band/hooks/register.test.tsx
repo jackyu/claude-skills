@@ -1685,7 +1685,7 @@ describe('codex-review via skill or Agent tool call', () => {
     await run('mission-skip', 'create-worktree 測試情境不需要真的建')
     await run('mission-next')
     await $.skill.prompt({ skill: 'x:implement', text: 'hi' })
-    await $.skill.prompt({ skill: 'x:cr', text: 'hi' })
+    await $.skill.prompt({ skill: 'x:code-review', text: 'hi' })
 
     const ui = await $.ui.mount({ plugin: 'mission-band', surface: 'terminal', component: 'AbovePrompt', props: ABOVE_PROMPT(80) })
     // Claude 的軌道跑過、Codex 還沒：只是 started，不是 done。
@@ -1712,7 +1712,7 @@ describe('codex-review via skill or Agent tool call', () => {
     await run('mission-skip', 'create-worktree 測試情境不需要真的建')
     await run('mission-next')
     await $.skill.prompt({ skill: 'x:implement', text: 'hi' })
-    await $.skill.prompt({ skill: 'x:cr', text: 'hi' })
+    await $.skill.prompt({ skill: 'x:code-review', text: 'hi' })
     await $.tool.call({ tool: 'Bash', command: 'cd /repo && codex review --base main' })
 
     const log = await run('mission-log')

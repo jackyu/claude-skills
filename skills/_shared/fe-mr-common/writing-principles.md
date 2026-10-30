@@ -3,7 +3,7 @@
 供 `fe-mr-*` 系列 skill 共用。分兩種語氣，依 skill 性質選用，**不要混用**：
 
 - **學習／導讀類**（`fe-mr-read`）→ 欣賞式語氣，不評判
-- **審查類**（`fe-mr-review`、`fe-mr-review-html`、`fe-code-review`）→ 客觀評判語氣
+- **審查類**（`fe-mr-review`、`fe-mr-review-html`）→ 客觀評判語氣
 
 以下先列兩類共用的規範，再分別列各自專屬的規則。
 
@@ -55,7 +55,7 @@
 
 ---
 
-## 審查語氣（fe-mr-review、fe-mr-review-html、fe-code-review 適用）
+## 審查語氣（fe-mr-review、fe-mr-review-html 適用）
 
 目標：讓「不熟這個專案、甚至剛入行」的工程師也能讀懂報告、快速驗證問題，並順帶學到東西——同時不犧牲對資深讀者的精確度。
 
