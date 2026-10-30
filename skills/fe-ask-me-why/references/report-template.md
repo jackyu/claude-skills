@@ -51,7 +51,7 @@ MR：<web_url>（沒 MR 時寫：branch `<branch>`，commit `<first>..<last>`，
 ## 下一步
 
 - 不懂的觀念要不要先補再開 MR：<建議>
-- 可以接 `/fe-mr-digest` 的素材：<觀念列表>
+- 可以接 `/fe-mr-read` 學習筆記的素材：<觀念列表>
 
 ---
 

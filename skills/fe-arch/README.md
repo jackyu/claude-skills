@@ -54,7 +54,7 @@ fe-arch 把這些變成查表題：走 Phase 1–6 的決策樹，出來就是�
 | 推送前預審 | `fe-code-review` | 跑 fe-arch 的 Code Review 檢查清單 |
 | MR 描述 | `fe-mr-generator` | 位置不符時在「注意事項」標注 |
 | MR 審查 | `fe-mr-review` | 架構違規分級：位置錯 → Minor；高風險域缺 `parse()` → Critical |
-| 合併後 | `fe-mr-digest` | 結構決策列為「架構決策」類學習點 |
+| MR 學習筆記 | `fe-mr-read`（Phase 3） | 結構決策列為「架構決策」類學習點 |
 
 規範只在 fe-arch 維護，其他 skill 一律引用不複製——改規範只改一處。
 

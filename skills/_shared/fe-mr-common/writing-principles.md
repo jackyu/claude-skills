@@ -2,7 +2,7 @@
 
 供 `fe-mr-*` 系列 skill 共用。分兩種語氣，依 skill 性質選用，**不要混用**：
 
-- **學習／導讀類**（`fe-mr-digest`、`fe-mr-walkthrough`）→ 欣賞式語氣，不評判
+- **學習／導讀類**（`fe-mr-read`）→ 欣賞式語氣，不評判
 - **審查類**（`fe-mr-review`、`fe-mr-review-html`、`fe-code-review`）→ 客觀評判語氣
 
 以下先列兩類共用的規範，再分別列各自專屬的規則。
@@ -37,7 +37,7 @@
 
 ---
 
-## 學習導讀語氣（fe-mr-digest、fe-mr-walkthrough 適用）
+## 學習導讀語氣（fe-mr-read 適用）
 
 ### 聚焦學習價值 / 理解價值
 

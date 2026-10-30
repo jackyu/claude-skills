@@ -46,4 +46,4 @@ fe-ask-me-why/
 
 ## 與其他 skill 的關係
 
-開發中 `fe-ask-me-why`（確認自己懂）→ review 前 `fe-mr-walkthrough`（看懂別人的）→ 合併後 `fe-mr-digest`（沉澱成筆記）。導師模式的圖交給 `fe-show-me`。
+開發中 `fe-ask-me-why`（確認自己懂）→ review 前 `fe-mr-read` 導讀（看懂別人的）→ 讀完或審完 `fe-mr-read` 學習筆記（沉澱成筆記）。導師模式的圖交給 `fe-show-me`。

@@ -1,6 +1,6 @@
 # Codex 作者視角回答 review 問題（編排規格）
 
-由 `fe-mr-review-html` 後續行動的「第三選項」觸發。把剛產出的 review 問題交給本機 **Codex**，由 Codex 以 `fe-mr-walkthrough` 的「扮演作者答疑」模式逐題回答，完成後推播通知並附 MR comment 草稿。
+由 `fe-mr-review-html` 後續行動的「第三選項」觸發。把剛產出的 review 問題交給本機 **Codex**，由 Codex 以 `fe-mr-read` Phase 1 的「扮演作者答疑」模式（`references/author-roleplay.md`）逐題回答，完成後推播通知並附 MR comment 草稿。
 
 > **定位**：Codex 與本次 review 看的是同一份 diff。🟢/🟡 是「草擬答覆 + 跨模型複核」，🔴（業務規則／架構決策／產品優先序）仍須真人作者——輸出務必區分這兩類，**絕不讓 Codex 編造作者意圖**。
 
@@ -27,7 +27,7 @@ command -v codex >/dev/null 2>&1 && [ -f "$HOME/.codex/auth.json" ] && echo READ
 
 寫入 `/tmp/codex-author-reply-{project_slug}-{mr_iid}.md`，內容包含：
 
-1. **角色與紀律**（inline，不依賴 Codex 能否讀檔；同時請它參照 `~/.codex/skills/fe-mr-walkthrough` 的作者答疑模式）：
+1. **角色與紀律**（inline，不依賴 Codex 能否讀檔；同時請它參照 `~/.codex/skills/fe-mr-read/references/author-roleplay.md` 的作者答疑模式）：
    - 你是**這個 MR 的作者**，逐題回答 reviewer 的提問。
    - 每題用**信心三級**開頭：🟢 從 code 可推斷 / 🟡 推測（建議與作者確認）/ 🔴 必須問真人作者。
    - 業務規則、架構決策、產品優先序、外部合約、為何不做某功能 → 一律 🔴「需真人作者補充」。
@@ -69,7 +69,7 @@ Codex 背景任務完成後，用 `PushNotification` ping 使用者（內容如�
    - **Codex 已可答（🟢/🟡）** — 可直接作為 review 討論的初步回應。
    - **仍需你 / 真人作者（🔴）** — Codex 無法從程式碼回答的，列在這。
 
-3. **MR comment 草稿**：針對每個 🔴（與存疑的 🟡），依 `fe-mr-walkthrough/references/qa-protocol.md` 的改寫原則產出可貼回 MR 的草稿——開頭 `@{author}`、中性好奇語氣、想了解背景就明說。**列出但不自動送出。**
+3. **MR comment 草稿**：針對每個 🔴（與存疑的 🟡），依 `fe-mr-read/references/qa-protocol.md` 的改寫原則產出可貼回 MR 的草稿——開頭 `@{author}`、中性好奇語氣、想了解背景就明說。**列出但不自動送出。**
 
 ## Step 7：詢問下一步
 

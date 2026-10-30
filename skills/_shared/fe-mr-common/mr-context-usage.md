@@ -1,6 +1,6 @@
 # mr-context.sh 用法
 
-供 `fe-mr-review`、`fe-mr-digest`、`fe-mr-walkthrough` 共用。
+供 `fe-mr-review`、`fe-mr-read` 共用。
 
 ## 指令
 

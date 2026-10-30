@@ -46,14 +46,13 @@ cd claude-skills
 | [fe-code-review](skills/fe-code-review/) | 前端程式碼審查：Spec／Standards 兩軸主幹，加正確性、爆炸半徑副作用追蹤與無害區對抗挑戰 |
 | [fe-mr-review](skills/fe-mr-review/) | AI 輔助 GitLab MR 審查與 Review Comment 回覆（雙模式），含選用的 TL 視角補充 |
 | [fe-mr-review-html](skills/fe-mr-review-html/) | fe-mr-review 的 HTML artifact 輸出版本：內嵌 diff + 嚴重程度色標 + 焦點區深度說明（streaming/cache/並行控制等） |
-| [fe-mr-walkthrough](skills/fe-mr-walkthrough/) | reviewer 在 review 前的 MR 理解輔助：白話化說明、流程圖、AI 扮演作者答疑、好做法雷達 |
-| [fe-mr-digest](skills/fe-mr-digest/) | 將已合併的 GitLab MR 轉化為學習筆記，從程式碼與 Review 討論中萃取知識 |
+| [fe-mr-read](skills/fe-mr-read/) | 讀懂 GitLab MR 並可沉澱成學習筆記：導讀（白話化說明、流程圖、AI 扮演作者答疑、好做法雷達）→ 問要不要存筆記 → 補 Review 討論分析寫進 Heptabase |
 
-> **架構規範的單一真相來源**：檔案該放哪一律以 [`fe-arch`](skills/fe-arch/) 為準；`fe-issue`／`fe-mr-generator`／`fe-mr-review`／`fe-code-review`／`fe-mr-digest` 只引用不複製，改規範只改一處。
+> **架構規範的單一真相來源**：檔案該放哪一律以 [`fe-arch`](skills/fe-arch/) 為準；`fe-issue`／`fe-mr-generator`／`fe-mr-review`／`fe-code-review`／`fe-mr-read` 只引用不複製，改規範只改一處。
 
 > **品質門檻的單一真相來源**：函式長度、複雜度、巢狀深度、單檔行數、重複率的數字，一律以 [`fe-guardrails/references/thresholds.md`](skills/fe-guardrails/references/thresholds.md) 為準；`fe-code-review`／`fe-mr-review`／`fe-mr-review-html` 只引用不寫死。**review skill 產出的是建議，`fe-guardrails` 裝的是 pre-commit 硬閘**，兩者互補。
 
-> **fe-mr-\* 系列的時機分工**：`fe-code-review`（作者推送前的多 agent 預審）→ `fe-mr-walkthrough`（reviewer review **前**的理解輔助）→ `fe-mr-review`（review **中**的審查與 comment 產出）→ `fe-mr-digest`（合併**後**的學習筆記萃取）。共用判準（流程圖規則、好做法目錄、難度分級等）放在 [`skills/_shared/fe-mr-common/`](skills/_shared/fe-mr-common/)。
+> **fe-mr-\* 系列的時機分工**：`fe-code-review`（作者推送前的多 agent 預審）→ `fe-mr-read` Phase 1（reviewer review **前**的導讀）→ `fe-mr-review`（review **中**的審查與 comment 產出）→ `fe-mr-read` Phase 3（導讀或 review **之後**的 Heptabase 學習筆記，`fe-mr-review` 審完也可直接接）。共用判準（流程圖規則、好做法目錄、難度分級等）放在 [`skills/_shared/fe-mr-common/`](skills/_shared/fe-mr-common/)。
 
 ### 設計整合
 

@@ -68,7 +68,13 @@ git fetch origin <source_branch>:<source_branch>
 
 ## 審查模式 (Review Mode)
 
-完成共用步驟後，執行以下步驟。**Step R1 風險分流務必最先做**，它決定後面每一段要用什麼強度審查。
+完成共用步驟後，先做 Step R0 看懂這張 MR，接著 **Step R1 風險分流務必最先做**，它決定後面每一段要用什麼強度審查。
+
+### Step R0: 看懂這張 MR
+
+借 `fe-mr-read` 導讀的前三步，只做理解、不評斷：解析意圖（描述、linked issue、commit）→ 白話重述 → 變更地圖（哪些模組、各自改了什麼）。產出放在報告最上方的「這張 MR 在做什麼」，3–5 行講完。
+
+不做互動答疑和好做法雷達；那是 `fe-mr-read` 的事。R0 的內容**不放進** Step R3.5 交給 review-triage 的 finding 檔，避免作者意圖帶偏判定。
 
 ### Step R1: 高風險區分流（最優先）
 
@@ -155,6 +161,9 @@ R3 沒有任何 finding 就跳過這步。
 在結尾詢問：
 1. **回覆 MR comment** — 將審查建議回覆在 MR 的對應討論串下
 2. **執行修復** — 依照「需要修正」項目進行程式碼修改
+3. **存成 Heptabase 學習筆記** — 這張 MR 有值得記下的做法時，接 `fe-mr-read` 的學習筆記階段（Phase 3），沿用 R0 的理解，不重讀
+
+`fe-mr-read` 關閉了模型呼叫，Skill 工具載不到；選 3 時直接 Read `~/.claude/skills/fe-mr-read/SKILL.md` 的 Phase 3 與它引用的 references 照做。
 
 ---
 
