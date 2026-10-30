@@ -1,6 +1,6 @@
 ---
 name: review-triage
-description: 在 code review 交回 finding、或 reviewer 在 MR 留言之後，派人修正或回覆之前，逐筆判定：先分成指出 bug／質疑前提／提問／風格四類；指出 bug 的標重現層級、從真實入口複核可達性、必要時用 verify-admin／verify-client 實跑，判成確認／待驗證／撤銷／防禦性建議；質疑前提的追出處、交使用者決定。修正後重跑時核對上一輪確認的有沒有關掉，並抓出「在修上一輪修法」的訊號。由主對話把原始 finding 或 reviewer 留言照貼存檔後呼叫。
+description: 在 code review 交回 finding、reviewer 在 MR 留言、或審別人 MR 自己列出 finding 之後，派人修正、回覆或留言之前，逐筆判定：先分成指出 bug／質疑前提／提問／風格四類；指出 bug 的標重現層級、從真實入口複核可達性、必要時用 verify-admin／verify-client 實跑，判成確認／待驗證／撤銷／防禦性建議；質疑前提的追出處、交使用者決定。修正後重跑時核對上一輪確認的有沒有關掉，並抓出「在修上一輪修法」的訊號。由主對話把原始 finding 或 reviewer 留言照貼存檔後呼叫。
 context: fork
 background: false
 ---
@@ -18,9 +18,11 @@ background: false
 1. 定 `<key>`：照 `/cleanup` 的方式從參數、驗收清單 meta 的 `branch` 找；找不到就用 `branch-<分支名，底線換成連字號>`。必須符合 `^[a-z0-9-]+$`
 2. 定輪次 `<N>`：`<main>/.claude/verify-evidence/<key>/` 底下已有幾份 `review-triage-r*.md` 再加 1
 3. 寫 `<main>/.claude/verify-evidence/<key>/review-findings-r<N>.md`：
-   - 開頭 meta：來源（`ai-review` 或 `reviewer`）、worktree 絕對路徑、base（預設 `origin/<預設分支>`）、目前 HEAD SHA、spec 與驗收清單路徑（沒有就寫無）；來源是 reviewer 時另附 MR iid
+   - 開頭 meta：來源（`ai-review`、`reviewer` 或 `others-mr`）、worktree 絕對路徑、base（預設 `origin/<預設分支>`）、目前 HEAD SHA、spec 與驗收清單路徑（沒有就寫無）；來源是 reviewer 時另附 MR iid
+   - 來源是 `others-mr`（審別人的 MR）時：`<key>` 用 `mr-<iid>`；worktree 改寫成「本機能讀到這個 MR 的目錄」，HEAD 改寫成 MR 的 head SHA；另附 MR iid、R1 標的高風險區
    - `ai-review`：每道審查一節，**原文照貼**（Pocock code-review、`/cr`、Codex 的回報），標明來源
    - `reviewer`：每則還沒處理的別人留言一節，標 discussion id 與 **note id**、作者、貼在哪個檔案哪一行（inline 的話），**原文照貼**；附件（影片、截圖）列出連結。用 `/mission-review` 同步過的討論串，每串都要列到它最新那則別人的 note
+   - `others-mr`：fe-mr-review R3 的 finding 原文照貼
    - 不附主對話自己的判斷、實作者的辯護或開發對話
 4. 呼叫 `/review-triage <那個檔的絕對路徑>`
 
@@ -28,7 +30,7 @@ background: false
 
 - finding 檔、`references/reachability.md`
 - 上一輪 `review-triage-r<N-1>.md`（有的話）和它記的 HEAD
-- `cd <wt> && git diff <base>...HEAD`；有上一輪時另看 `git diff <上一輪 HEAD> HEAD`（這一輪的修正）
+- `cd <wt> && git diff <base>...HEAD`（`others-mr` 把 HEAD 換成 MR 的 head SHA，程式碼一律用 `git show <head sha>:<路徑>` 讀，不 checkout 對方的分支）；有上一輪時另看 `git diff <上一輪 HEAD> HEAD`（這一輪的修正）
 - spec、驗收清單（有的話）
 - 來源是 reviewer 時，留言引用到的其他 note 要讀原文（`glab api "projects/:id/merge_requests/<iid>/discussions"`，唯讀），不要把 reviewer 的提問當成定案
 
@@ -60,6 +62,8 @@ background: false
 
 **要不要實跑 UI**：牽涉 UI 時序、生命週期、遮罩或導航，而程式碼讀不出定論 → 用 `<wt>/.claude/skills/verify-admin` 或 `verify-client` 的 drive 走真實入口（起 app、port 規則、cleanup 照各自 SKILL.md；不碰 3000、3001）。reviewer 描述了操作或附了影片，就照它走。證據放 `<main>/.claude/verify-evidence/<key>/triage-r<N>/`。跑不起來就判待驗證、寫明卡在哪，不要用直接呼叫 handler 的測試冒充。
 
+**`others-mr` 的證據上限是控制流**：不起 app、不 checkout 對方的分支。控制流已證實可達（入口與防護都有 `檔案:行號`）就能判確認，佐證寫「依程式碼推導，未在 UI 實跑」；只有底層行為成立就判待驗證。落在高風險區、要確認之前想實跑的，在回報裡列出來請使用者決定，不自己跑。
+
 ## Step 4：質疑前提 → 追出處
 
 1. 把被質疑的行為講成一句話（例：「401 錯誤要回報 Sentry」「410 是讀取失敗」）
@@ -82,7 +86,7 @@ background: false
 <!-- review-triage: {"round":<N>,"head":"<HEAD sha>","notes":[<這次判定涵蓋的 GitLab note id，數字>],"counts":{"confirmed":0,"pending":0,"withdrawn":0,"defensive":0,"premise":0},"warn":false} -->
 ```
 
-- `notes`：來源是 reviewer 時，列 finding 檔裡所有 note id（包含分類成提問、風格的）；來源是 ai-review 時是空陣列
+- `notes`：來源是 reviewer 時，列 finding 檔裡所有 note id（包含分類成提問、風格的）；來源是 ai-review 或 others-mr 時是空陣列
 - `counts`：確認、待驗證、撤銷、防禦性建議、質疑前提各幾筆
 - `warn`：有 ⚠ 時是 true
 
@@ -112,7 +116,19 @@ meta 之後：
 
 **修在哪裡**：還在這張票的 spec 內 → 同一張 MR；超出 spec、要動到別的模組或共用套件 → 另開票；MR 已核准 → 先問使用者。
 
-有 ⚠ 或質疑前提時，回報第一行就寫「先停下來，有前提要使用者決定」。
+有 ⚠ 或質疑前提時，回報第一行就寫「先停下來，有前提要使用者決定」（`others-mr` 不適用，見下）。
+
+**來源是 `others-mr` 時改用這張對應**，每筆附一段可以直接貼成留言的草稿：
+
+| 判定 | 報告區塊 | 留言草稿 |
+|---|---|---|
+| 確認 | 需要修正 | 一句話問題 → 怎麼重現（起始畫面 → 按鈕與輸入 → 時機 → 預期／實際）→ 一句建議 → 佐證（「依程式碼推導，未在 UI 實跑」＋入口與防護的位置） |
+| 待驗證 | 想請作者確認 | 提問語氣：「想確認一下：如果使用者 <操作>，<結果> 會不會……？我從 <入口> 看下去，沒找到擋住的地方」 |
+| 質疑前提 | 想請作者確認 | 問出處、不下結論：「這裡 <行為> 是依據哪份規格或決定？」 |
+| 防禦性建議、風格 | 建議改進 | 標「非阻擋」＋一句理由 |
+| 撤銷 | 已檢查、不成立 | 不留言，附擋住它的防護位置 |
+
+另外標出每筆在不在 R1 的高風險區：「想請作者確認」落在高風險區的，合併建議要寫「待作者確認後可合」；一般區的不影響合併建議。
 
 ## 不做的事
 

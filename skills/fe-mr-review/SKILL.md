@@ -134,6 +134,16 @@ git fetch origin <source_branch>:<source_branch>
 
 > **跨類型的優劣鏡片（共用/monorepo 尤其適用）**：技術審查時一併套用 `references/review-focus.md` 的「資深同儕的優劣鏡片」——差異/重複是成本、收斂要收對層（build-time variant 進 shared、runtime wiring 留 app）、只表達有語意的區分（`null` vs `undefined` 無語意差就用 nullish）、feature 收斂但 app page/spec 各複製一份＝收斂只做一半。
 
+### Step R3.5: 判定 finding（fork 給 review-triage）
+
+R3 的 finding 是自己找的，最容易一廂情願，組裝輸出前先交給乾淨上下文判定：
+
+1. 照 review-triage「主對話的準備」存 finding 檔：來源 `others-mr`、`<key>` 用 `mr-<iid>`、R3 的 finding 原文照貼（含 R1 標的高風險區），附 MR iid、base 與 head SHA、本機能讀到 diff 的目錄
+2. 呼叫 `/review-triage <finding 檔>`，等回報
+3. R4 只用判定過的結果組裝，對應見 `references/output-format-review.md`：確認 → 需要修正；待驗證、質疑前提 → 想請作者確認；防禦性建議、風格 → 建議改進；撤銷 → 已檢查、不成立
+
+R3 沒有任何 finding 就跳過這步。
+
 ### Step R4: 組裝輸出
 
 按照下方「審查模式輸出格式」組裝 review 結果。**風險分流放最上方**，讓 reviewer 第一眼就知道注意力該放哪。
