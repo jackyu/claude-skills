@@ -38,7 +38,6 @@
 | `SKILL.md` | Main skill instructions |
 | `references/review-focus.md` | 各類型 MR（feature / bugfix / refactor）的審查焦點 |
 | `references/output-format-review.md` | 審查模式輸出格式範本 |
-| `references/codex-author-reply.md` | （選用）Codex 作者視角回答 review 問題的編排規格 |
 | `references/reply-template.md` | 逐則回覆 reviewer 留言的寫法 |
 
 ## Language

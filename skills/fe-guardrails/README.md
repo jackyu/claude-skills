@@ -8,7 +8,7 @@ repo 裡其他 review skill（`fe-mr-review`）產出的是**建議**——人�
 
 補的是兩個具體缺口：
 
-- 沒有任何靜態分析門檻。過去全 repo 唯一的複雜度數字是 `fe-mr-review-html/references/severity-system.md` 的「過長函式 >80 行」，而且只是報告分級用語、不是閘門
+- 沒有任何靜態分析門檻。過去全 repo 唯一的複雜度數字是 review 報告分級裡的「過長函式 >80 行」，而且只是報告分級用語、不是閘門
 - 檢查全部發生在 push 或 review 階段，沒有 shift-left 到 commit
 
 ## 檢查什麼

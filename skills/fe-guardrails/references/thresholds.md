@@ -14,7 +14,7 @@
 
 | 檔案 | 新專案 | 既有專案 | 依據 |
 |---|---|---|---|
-| `**/*.ts` | error 50 | warn 50 / error 80 | 一般函式超過 50 行通常該拆。80 對齊 `fe-mr-review-html/references/severity-system.md` 的 medium 分級 |
+| `**/*.ts` | error 50 | warn 50 / error 80 | 一般函式超過 50 行通常該拆。80 對齊過去 review 報告「過長函式」的 medium 分級 |
 | `**/*.tsx` | error 150 | warn 150 | JSX 撐行數，跟邏輯複雜度不是同一回事 |
 
 兩者一律加 `{ skipBlankLines: true, skipComments: true }`——空行與註解不該算進來，否則會逼人寫得更擠、更難讀。

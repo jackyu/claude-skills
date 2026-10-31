@@ -8,7 +8,6 @@
 |---|---|
 | [fe-mr-read](../../fe-mr-read/) | diagram-rules、difficulty-levels、learning-tags、good-pattern-catalog、writing-principles（學習導讀語氣）、mr-context-usage |
 | [fe-mr-review](../../fe-mr-review/) | writing-principles（審查語氣）、mr-context-usage |
-| [fe-mr-review-html](../../fe-mr-review-html/) | writing-principles（審查語氣） |
 | [a3-report](../../a3-report/) | writing-principles（只引「共用規範」整段與審查語氣 §1 白話先行；讀者改為主管，不屬於兩種語氣任一） |
 
 ## 檔案清單
@@ -19,7 +18,7 @@
 | [difficulty-levels.md](difficulty-levels.md) | 🟢🟡🔴 三級難度分級的判準與典型主題 |
 | [learning-tags.md](learning-tags.md) | 12 種學習標籤的涵蓋範圍 |
 | [good-pattern-catalog.md](good-pattern-catalog.md) | 6 種值得標記的程式技巧範式、判準、反例、格言模板 |
-| [writing-principles.md](writing-principles.md) | 共用規範（淺顯易懂、中文文案排版）＋學習導讀語氣（fe-mr-read）＋審查語氣（fe-mr-review／fe-mr-review-html）三部分合一 |
+| [writing-principles.md](writing-principles.md) | 共用規範（淺顯易懂、中文文案排版）＋學習導讀語氣（fe-mr-read）＋審查語氣（fe-mr-review）三部分合一 |
 | [mr-context-usage.md](mr-context-usage.md) | `mr-context.sh` 完整用法、選項與補抓腳本 — 供 fe-mr-review、fe-mr-read 共用 |
 
 ## 修改規則
