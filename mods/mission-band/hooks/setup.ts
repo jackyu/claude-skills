@@ -2,7 +2,7 @@
 // register.tsx 負責問出事實（$.fs／$.env／$.session），這裡只決定結果。
 
 const AGENT_SKILLS_HEADING = '## Agent skills'
-const POCOCK_HINT = '/setup-matt-pocock-skills 已合進 origin/main，這個分支若較舊請先 rebase 到 origin/main'
+const POCOCK_HINT = '請先執行 /setup-matt-pocock-skills'
 const PSTACK_HINT = '請先執行 /setup-pstack'
 
 /** register.tsx 從 $.fs／$.session 問出來的事實；不在 git repo 裡時 Pocock 兩項跳過不檢查。 */

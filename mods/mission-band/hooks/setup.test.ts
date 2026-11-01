@@ -16,15 +16,16 @@ describe('setupGaps', () => {
 
   test('flags a missing Agent skills section, or a missing CLAUDE.md entirely, the same way', () => {
     const missingSection = setupGaps({ ...COMPLETE, claudeMdText: '# x\n' })
-    expect(missingSection).toEqual([{ item: expect.stringContaining('Agent skills'), hint: expect.stringContaining('rebase') }])
+    expect(missingSection).toEqual([{ item: expect.stringContaining('Agent skills'), hint: '請先執行 /setup-matt-pocock-skills' }])
 
     const missingFile = setupGaps({ ...COMPLETE, claudeMdText: undefined })
     expect(missingFile).toEqual(missingSection)
+    expect(missingSection[0]?.hint).not.toContain('rebase')
   })
 
-  test('flags a missing issue-tracker.md with the same rebase hint', () => {
+  test('flags a missing issue-tracker.md with the same setup-matt-pocock-skills hint', () => {
     const gaps = setupGaps({ ...COMPLETE, issueTrackerExists: false })
-    expect(gaps).toEqual([{ item: expect.stringContaining('issue-tracker'), hint: expect.stringContaining('rebase') }])
+    expect(gaps).toEqual([{ item: expect.stringContaining('issue-tracker'), hint: '請先執行 /setup-matt-pocock-skills' }])
   })
 
   test('flags a missing pstack-models.md with the setup-pstack hint', () => {
