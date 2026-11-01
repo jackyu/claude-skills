@@ -1,12 +1,12 @@
 ---
 name: cleanup
-description: 刪除這張票的 worktree 與本地分支（MR 已合併、或 commit 已在 target 才刪；否則要使用者輸入 discard 丟棄），把 spec、驗收清單搬進 .claude/specs/archive/，刪除驗收證據目錄。是 /mission-finish 之後收尾的最後一步。worktree 內跑 /cleanup 清掉自己；主 checkout 跑 /cleanup <#issue 或分支名> 清掉指定的 worktree。使用者打 /cleanup 時使用。
+description: 刪除這張票的 worktree 與本地分支（MR 已合併、或 commit 已在 target 才刪；否則要使用者輸入 discard 丟棄），把 spec、驗收清單、to-tickets 的票目錄搬進 .claude/specs/archive/，刪除驗收證據目錄。是 /mission-finish 之後收尾的最後一步。worktree 內跑 /cleanup 清掉自己；主 checkout 跑 /cleanup <#issue 或分支名> 清掉指定的 worktree。使用者打 /cleanup 時使用。
 disable-model-invocation: true
 ---
 
 # cleanup：刪除已收尾的 worktree 與分支
 
-接在 `/mission-finish` 之後：MR 合併後把這張票的 worktree、本地分支清掉，spec 與驗收清單歸檔，驗收證據刪除。不跑 retro（收尾階段已經跑過），也不開 MR、不改 MR 狀態。
+接在 `/mission-finish` 之後：MR 合併後把這張票的 worktree、本地分支清掉，spec、驗收清單與票目錄歸檔，驗收證據刪除。不跑 retro（收尾階段已經跑過），也不開 MR、不改 MR 狀態。
 
 **用法**：
 - `/cleanup`　在功能 worktree 的 session 裡跑，清掉自己（跑完視窗會關閉）
@@ -80,13 +80,13 @@ git -C <wt> log --oneline "<target 或 origin/<預設分支>>..HEAD"
 
 ## Step 4：確認清單
 
-一次列給使用者看，等明確答覆才往下做：worktree 路徑、分支名、`<key>`；MR 的 iid／狀態／target（已整合路徑寫「無 MR，commit 已在 origin/<target>」或「已關閉，commit 已在 origin/<target>」；丟棄路徑寫「無」或「已關閉未合併」）；要歸檔的檔案（`spec-<key>-*.md`、`acceptance-<key>.md`，`<key>` 沒定案就寫「略過歸檔」）；要刪除的證據目錄 `<main>/.claude/verify-evidence/<key>/`；分支的 tip SHA（`git -C <main> rev-parse <branch>`）和救回指令 `git -C <main> branch <branch> <sha>`；「刪完要確認，在主 checkout 打 `orca worktree list`」。worktree 模式額外加一句**確認之後會一路做到刪除，這個視窗會關閉，之後不會再有回報**——worktree 模式下這份清單就是最後的回報，rm 之後視窗馬上關掉，再發訊息也看不到。
+一次列給使用者看，等明確答覆才往下做：worktree 路徑、分支名、`<key>`；MR 的 iid／狀態／target（已整合路徑寫「無 MR，commit 已在 origin/<target>」或「已關閉，commit 已在 origin/<target>」；丟棄路徑寫「無」或「已關閉未合併」）；要歸檔的檔案（`spec-<key>-*.md`、`acceptance-<key>.md`、`tickets-<key>/` 目錄，只列實際存在的；`<key>` 沒定案就寫「略過歸檔」）；要刪除的證據目錄 `<main>/.claude/verify-evidence/<key>/`；分支的 tip SHA（`git -C <main> rev-parse <branch>`）和救回指令 `git -C <main> branch <branch> <sha>`；「刪完要確認，在主 checkout 打 `orca worktree list`」。worktree 模式額外加一句**確認之後會一路做到刪除，這個視窗會關閉，之後不會再有回報**——worktree 模式下這份清單就是最後的回報，rm 之後視窗馬上關掉，再發訊息也看不到。
 
 ## Step 5：執行
 
 路徑每次當場重算，不要存進 shell 變數留到下一次呼叫才用。
 
-1. **歸檔**：`mkdir -p "<main>/.claude/specs/archive"`，逐個搬 `spec-<key>-*.md`、`acceptance-<key>.md`；目的地已有同名檔就加日期後綴，不覆蓋。`<key>` 沒定案就跳過。
+1. **歸檔**：`mkdir -p "<main>/.claude/specs/archive"`，逐個搬 `spec-<key>-*.md`、`acceptance-<key>.md`，以及 to-tickets 寫的 `tickets-<key>/` 整個目錄（不存在就跳過）；目的地已有同名檔或同名目錄就加日期後綴，不覆蓋、不合併進舊目錄。`<key>` 沒定案就跳過。
 2. **刪證據**：`<main>/.claude/verify-evidence/<key>/`。先確認路徑恰好落在這個目錄下、`<key>` 非空且符合 `^[a-z0-9-]+$`，再 `rm -rf`。`<key>` 沒定案就跳過。
 3. **記 SHA、刪分支**：`sha=$(git -C <main> rev-parse <branch>)`——**在刪分支之前**記下來，失敗救援用得到。
    - worktree 模式：`git -C <wt> switch --detach`（讓分支不再被任何 worktree 佔用），再 `git -C <main> branch -D "<branch>"`
