@@ -89,10 +89,10 @@ GitLab token 從 `~/.claude/scripts/gitlab/.env` 或 `~/.claude.json` 讀。
 | `fe-mr-review` | 這個 MR 能不能合 | 對象是程式碼，讀者是工程師 |
 | `fe-mr-read` | 這個 MR 在做什麼、有什麼值得學 | 產出是導讀與學習筆記，不做決定 |
 | `fe-issue` | 這個需求怎麼拆成開發任務 | 產出往下給開發，不往上給主管 |
-| `retro` | 這次 session 有什麼可以改進 | 對象是工作流程，不是專案進度 |
+| `mattpocock-skills:retro` | 這次 session 有什麼可以改進 | 對象是工作流程，不是專案進度 |
 | `a3-report` | 主管要簽什麼、憑什麼簽 | 唯一一支產出「給主管做決定」的文件 |
 
-事實清單約束借自 `retro`，信心三級借自 `fe-mr-read`，HTML 規則借自 `fe-show-me`。
+信心三級借自 `fe-mr-read`，HTML 規則借自 `fe-show-me`。
 
 ## 安全邊界
 

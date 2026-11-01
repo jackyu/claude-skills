@@ -630,7 +630,7 @@
 
       <div class="qs-card" data-stage="finish">
         <span class="qs-eyebrow">收尾</span>
-        <div class="qs-code"><code>/retro</code></div>
+        <div class="qs-code"><code>/mattpocock-skills:retro</code></div>
         <p class="qs-desc">進了「收尾」階段，回顧這次 session。</p>
       </div>
 
@@ -879,7 +879,7 @@
       <caption>收尾</caption>
       <thead><tr><th>步驟</th><th>做什麼</th><th>怎麼算完成</th><th>不需要時</th></tr></thead>
       <tbody>
-        <tr><td><code>retro</code></td><td>打 /retro 回顧這次 session</td><td>偵測到打過</td><td>必做；band 會一直提醒，但到了「收尾」階段後 <code>/mission-finish</code> 不會因為這步沒做而擋（只看階段是不是已經到最後），真的不需要可 <code>/mission-skip retro 理由</code></td></tr>
+        <tr><td><code>retro</code></td><td>打 /mattpocock-skills:retro 回顧這次 session</td><td>偵測到打過</td><td>必做；band 會一直提醒，但到了「收尾」階段後 <code>/mission-finish</code> 不會因為這步沒做而擋（只看階段是不是已經到最後），真的不需要可 <code>/mission-skip retro 理由</code></td></tr>
         <tr><td><code>correct</code>（選用）</td><td>不確定就讀 pstack 的 correct</td><td>讀過那份文件</td><td>有把握可以跳過</td></tr>
       </tbody>
     </table>
@@ -935,7 +935,7 @@
       <p>
         任務綁在 worktree 路徑時，<code>/mission-next</code> 會建議先 <code>/clear</code> 再開始：每次呼叫模型都要重讀整段對話，
         越後面的階段越貴，而且各階段要接的資料都在 spec、驗收清單跟任務紀錄裡，不靠對話記憶接續。需要帶著前面的討論就改用
-        <code>/compact</code>。唯一的例外是進入「收尾」階段前：這裡反而會提示先不要 <code>/clear</code>，因為 <code>/retro</code>
+        <code>/compact</code>。唯一的例外是進入「收尾」階段前：這裡反而會提示先不要 <code>/clear</code>，因為 <code>/mattpocock-skills:retro</code>
         要回顧的就是這段對話本身。
       </p>
     </details>

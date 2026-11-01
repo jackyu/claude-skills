@@ -33,7 +33,7 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
         {
           id: 'to-spec',
           matchSkill: 'to-spec',
-          hint: '在同一段對話輸入 /to-spec，把討論整理成 spec',
+          hint: '在同一段對話輸入 /to-spec，把討論整理成 spec；RD 票建好後請 AI 跑 ~/.claude/scripts/gitlab/issue-status.sh "<專案路徑>" <iid> "Ready to develop"',
         },
         {
           id: 'to-acceptance',
@@ -50,7 +50,7 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
         {
           id: 'create-worktree',
           doneWhen: 'worktree',
-          hint: '直接跟 AI 說「orca worktree create」請它建（不要加 !，band 是從 AI 跑的指令記下路徑）；打勾後 /mission-next，再 /mission-go 開新分頁',
+          hint: '直接跟 AI 說「orca worktree create」請它建（不要加 !，band 是從 AI 跑的指令記下路徑），建好後請它跑 ~/.claude/scripts/gitlab/issue-status.sh "<專案路徑>" <iid> "Developing"；打勾後 /mission-next，再 /mission-go 開新分頁',
         },
       ],
     },
@@ -208,7 +208,7 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
         {
           id: 'retro',
           matchSkill: 'retro',
-          hint: '輸入 /retro 回顧這次 session',
+          hint: '輸入 /mattpocock-skills:retro 回顧這次 session',
         },
         {
           id: 'correct',

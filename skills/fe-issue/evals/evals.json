@@ -81,7 +81,7 @@
     },
     {
       "id": 5,
-      "prompt": "這是 /spec 流程產出的 spec 檔（.claude/specs/spec-order-refactor.md，內含「## 規格書」區段，規格已澄清），請依規格書產出前端技術 Issue，無設計稿連結",
+      "prompt": "這是 to-spec 產出的 spec 檔（.claude/specs/spec-order-refactor.md，內含「## 規格書」區段，規格已澄清），請依規格書產出前端技術 Issue，無設計稿連結",
       "expected_output": "標準層技術 Issue，以「## 規格書」全文為規格主體，不另寫功能描述",
       "files": [],
       "expectations": [

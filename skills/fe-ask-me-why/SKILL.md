@@ -24,7 +24,7 @@ AI 幫你寫完的程式碼，你不一定講得出「為什麼」。這支 skil
 1. `git fetch origin`，取 `git diff origin/main...HEAD` 加上未 commit 的改動（`git diff HEAD`）。
 2. diff 是空的 → 問使用者要考哪些檔案或目錄，改用指定檔案模式。
 3. diff 超過 500 行 → 先列出改動的檔案清單，請使用者挑 2–3 個最沒把握的區塊，只考那些。
-4. 有 spec 或 issue（`docs/`、`IMPLEMENTATION_PLAN.md`、`/spec` 產物）就一起讀，題目可以問「spec 要求 X，你的實作在哪裡對應」。
+4. 有 spec 或 issue（`docs/`、`IMPLEMENTATION_PLAN.md`、to-spec 規格書）就一起讀，題目可以問「spec 要求 X，你的實作在哪裡對應」。
 5. 問一句「這個 branch 開 MR 了嗎？有就貼連結」。有 → 從 URL 拆出 project path 與 IID，跑 `~/.claude/skills/_shared/fe-mr-common/scripts/mr-context.sh <project_path> <mr_iid> --minimal` 拿 MR 標題與 `web_url`，留給收尾當卡片標題與連結。沒有 → 標題暫用 spec／issue 標題，都沒有就請使用者用一句話講這個 branch 在做什麼；連結先留 branch 名與 `git log --oneline origin/main..HEAD` 的 commit 範圍，MR 開了再補。
 
 大量讀檔派 subagent（Explore），主對話只收「改動摘要＋值得出題的位置清單」。
@@ -105,7 +105,7 @@ Q3／7 🟡 為什麼不那樣做
 - 導師模式要畫圖 → `fe-show-me`
 - 想先看懂整包再來考 → `fe-mr-read`（Phase 1 導讀）
 - MR 開出後把這次補課的觀念整理成正式筆記 → `fe-mr-read`（Phase 3 學習筆記；報告裡「不懂」與「補課紀錄」是現成素材）
-- session 結束想沉澱流程改進 → `retro`
+- session 結束想沉澱流程改進 → `/mattpocock-skills:retro`
 
 ## 寫作原則
 

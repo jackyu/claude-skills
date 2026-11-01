@@ -6,7 +6,7 @@
 
 **長度判準**：標準層級的 issue 全文 ≤ 150 行、10 分鐘內可讀完。超標先砍雜訊（重複敘述、可從 code 查到的細節、非必要的背景）再輸出。
 
-任務拆解在開發階段（`/start` 之後）依規格書進行，issue 本身只到「實作範圍」為止。
+任務拆解在開發階段（建好 worktree 之後）依規格書進行，issue 本身只到「實作範圍」為止。
 
 ---
 
@@ -27,11 +27,11 @@
 ## 規格書
 
 <!--
-`/spec` 流程產出的 to-spec 規格書全文嵌入此處，作為本 issue 的規格主體
+to-spec 產出的規格書全文嵌入此處，作為本 issue 的規格主體
 （Problem Statement / Solution / User Stories / Implementation Decisions /
 Testing Decisions / Out of Scope / Further Notes）。
 有規格書時，下方「功能描述」省略不寫——兩者擇一，不重複同一件事。
-單獨使用 fe-issue（非 `/spec` 流程）時，省略本區塊、改寫「功能描述」。
+沒有規格書時，省略本區塊、改寫「功能描述」。
 -->
 
 {{ SPEC_DOCUMENT }}
