@@ -102,7 +102,7 @@ Build Spec → Ready To Develop → Developing → Review → On Dev
 
 | 步驟 | 動作 | Label 變化 |
 |------|------|-----------|
-| 1 | PM Issue 進入拆解，RD 用 `fe-issue` Skill 產出草稿 | `workflow::Build Spec` |
+| 1 | PM Issue 進入拆解，RD 用 `gitlab-issue` Skill 產出草稿 | `workflow::Build Spec` |
 | 2 | 技術 Issue 建立完成，需求確認無疑義 | → `workflow::Ready To Develop` |
 | 3 | RD 開始實作 | → `workflow::Developing` |
 | 4 | 一段實作範圍完成，用 `fe-mr-generator` 開 MR | → `workflow::Review` |

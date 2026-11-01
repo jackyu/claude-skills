@@ -246,7 +246,7 @@ test('mission-next refuses unfinished nodes, allows after skipping, and finish n
   await run('mission-skip', 'prototype 不需要設計決定')
   await run('mission-skip', 'to-spec 先用口頭 spec')
   await run('mission-skip', 'to-acceptance 測試情境不管驗收清單')
-  await run('mission-skip', 'fe-issue 測試情境不管 RD 票')
+  await run('mission-skip', 'gitlab-issue 測試情境不管 RD 票')
   await run('mission-skip', 'create-worktree 測試情境不需要真的建')
 
   const advanced = await run('mission-next')
@@ -278,7 +278,7 @@ test('mission-next allows the real path: grill started, prototype skipped, to-sp
   await run('mission-skip', 'prototype 不需要設計決定')
   await $.skill.prompt({ skill: 'mattpocock-skills:to-spec', text: 'hi' })
   await run('mission-skip', 'to-acceptance 測試情境不管驗收清單')
-  await run('mission-skip', 'fe-issue 測試情境不管 RD 票')
+  await run('mission-skip', 'gitlab-issue 測試情境不管 RD 票')
   await run('mission-skip', 'create-worktree 測試情境不需要真的建')
 
   const advanced = await run('mission-next')
@@ -409,7 +409,7 @@ test('the rendered band with the tickets-changed warning row showing never excee
   await $.skill.prompt({ skill: 'x:approach', text: '/approach' })
   await $.skill.prompt({ skill: 'x:to-spec', text: '/to-spec' })
   await run('mission-skip', 'to-acceptance 測試情境不管驗收清單')
-  await run('mission-skip', 'fe-issue 測試情境不管 RD 票')
+  await run('mission-skip', 'gitlab-issue 測試情境不管 RD 票')
   await run('mission-skip', 'create-worktree 測試情境不需要真的建')
   await run('mission-next')
   // 進入實作階段之後又跑了一次 to-tickets，band 要多畫一行警告。
@@ -1017,7 +1017,7 @@ async function advanceToBuildStage($: Engine, run: (command: string, args?: stri
   // create-worktree 是必做節點，但這裡故意跳過不真的建 worktree：mission.worktreePath 留空，
   // 讓下面這組測試繼續驗 currentBranchCommits 用 session root 查 git 的既有行為。
   await run('mission-skip', 'to-acceptance 測試情境不管驗收清單')
-  await run('mission-skip', 'fe-issue 測試情境不管 RD 票')
+  await run('mission-skip', 'gitlab-issue 測試情境不管 RD 票')
   await run('mission-skip', 'create-worktree 測試情境不需要真的建')
   await run('mission-next')
 }
@@ -1189,7 +1189,7 @@ describe('commit snapshot (branchCommits)', () => {
     await $.skill.prompt({ skill: 'x:approach', text: 'hi' })
     await $.skill.prompt({ skill: 'x:to-spec', text: 'hi' })
     await run('mission-skip', 'to-acceptance 測試情境不管驗收清單')
-    await run('mission-skip', 'fe-issue 測試情境不管 RD 票')
+    await run('mission-skip', 'gitlab-issue 測試情境不管 RD 票')
     await run('mission-next')
     // 這次 Bash，worktreePath 已經記好了，快照改問 worktree 目錄。
     await $.tool.call({ tool: 'Bash', command: 'git commit -m x' })
@@ -1687,7 +1687,7 @@ describe('codex-review via skill or Agent tool call', () => {
     await $.skill.prompt({ skill: 'x:approach', text: 'hi' })
     await $.skill.prompt({ skill: 'x:to-spec', text: 'hi' })
     await run('mission-skip', 'to-acceptance 測試情境不管驗收清單')
-    await run('mission-skip', 'fe-issue 測試情境不管 RD 票')
+    await run('mission-skip', 'gitlab-issue 測試情境不管 RD 票')
     await run('mission-skip', 'create-worktree 測試情境不需要真的建')
     await run('mission-next')
     await $.skill.prompt({ skill: 'x:implement', text: 'hi' })
@@ -1715,7 +1715,7 @@ describe('codex-review via skill or Agent tool call', () => {
     await $.skill.prompt({ skill: 'x:approach', text: 'hi' })
     await $.skill.prompt({ skill: 'x:to-spec', text: 'hi' })
     await run('mission-skip', 'to-acceptance 測試情境不管驗收清單')
-    await run('mission-skip', 'fe-issue 測試情境不管 RD 票')
+    await run('mission-skip', 'gitlab-issue 測試情境不管 RD 票')
     await run('mission-skip', 'create-worktree 測試情境不需要真的建')
     await run('mission-next')
     await $.skill.prompt({ skill: 'x:implement', text: 'hi' })
@@ -1817,7 +1817,7 @@ describe('domainDocsDirty on mission-next', () => {
     await $.skill.prompt({ skill: 'x:approach', text: 'hi' })
     await $.skill.prompt({ skill: 'x:to-spec', text: 'hi' })
     await run('mission-skip', 'to-acceptance 測試情境不管驗收清單')
-    await run('mission-skip', 'fe-issue 測試情境不管 RD 票')
+    await run('mission-skip', 'gitlab-issue 測試情境不管 RD 票')
     await run('mission-skip', 'create-worktree 測試情境不需要真的建')
 
     const outcome = await run('mission-next')
@@ -1838,7 +1838,7 @@ describe('domainDocsDirty on mission-next', () => {
     await $.skill.prompt({ skill: 'x:approach', text: 'hi' })
     await $.skill.prompt({ skill: 'x:to-spec', text: 'hi' })
     await run('mission-skip', 'to-acceptance 測試情境不管驗收清單')
-    await run('mission-skip', 'fe-issue 測試情境不管 RD 票')
+    await run('mission-skip', 'gitlab-issue 測試情境不管 RD 票')
     await run('mission-skip', 'create-worktree 測試情境不需要真的建')
 
     const outcome = await run('mission-next')

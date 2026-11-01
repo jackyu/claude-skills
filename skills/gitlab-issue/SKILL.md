@@ -1,5 +1,5 @@
 ---
-name: fe-issue
+name: gitlab-issue
 description: 將 PM 需求 Issue 轉換為前端技術 Issue 草稿。使用時機：(1) 用戶要求將 PM issue 轉為 RD/前端 issue, (2) 用戶提到需求拆解、技術拆解、issue 拆解, (3) 用戶要求分析 PM 需求並產出開發任務, (4) 用戶提到開發任務規劃, (5) 用戶貼上 PM issue 內容要求轉成技術 issue。即使用戶只是提到「幫我看一下這個需求怎麼拆」也應觸發此 skill。
 ---
 

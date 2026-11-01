@@ -29,7 +29,7 @@ date +%u   # 星期幾，1 是星期一，7 是星期日
 ~/.claude/skills/_shared/fe-mr-common/scripts/issue-get.sh <issue_url>
 ```
 
-也可以傳 `<project_path> <issue_iid>`。用法同 `../fe-issue/SKILL.md` 的 Phase 1.1。
+也可以傳 `<project_path> <issue_iid>`。用法同 `../gitlab-issue/SKILL.md` 的 Phase 1.1。
 
 腳本失敗就請使用者直接貼 issue 內容。要抓的是：標題、需求描述、驗收條件、相關連結。
 
@@ -51,7 +51,7 @@ cwd 在使用者專案裡，所以一律用這個絕對路徑（skill 由 instal
 
 腳本一次抓 100 筆不翻頁，超過會在 stderr 印警告。看到警告就縮短區間再跑一次，不要無視。
 
-**專案路徑怎麼來：** 從 `git remote get-url origin` 推算，推不出來就問使用者，慣例同 `../fe-issue/SKILL.md` 的「需要建立」一節。
+**專案路徑怎麼來：** 從 `git remote get-url origin` 推算，推不出來就問使用者，慣例同 `../gitlab-issue/SKILL.md` 的「需要建立」一節。
 
 **多專案：** `--project a/b,c/d` 時腳本跑多次，一個專案一次。合併進同一份事實清單，但每條保留專案前綴，例如 `[shop-web MR !12]`。兩個專案的 `!12` 會撞號，沒有前綴就分不出來。
 

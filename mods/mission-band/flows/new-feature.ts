@@ -36,9 +36,9 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
           hint: '在同一段對話輸入 /to-spec，把討論整理成 spec 草稿（先放 scratchpad，拿到 RD 票號再寫進 .claude/specs/spec-<iid>-<描述>.md）',
         },
         {
-          id: 'fe-issue',
-          matchSkill: 'fe-issue',
-          hint: '輸入 /fe-issue 把 spec 草稿嵌進 RD 票：已有 RD 票就更新描述（先備份），只有 PM 票就新開 RD 票並跑 ~/.claude/scripts/gitlab/issue-status.sh "<專案路徑>" <iid> "Ready to develop"；拿到 iid 後把 spec 寫進 .claude/specs/spec-<iid>-<描述>.md，任務名稱是 PM 票號的話用 /mission-rename 改成 RD 票號；舊任務不需要就 /mission-skip fe-issue <理由>',
+          id: 'gitlab-issue',
+          matchSkill: 'gitlab-issue',
+          hint: '輸入 /gitlab-issue 把 spec 草稿嵌進 RD 票：已有 RD 票就更新描述（先備份），只有 PM 票就新開 RD 票並跑 ~/.claude/scripts/gitlab/issue-status.sh "<專案路徑>" <iid> "Ready to develop"；拿到 iid 後把 spec 寫進 .claude/specs/spec-<iid>-<描述>.md，任務名稱是 PM 票號的話用 /mission-rename 改成 RD 票號；舊任務不需要就 /mission-skip gitlab-issue <理由>',
         },
         {
           id: 'to-acceptance',

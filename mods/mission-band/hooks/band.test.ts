@@ -160,7 +160,7 @@ describe('bandPlan steps', () => {
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
 
     // 「開始」階段有 8 個節點，maxRows=10 時只放得下 4 筆＋「另有 N 列」（見
-    // 「bandPlan height budget」那組測試），fe-issue／to-acceptance／to-tickets／create-worktree 會被截進去，
+    // 「bandPlan height budget」那組測試），gitlab-issue／to-acceptance／to-tickets／create-worktree 會被截進去，
     // 這裡改成逐筆找 key 比對，不假設全部 8 筆都同時看得到。
     expect(plan.steps.find(r => r.key === 'grill-with-docs')).toEqual({
       key: 'grill-with-docs',
@@ -261,7 +261,7 @@ describe('bandPlan leading-collapse overflow policy', () => {
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     expect(plan.steps).toEqual([
       { key: 'collapsed', segments: [{ text: '✓', color: 'success', width: 2 }, { text: '前面 4 項已完成或略過', color: 'success' }] },
-      { key: 'fe-issue', segments: [{ text: '○', dim: true, width: 2 }, { text: 'fe-issue', dim: true }] },
+      { key: 'gitlab-issue', segments: [{ text: '○', dim: true, width: 2 }, { text: 'gitlab-issue', dim: true }] },
       { key: 'to-acceptance', segments: [{ text: '○', dim: true, width: 2 }, { text: 'to-acceptance', dim: true }] },
       { key: 'to-tickets', segments: [{ text: '○', dim: true, width: 2 }, { text: 'to-tickets', dim: true }] },
       { key: 'create-worktree', segments: [{ text: '○', dim: true, width: 2 }, { text: 'create-worktree', dim: true }] },
@@ -307,7 +307,7 @@ describe('bandPlan leading-collapse overflow policy', () => {
 
   // leading run 的判準是 isBlocking（done／skip／從沒開始過的 optional），不是單純
   // done／skip：grill／approach done、prototype／to-tickets 都是 optional 從沒碰過（不擋路）、
-  // to-spec／fe-issue／to-acceptance 都 done，只有 create-worktree 還沒做完——leading run 一路
+  // to-spec／gitlab-issue／to-acceptance 都 done，只有 create-worktree 還沒做完——leading run 一路
   // 數到 create-worktree 前面，長度 7，整段收合成一行，create-worktree（目前卡住的節點）
   // 一定還在，不會被尾端截斷吞掉。這是修掉的那個 bug：舊版只認 done／skip，prototype
   // 一碰到「not-started」就斷在 index 1，導致 create-worktree 被擠進「另有 2 列」。
@@ -321,7 +321,7 @@ describe('bandPlan leading-collapse overflow policy', () => {
         { at: 1, kind: 'skill', name: 'x:grill-with-docs' },
         { at: 2, kind: 'skill', name: 'x:approach' },
         { at: 3, kind: 'skill', name: 'x:to-spec' },
-        { at: 4, kind: 'skill', name: 'x:fe-issue' },
+        { at: 4, kind: 'skill', name: 'x:gitlab-issue' },
       ],
     })
   }
@@ -394,7 +394,7 @@ describe('bandPlan leading-collapse overflow policy', () => {
 describe('bandPlan next-step row', () => {
   test('uses the softened wording once the last node is done-via-last, not corroborated', () => {
     const m = mission({
-      skips: { 'to-acceptance': '測試情境不管驗收清單', 'fe-issue': '測試情境不管 RD 票', 'create-worktree': '測試情境不需要真的建' },
+      skips: { 'to-acceptance': '測試情境不管驗收清單', 'gitlab-issue': '測試情境不管 RD 票', 'create-worktree': '測試情境不需要真的建' },
       events: [
         { at: 1, kind: 'skill', name: 'x:grill-with-docs' },
         { at: 2, kind: 'skill', name: 'x:approach' },
@@ -410,7 +410,7 @@ describe('bandPlan next-step row', () => {
   // MAX_STEP_TEXT_LENGTH（38）只套在 stepRow／assetRow 的 label，下一步這一行完全沒走
   // truncateText；to-acceptance 的提示比 38 字長，要原樣整句出現，不能被腰斬。
   test('the next-step row is not clipped by the 38-char step text limit — to-acceptance’s longer hint shows in full', () => {
-    const m = mission({ skips: { 'grill-with-docs': 'a', approach: 'd', prototype: 'b', 'to-spec': 'c', 'fe-issue': 'e' } })
+    const m = mission({ skips: { 'grill-with-docs': 'a', approach: 'd', prototype: 'b', 'to-spec': 'c', 'gitlab-issue': 'e' } })
     const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 10, undefined)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     expect(plan.next).toEqual({

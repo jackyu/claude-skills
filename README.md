@@ -42,11 +42,11 @@ cd claude-skills
 |---|---|
 | [fe-arch](skills/fe-arch/) | 前端專案架構規範：檔案／目錄放置的決策流程（feature-based，建檔前必讀） |
 | [fe-guardrails](skills/fe-guardrails/) | 偵測專案的品質護欄設定（複雜度、函式長度、重複偵測、pre-commit、coverage、TS 嚴格度），缺的提示、核可後代裝 |
-| [fe-issue](skills/fe-issue/) | 將 PM 需求 Issue 轉換為前端技術 Issue 草稿，含 Subtask 拆解 |
+| [gitlab-issue](skills/gitlab-issue/) | 將 PM 需求 Issue 轉換為前端技術 Issue 草稿，含 Subtask 拆解 |
 | [fe-mr-review](skills/fe-mr-review/) | AI 輔助 GitLab MR 審查與 Review Comment 回覆（雙模式），含選用的 TL 視角補充 |
 | [fe-mr-read](skills/fe-mr-read/) | 讀懂 GitLab MR 並可沉澱成學習筆記：導讀（白話化說明、流程圖、AI 扮演作者答疑、好做法雷達）→ 問要不要存筆記 → 補 Review 討論分析寫進 Heptabase |
 
-> **架構規範的單一真相來源**：檔案該放哪一律以 [`fe-arch`](skills/fe-arch/) 為準；`fe-issue`／`fe-mr-generator`／`fe-mr-review`／`fe-mr-read` 只引用不複製，改規範只改一處。
+> **架構規範的單一真相來源**：檔案該放哪一律以 [`fe-arch`](skills/fe-arch/) 為準；`gitlab-issue`／`fe-mr-generator`／`fe-mr-review`／`fe-mr-read` 只引用不複製，改規範只改一處。
 
 > **品質門檻的單一真相來源**：函式長度、複雜度、巢狀深度、單檔行數、重複率的數字，一律以 [`fe-guardrails/references/thresholds.md`](skills/fe-guardrails/references/thresholds.md) 為準；`fe-mr-review` 只引用不寫死。**review skill 產出的是建議，`fe-guardrails` 裝的是 pre-commit 硬閘**，兩者互補。
 
