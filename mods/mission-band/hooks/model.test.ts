@@ -53,7 +53,7 @@ describe('nodeStates', () => {
   const nodes = NEW_FEATURE_FLOW.stages[0]?.nodes ?? []
 
   test('the start stage runs approach right after grill-with-docs, before prototype', () => {
-    expect(nodes.map(n => n.id)).toEqual(['grill-with-docs', 'approach', 'prototype', 'to-spec', 'to-acceptance', 'to-tickets', 'create-worktree'])
+    expect(nodes.map(n => n.id)).toEqual(['grill-with-docs', 'approach', 'prototype', 'to-spec', 'fe-issue', 'to-acceptance', 'to-tickets', 'create-worktree'])
   })
 
   test('approach is required (not optional) and matches the /approach skill', () => {
@@ -67,6 +67,7 @@ describe('nodeStates', () => {
   test('a node with no matching event is not started', () => {
     const states = nodeStates(nodes, mission())
     expect(states.map(s => s.status)).toEqual([
+      'not-started',
       'not-started',
       'not-started',
       'not-started',
@@ -119,14 +120,15 @@ describe('nodeStates', () => {
       events: [{ at: 1, kind: 'skill', name: 'x:to-spec' }, { at: 2, kind: 'skill', name: 'x:to-tickets' }],
     })
     const states = nodeStates(nodes, m)
-    // to-spec 靠「後面有節點真的開始了」（to-tickets 的事件）就算完成，不需要 to-acceptance
-    // 自己也解決——hasLaterStart 本來就不要求「後面全部都解決」，只要有一個真的開始。
+    // to-spec 靠「後面有節點真的開始了」（to-tickets 的事件）就算完成，不需要 fe-issue／
+    // to-acceptance 自己也解決——hasLaterStart 本來就不要求「後面全部都解決」，只要有一個真的開始。
     expect(states[3]?.status).toBe('done')
-    // to-acceptance 是必做節點，這個任務沒給它任何事件、也沒跳過，自己仍是
-    // not-started；它不擋 to-spec 變成 done（見上面），但也不會被 to-tickets 的事件捲動。
+    // fe-issue、to-acceptance 是必做節點，這個任務沒給它們任何事件、也沒跳過，自己仍是
+    // not-started；它們不擋 to-spec 變成 done（見上面），但也不會被 to-tickets 的事件捲動。
     expect(states[4]?.status).toBe('not-started')
-    expect(states[5]?.status).toBe('done')
+    expect(states[5]?.status).toBe('not-started')
     expect(states[6]?.status).toBe('done')
+    expect(states[7]?.status).toBe('done')
   })
 
   test('a required node becomes done when every later node was skipped explicitly', () => {
@@ -134,6 +136,7 @@ describe('nodeStates', () => {
     const m = mission({
       skips: {
         'to-acceptance': '這個測試不管驗收清單',
+        'fe-issue': '這個測試不管 RD 票',
         'to-tickets': '小票不用拆',
         'create-worktree': '測試環境已經有 worktree',
       },
@@ -149,7 +152,7 @@ describe('nodeStates', () => {
 
   test('a required node becomes done when the only untouched later node is optional (create-worktree resolved via worktreePath, not left dangling)', () => {
     const m = mission({
-      skips: { 'to-acceptance': '這個測試不管驗收清單' },
+      skips: { 'to-acceptance': '這個測試不管驗收清單', 'fe-issue': '測試情境不管 RD 票' },
       worktreePath: '/repo/.claude/worktrees/feat_x',
       events: [
         { at: 1, kind: 'skill', name: 'x:grill-with-docs' },
@@ -159,7 +162,7 @@ describe('nodeStates', () => {
     })
     const states = nodeStates(nodes, m)
     expect(states[3]?.status).toBe('done')
-    expect(states[5]?.status).toBe('not-started')
+    expect(states[6]?.status).toBe('not-started')
   })
 
   test('create-worktree (required, doneWhen, no start matcher) pending does not keep to-spec／to-tickets stuck at started', () => {
@@ -176,19 +179,20 @@ describe('nodeStates', () => {
       ],
     })
     const states = nodeStates(nodes, m)
-    // to-spec 靠 to-tickets 的事件（hasLaterStart）變成 done，不需要 to-acceptance 自己解決。
+    // to-spec 靠 to-tickets 的事件（hasLaterStart）變成 done，不需要 fe-issue／to-acceptance 自己解決。
     expect(states[3]?.status).toBe('done')
-    // to-acceptance 沒給事件、沒跳過，自己仍是 not-started；不影響 to-spec／to-tickets。
+    // fe-issue、to-acceptance 沒給事件、沒跳過，自己仍是 not-started；不影響 to-spec／to-tickets。
     expect(states[4]?.status).toBe('not-started')
-    expect(states[5]?.status).toBe('done')
-    expect(states[6]?.status).toBe('not-started')
+    expect(states[5]?.status).toBe('not-started')
+    expect(states[6]?.status).toBe('done')
+    expect(states[7]?.status).toBe('not-started')
   })
 
   test('to-spec alone (to-tickets never touched) also shows done while create-worktree is still pending', () => {
-    // to-acceptance 是必做節點，自己也要跳過才會像 to-tickets（optional）、create-worktree
-    // （沒有 start matcher）一樣自動 resolve；不然它會卡住 to-spec 的 laterAllResolved。
+    // fe-issue、to-acceptance 是必做節點，自己也要跳過才會像 to-tickets（optional）、create-worktree
+    // （沒有 start matcher）一樣自動 resolve；不然它們會卡住 to-spec 的 laterAllResolved。
     const m = mission({
-      skips: { 'to-acceptance': '這個測試不管驗收清單' },
+      skips: { 'to-acceptance': '這個測試不管驗收清單', 'fe-issue': '測試情境不管 RD 票' },
       events: [
         { at: 1, kind: 'skill', name: 'x:grill-with-docs' },
         { at: 2, kind: 'read', name: 'playbook:prototype' },
@@ -197,8 +201,8 @@ describe('nodeStates', () => {
     })
     const states = nodeStates(nodes, m)
     expect(states[3]?.status).toBe('done')
-    expect(states[5]?.status).toBe('not-started')
     expect(states[6]?.status).toBe('not-started')
+    expect(states[7]?.status).toBe('not-started')
   })
 
   test('an event before the stage was entered does not count toward starting a node (stage time boundary on the event itself)', () => {
@@ -651,7 +655,7 @@ describe('nextStepHint', () => {
   // 提示文字要讓使用者知道可以直接跳過，不是被迫一定要補一份驗收清單。
   test('to-acceptance hints both /to-acceptance and the /mission-skip fallback for older missions', () => {
     const m = mission({
-      skips: { 'grill-with-docs': 'a', approach: 'd', prototype: 'b', 'to-spec': 'c' },
+      skips: { 'grill-with-docs': 'a', approach: 'd', prototype: 'b', 'to-spec': 'c', 'fe-issue': 'e' },
     })
     const hint = nextStepHint(NEW_FEATURE_FLOW, m)
     expect(hint).toContain('/to-acceptance')
@@ -685,7 +689,7 @@ describe('nextStepHint', () => {
 
   test('says the stage is done once every required node is done or skipped, even with to-tickets untouched', () => {
     const m = mission({
-      skips: { 'grill-with-docs': 'a', approach: 'f', prototype: 'b', 'to-spec': 'c', 'to-acceptance': 'e', 'create-worktree': 'd' },
+      skips: { 'grill-with-docs': 'a', approach: 'f', prototype: 'b', 'to-spec': 'c', 'to-acceptance': 'e', 'fe-issue': '測試情境不管 RD 票', 'create-worktree': 'd' },
     })
     expect(nextStepHint(NEW_FEATURE_FLOW, m)).toContain('/mission-next')
   })
@@ -767,7 +771,7 @@ describe('nextStepHint', () => {
     // to-tickets 從沒碰過、create-worktree 跳過都不擋路，所以軟化語氣講的是 to-spec，
     // 不是陣列字面上的最後一個節點。
     const m = mission({
-      skips: { 'to-acceptance': '測試情境不管驗收清單', 'create-worktree': '測試情境不需要真的建' },
+      skips: { 'to-acceptance': '測試情境不管驗收清單', 'fe-issue': '測試情境不管 RD 票', 'create-worktree': '測試情境不需要真的建' },
       events: [
         { at: 1, kind: 'skill', name: 'x:grill-with-docs' },
         { at: 2, kind: 'skill', name: 'x:approach' },
@@ -780,7 +784,7 @@ describe('nextStepHint', () => {
 
   test('to-tickets rerun after to-spec is done still hints toward mission-next, not back at to-tickets', () => {
     const m = mission({
-      skips: { 'to-acceptance': '測試情境不管驗收清單', 'create-worktree': '測試情境不需要真的建' },
+      skips: { 'to-acceptance': '測試情境不管驗收清單', 'fe-issue': '測試情境不管 RD 票', 'create-worktree': '測試情境不需要真的建' },
       events: [
         { at: 1, kind: 'skill', name: 'x:grill-with-docs' },
         { at: 2, kind: 'skill', name: 'x:approach' },
@@ -794,7 +798,7 @@ describe('nextStepHint', () => {
 
   test('create-worktree done via worktreePath becomes the actual last practical node, softening onto it instead of to-tickets', () => {
     const m = mission({
-      skips: { 'to-acceptance': '測試情境不管驗收清單' },
+      skips: { 'to-acceptance': '測試情境不管驗收清單', 'fe-issue': '測試情境不管 RD 票' },
       worktreePath: '/repo/.claude/worktrees/feat_x',
       events: [
         { at: 1, kind: 'skill', name: 'x:grill-with-docs' },
@@ -984,7 +988,7 @@ describe('nextStage', () => {
   test('advances once every node is done or skipped', () => {
     const missions: Missions = {
       demo: mission({
-        skips: { 'grill-with-docs': 'a', approach: 'f', prototype: 'b', 'to-spec': 'c', 'to-acceptance': 'e', 'create-worktree': 'd' },
+        skips: { 'grill-with-docs': 'a', approach: 'f', prototype: 'b', 'to-spec': 'c', 'to-acceptance': 'e', 'fe-issue': '測試情境不管 RD 票', 'create-worktree': 'd' },
       }),
     }
     const outcome = nextStage(missions, '/repo', NEW_FEATURE_FLOW, 0, false)
@@ -999,7 +1003,7 @@ describe('nextStage', () => {
     // approach 是必做節點，這裡用 /mission-skip 跳過，不靠事件。
     const missions: Missions = {
       demo: mission({
-        skips: { approach: '這個測試不管 approach', 'to-acceptance': '這個測試不管驗收清單' },
+        skips: { approach: '這個測試不管 approach', 'to-acceptance': '這個測試不管驗收清單', 'fe-issue': '測試情境不管 RD 票' },
         worktreePath: '/repo/.claude/worktrees/feat_x',
         events: [
           { at: 1, kind: 'skill', name: 'x:grill-with-docs' },
@@ -1014,7 +1018,7 @@ describe('nextStage', () => {
 
   test('refuses while create-worktree (required) is untouched, even if every other node is done or skipped', () => {
     const missions: Missions = {
-      demo: mission({ skips: { 'grill-with-docs': 'a', approach: 'f', prototype: 'b', 'to-spec': 'c', 'to-acceptance': 'e' } }),
+      demo: mission({ skips: { 'grill-with-docs': 'a', approach: 'f', prototype: 'b', 'to-spec': 'c', 'to-acceptance': 'e', 'fe-issue': '測試情境不管 RD 票' } }),
     }
     const outcome = nextStage(missions, '/repo', NEW_FEATURE_FLOW, 0, false)
     expect(outcome.ok).toBe(false)
@@ -1027,7 +1031,7 @@ describe('nextStage', () => {
     // 只有 approach 這個必做節點完全沒碰，應該是唯一被列出來的待辦。
     const missions: Missions = {
       demo: mission({
-        skips: { 'to-acceptance': 'e', 'to-tickets': 'd', 'create-worktree': 'g' },
+        skips: { 'to-acceptance': 'e', 'fe-issue': '測試情境不管 RD 票', 'to-tickets': 'd', 'create-worktree': 'g' },
         events: [
           { at: 1, kind: 'skill', name: 'x:grill-with-docs' },
           { at: 2, kind: 'read', name: 'playbook:prototype' },
@@ -1041,7 +1045,7 @@ describe('nextStage', () => {
   })
 
   test('after grill/to-spec run via real events (not skips), the pending list names only create-worktree', () => {
-    // to-spec／to-tickets 都已經被 isResolved 的 !hasStartMatcher 條件判定不擋路；
+    // to-spec／fe-issue／to-tickets 都已經被 isResolved 的 !hasStartMatcher 條件判定不擋路；
     // to-acceptance 靠 mission.acceptance.exists（模擬驗收清單已經存在）解決；approach 自己
     // 有事件、也靠後面的 prototype 真的開始了變成 done；真正擋 mission-next 的只剩
     // create-worktree 自己還沒做完。
@@ -1053,7 +1057,8 @@ describe('nextStage', () => {
           { at: 2, kind: 'skill', name: 'x:approach' },
           { at: 3, kind: 'read', name: 'playbook:prototype' },
           { at: 4, kind: 'skill', name: 'x:to-spec' },
-          { at: 5, kind: 'skill', name: 'x:to-tickets' },
+          { at: 5, kind: 'skill', name: 'x:fe-issue' },
+          { at: 6, kind: 'skill', name: 'x:to-tickets' },
         ],
       }),
     }
@@ -1086,6 +1091,7 @@ describe('nextStage', () => {
           prototype: 'b',
           'to-spec': 'c',
           'to-acceptance': 'f',
+          'fe-issue': 'g',
           'to-tickets': 'd',
           'create-worktree': 'e',
         },
@@ -1543,7 +1549,7 @@ describe('leaving the start stage from the main checkout', () => {
       name: '1022-#473',
       binding: 'session:sess-1',
       worktreePath: '/main-checkout/.claude/worktrees/1022-feat_473',
-      skips: { approach: '這個測試不管 approach', prototype: '沒有設計決定', 'to-acceptance': '這個測試不管驗收清單', 'to-tickets': '小票不用拆' },
+      skips: { approach: '這個測試不管 approach', prototype: '沒有設計決定', 'to-acceptance': '這個測試不管驗收清單', 'fe-issue': '測試情境不管 RD 票', 'to-tickets': '小票不用拆' },
       events: [
         { at: 1, kind: 'skill', name: 'mattpocock-skills:grill-with-docs' },
         { at: 2, kind: 'skill', name: 'mattpocock-skills:to-spec' },

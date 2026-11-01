@@ -581,6 +581,8 @@
           <span class="cmd-arrow">→</span>
           <span class="cmd-chip"><code>/to-spec</code><span class="chip-note">整理成規格</span></span>
           <span class="cmd-arrow">→</span>
+          <span class="cmd-chip"><code>/fe-issue</code><span class="chip-note">規格嵌進 RD 票</span></span>
+          <span class="cmd-arrow">→</span>
           <span class="cmd-chip"><code>/to-acceptance</code><span class="chip-note">產驗收清單</span></span>
           <span class="cmd-arrow">→</span>
           <span class="cmd-chip optional"><code>/to-tickets</code><span class="chip-note">票數多才打，可跳過</span></span>
@@ -663,7 +665,7 @@
         <svg class="flow-svg" viewBox="0 0 1066 357" role="img" aria-label="五個階段（開始、實作、驗收、審查、收尾）由左到右排列，每個階段底下依序列出要做的步驟，虛線框的步驟是選用、可以跳過；階段之間的箭頭標著 /mission-next，審查進收尾那一箭標著 MR 合併。">
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="flow-arrowhead"/></marker></defs>
 <g class="flow-col flow-col--start">
-<rect x="16" y="28" width="178" height="259" rx="10" class="flow-card"/>
+<rect x="16" y="28" width="178" height="289" rx="10" class="flow-card"/>
 <rect x="16" y="28" width="178" height="32" rx="10" class="flow-header"/>
 <text x="105.0" y="49.0" text-anchor="middle" class="flow-header-text">1　開始</text>
 <rect x="24" y="70" width="162" height="25" rx="6" class="flow-row"/>
@@ -675,11 +677,13 @@
 <rect x="24" y="160" width="162" height="25" rx="6" class="flow-row"/>
 <text x="32" y="176.5" class="flow-row-text">to-spec</text>
 <rect x="24" y="190" width="162" height="25" rx="6" class="flow-row"/>
-<text x="32" y="206.5" class="flow-row-text">to-acceptance</text>
-<rect x="24" y="220" width="162" height="25" rx="6" class="flow-row" stroke-dasharray="4 3"/>
-<text x="32" y="236.5" class="flow-row-text">to-tickets</text>
-<rect x="24" y="250" width="162" height="25" rx="6" class="flow-row"/>
-<text x="32" y="266.5" class="flow-row-text">create-worktree</text>
+<text x="32" y="206.5" class="flow-row-text">fe-issue</text>
+<rect x="24" y="220" width="162" height="25" rx="6" class="flow-row"/>
+<text x="32" y="236.5" class="flow-row-text">to-acceptance</text>
+<rect x="24" y="250" width="162" height="25" rx="6" class="flow-row" stroke-dasharray="4 3"/>
+<text x="32" y="266.5" class="flow-row-text">to-tickets</text>
+<rect x="24" y="280" width="162" height="25" rx="6" class="flow-row"/>
+<text x="32" y="296.5" class="flow-row-text">create-worktree</text>
 </g>
 <g class="flow-col flow-col--build">
 <rect x="230" y="28" width="178" height="148" rx="10" class="flow-card"/>
@@ -822,7 +826,8 @@
         <tr><td><code>grill-with-docs</code></td><td>打 /grill-with-docs，把需求問到能拿來驗收</td><td>偵測到打過這個 skill</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip grill-with-docs 理由</code></td></tr>
         <tr><td><code>approach</code></td><td>打 /approach，檢查要用套件還是手寫、放哪裡、介面形狀、從哪裡開始</td><td>偵測到打過這個 skill</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip approach 理由</code></td></tr>
         <tr><td><code>prototype</code>（選用）</td><td>有要做的設計決定才做 prototype</td><td>打過 /prototype，或讀過它的 playbook</td><td>選用節點：沒碰過不會擋路，也可以 <code>/mission-skip prototype 理由</code></td></tr>
-        <tr><td><code>to-spec</code></td><td>在同一段對話打 /to-spec，把討論整理成規格</td><td>偵測到打過</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip to-spec 理由</code></td></tr>
+        <tr><td><code>to-spec</code></td><td>在同一段對話打 /to-spec，把討論整理成規格草稿（先放 scratchpad）</td><td>偵測到打過</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip to-spec 理由</code></td></tr>
+        <tr><td><code>fe-issue</code></td><td>打 /fe-issue 把 spec 草稿嵌進 RD 票：已有 RD 票就更新描述，只有 PM 票就新開 RD 票並設 Ready to develop；拿到票號再把 spec 寫進 <code>.claude/specs/</code></td><td>偵測到打過</td><td>必做；任務名稱是 PM 票號的話用 <code>/mission-rename</code> 改成 RD 票號；舊任務不需要就 <code>/mission-skip fe-issue 理由</code></td></tr>
         <tr><td><code>to-acceptance</code></td><td>打 /to-acceptance 產生驗收清單</td><td>驗收清單檔存在</td><td>舊任務不需要就 <code>/mission-skip to-acceptance 理由</code></td></tr>
         <tr><td><code>to-tickets</code>（選用）</td><td>票數多才拆票；小票可以跳過</td><td>打過 /to-tickets</td><td>選用節點：沒碰過不會擋路</td></tr>
         <tr><td><code>create-worktree</code></td><td>請 AI 用 orca 或 <code>git worktree add</code> 建 worktree（不要用 <code>!</code> 自己跑）</td><td>從 AI 跑的指令偵測到 worktree 路徑（orca 的 JSON、<code>--name</code> 對 <code>git worktree list</code>，或 cd 進 worktree）</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip create-worktree 理由</code></td></tr>

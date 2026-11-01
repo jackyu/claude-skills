@@ -29,7 +29,7 @@ describe('bandPlan width', () => {
     // 故意把寬度設得比整行字數還窄，確認 model 層沒有用字元數裁切。
     const plan = bandPlan(mission(), NEW_FEATURE_FLOW, 10, 10, undefined)
     if (plan.mode !== 'narrow') throw new Error('unreachable')
-    expect(plan.line).toBe('demo｜開始 0/7｜請輸入 /grill-with-docs，把需求問到能拿來驗收')
+    expect(plan.line).toBe('demo｜開始 0/8｜請輸入 /grill-with-docs，把需求問到能拿來驗收')
   })
 
   test('59 columns is still narrow, 60 is steps-only', () => {
@@ -47,7 +47,7 @@ describe('bandPlan height budget', () => {
   // 固定佔掉的 5 行：tabs 1、框線上下 2、標題 1、下一步 1。框內最多 6 列，
   // 但還是要先扣掉那 5 行——maxRows 不夠扣的時候，不管寬度多少都退回單行摘要。
   test('total rendered rows (tabs + border×2 + title + inner + next) never exceeds min(13, maxRows), for maxRows 3..15', () => {
-    // demo 任務的「開始」階段固定 7 個節點，maxRows 夠大時仍會被截（見下面
+    // demo 任務的「開始」階段固定 8 個節點，maxRows 夠大時仍會被截（見下面
     // 「still truncates」那條），這條只驗證預算公式本身不會算超過。
     for (let maxRows = 3; maxRows <= 15; maxRows += 1) {
       const plan = bandPlan(mission(), NEW_FEATURE_FLOW, 120, maxRows, undefined)
@@ -64,18 +64,18 @@ describe('bandPlan height budget', () => {
 
   // 7 個節點沒超過 MAX_INNER_ROWS（7）本身不會被截，但 maxRows=10 時還要扣掉固定的 5 行，
   // maxInnerRows 只剩 5，塞不下全部 7 個，所以還是會截成 4 筆 + 「另有 3 列」。
-  test('maxRows=10 (the default) still truncates: 7 nodes do not fit in 5 inner rows', () => {
+  test('maxRows=10 (the default) still truncates: 8 nodes do not fit in 5 inner rows', () => {
     const plan = bandPlan(mission(), NEW_FEATURE_FLOW, 80, 10, undefined)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     expect(plan.steps).toHaveLength(5)
-    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 3 列', dim: true }] })
+    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 4 列', dim: true }] })
   })
 
   test('maxRows=7 only has room for 1 inner row plus a "another N" row', () => {
     const plan = bandPlan(mission(), NEW_FEATURE_FLOW, 80, 7, undefined)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     expect(plan.steps).toHaveLength(2)
-    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 6 列', dim: true }] })
+    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 7 列', dim: true }] })
   })
 
   test('maxRows=5 cannot fit even 1 inner row, so it falls back to the narrow single line regardless of width', () => {
@@ -159,9 +159,9 @@ describe('bandPlan steps', () => {
     const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 10, undefined)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
 
-    // 「開始」階段有 7 個節點，maxRows=10 時只放得下 4 筆＋「另有 N 列」（見
-    // 「bandPlan height budget」那組測試），to-acceptance／to-tickets／create-worktree 會被截進去，
-    // 這裡改成逐筆找 key 比對，不假設全部 7 筆都同時看得到。
+    // 「開始」階段有 8 個節點，maxRows=10 時只放得下 4 筆＋「另有 N 列」（見
+    // 「bandPlan height budget」那組測試），fe-issue／to-acceptance／to-tickets／create-worktree 會被截進去，
+    // 這裡改成逐筆找 key 比對，不假設全部 8 筆都同時看得到。
     expect(plan.steps.find(r => r.key === 'grill-with-docs')).toEqual({
       key: 'grill-with-docs',
       segments: [
@@ -190,7 +190,7 @@ describe('bandPlan steps', () => {
         { text: 'to-spec', dim: true },
       ],
     })
-    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 3 列', dim: true }] })
+    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 4 列', dim: true }] })
   })
 
   // grill 是從頭數起的 leading run，但只有它 1 個（prototype 已經 started、算 blocking，
@@ -255,24 +255,25 @@ describe('bandPlan leading-collapse overflow policy', () => {
   // 「✓ 前面 N 項已完成或略過」，收完還是太多才用舊的「另有 N 列」尾端截斷；只有真的
   // 塞不下才收合，收合只看從第 0 個節點開始、連續不中斷的不擋路節點，不是整段掃描。
 
-  test('(a) 7 nodes, first 4 done/skip: collapses into "前面 4 項已完成或略過", the rest (incl. the current node) stays visible, no tail truncation needed', () => {
+  test('(a) 8 nodes, first 4 done/skip: collapses into "前面 4 項已完成或略過", the rest (incl. the current node) stays visible, no tail truncation needed', () => {
     const m = mission({ skips: { 'grill-with-docs': 'a', approach: 'd', prototype: 'b', 'to-spec': 'c' } })
     const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 10, undefined)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     expect(plan.steps).toEqual([
       { key: 'collapsed', segments: [{ text: '✓', color: 'success', width: 2 }, { text: '前面 4 項已完成或略過', color: 'success' }] },
+      { key: 'fe-issue', segments: [{ text: '○', dim: true, width: 2 }, { text: 'fe-issue', dim: true }] },
       { key: 'to-acceptance', segments: [{ text: '○', dim: true, width: 2 }, { text: 'to-acceptance', dim: true }] },
       { key: 'to-tickets', segments: [{ text: '○', dim: true, width: 2 }, { text: 'to-tickets', dim: true }] },
       { key: 'create-worktree', segments: [{ text: '○', dim: true, width: 2 }, { text: 'create-worktree', dim: true }] },
     ])
   })
 
-  test('(b) 7 nodes, none done/skip: no leading run to collapse, falls back to the existing tail truncation', () => {
+  test('(b) 8 nodes, none done/skip: no leading run to collapse, falls back to the existing tail truncation', () => {
     const plan = bandPlan(mission(), NEW_FEATURE_FLOW, 80, 10, undefined)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     expect(plan.steps.some(r => r.key === 'collapsed')).toBe(false)
     expect(plan.steps).toHaveLength(5)
-    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 3 列', dim: true }] })
+    expect(plan.steps.at(-1)).toEqual({ key: 'more', segments: [{ text: '另有 4 列', dim: true }] })
   })
 
   test('(c) everything fits within maxInnerRows: nothing collapsed, even with leading done/skip nodes', () => {
@@ -306,8 +307,8 @@ describe('bandPlan leading-collapse overflow policy', () => {
 
   // leading run 的判準是 isBlocking（done／skip／從沒開始過的 optional），不是單純
   // done／skip：grill／approach done、prototype／to-tickets 都是 optional 從沒碰過（不擋路）、
-  // to-spec／to-acceptance 都 done，只有 create-worktree 還沒做完——leading run 一路
-  // 數到 create-worktree 前面，長度 6，整段收合成一行，create-worktree（目前卡住的節點）
+  // to-spec／fe-issue／to-acceptance 都 done，只有 create-worktree 還沒做完——leading run 一路
+  // 數到 create-worktree 前面，長度 7，整段收合成一行，create-worktree（目前卡住的節點）
   // 一定還在，不會被尾端截斷吞掉。這是修掉的那個 bug：舊版只認 done／skip，prototype
   // 一碰到「not-started」就斷在 index 1，導致 create-worktree 被擠進「另有 2 列」。
   function doneButForCreateWorktree() {
@@ -320,6 +321,7 @@ describe('bandPlan leading-collapse overflow policy', () => {
         { at: 1, kind: 'skill', name: 'x:grill-with-docs' },
         { at: 2, kind: 'skill', name: 'x:approach' },
         { at: 3, kind: 'skill', name: 'x:to-spec' },
+        { at: 4, kind: 'skill', name: 'x:fe-issue' },
       ],
     })
   }
@@ -328,7 +330,7 @@ describe('bandPlan leading-collapse overflow policy', () => {
     const plan = bandPlan(doneButForCreateWorktree(), NEW_FEATURE_FLOW, 80, 10, undefined)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     expect(plan.steps).toEqual([
-      { key: 'collapsed', segments: [{ text: '✓', color: 'success', width: 2 }, { text: '前面 6 項已完成或略過', color: 'success' }] },
+      { key: 'collapsed', segments: [{ text: '✓', color: 'success', width: 2 }, { text: '前面 7 項已完成或略過', color: 'success' }] },
       { key: 'create-worktree', segments: [{ text: '○', dim: true, width: 2 }, { text: 'create-worktree', dim: true }] },
     ])
   })
@@ -337,7 +339,7 @@ describe('bandPlan leading-collapse overflow policy', () => {
     const plan = bandPlan(doneButForCreateWorktree(), NEW_FEATURE_FLOW, 80, 8, undefined)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     expect(plan.steps).toEqual([
-      { key: 'collapsed', segments: [{ text: '✓', color: 'success', width: 2 }, { text: '前面 6 項已完成或略過', color: 'success' }] },
+      { key: 'collapsed', segments: [{ text: '✓', color: 'success', width: 2 }, { text: '前面 7 項已完成或略過', color: 'success' }] },
       { key: 'create-worktree', segments: [{ text: '○', dim: true, width: 2 }, { text: 'create-worktree', dim: true }] },
     ])
   })
@@ -392,7 +394,7 @@ describe('bandPlan leading-collapse overflow policy', () => {
 describe('bandPlan next-step row', () => {
   test('uses the softened wording once the last node is done-via-last, not corroborated', () => {
     const m = mission({
-      skips: { 'to-acceptance': '測試情境不管驗收清單', 'create-worktree': '測試情境不需要真的建' },
+      skips: { 'to-acceptance': '測試情境不管驗收清單', 'fe-issue': '測試情境不管 RD 票', 'create-worktree': '測試情境不需要真的建' },
       events: [
         { at: 1, kind: 'skill', name: 'x:grill-with-docs' },
         { at: 2, kind: 'skill', name: 'x:approach' },
@@ -408,7 +410,7 @@ describe('bandPlan next-step row', () => {
   // MAX_STEP_TEXT_LENGTH（38）只套在 stepRow／assetRow 的 label，下一步這一行完全沒走
   // truncateText；to-acceptance 的提示比 38 字長，要原樣整句出現，不能被腰斬。
   test('the next-step row is not clipped by the 38-char step text limit — to-acceptance’s longer hint shows in full', () => {
-    const m = mission({ skips: { 'grill-with-docs': 'a', approach: 'd', prototype: 'b', 'to-spec': 'c' } })
+    const m = mission({ skips: { 'grill-with-docs': 'a', approach: 'd', prototype: 'b', 'to-spec': 'c', 'fe-issue': 'e' } })
     const plan = bandPlan(m, NEW_FEATURE_FLOW, 80, 10, undefined)
     if (plan.mode !== 'steps-only') throw new Error('unreachable')
     expect(plan.next).toEqual({
