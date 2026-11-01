@@ -3767,3 +3767,49 @@ describe('help ("?" button and /mission-help)', () => {
     expect(result.text).toMatch(/\/docs\/guide\.html$/)
   })
 })
+
+describe('mission-start setup check reads the Agent skills section from CLAUDE.md or AGENTS.md', () => {
+  const REPO = { root: '/repo', remote: 'git@example.com:org/repo.git', internal: true, name: 'org/repo' }
+
+  function setupRepoFiles(on: On, files: Record<string, string>) {
+    on('session.start', (_, e) => ({ cwd: e.cwd }))
+    on('session.root', () => ({ value: '/repo' }))
+    on('session.repo', () => ({ value: REPO }))
+    on('session.id', () => ({ value: 'sess-1' }))
+    on('command.register', (_, e) => ({ value: { command: e.name } }))
+    on('skill.prompt', (_, e) => ({ text: e.text }))
+    on('tool.call', () => ({ result: {} }))
+    on('turn.complete', (_, e) => ({ text: e.answer }))
+    mock.env(on, { HOME: '/home/x' })
+    const all: Record<string, string> = {
+      '/repo/docs/agents/issue-tracker.md': '# tracker',
+      '/home/x/.claude/rules/pstack-models.md': 'x',
+      ...files,
+    }
+    on('fs.exists', (_, e) => ({ value: e.path in all }))
+    on('fs.read', (_, e) => {
+      const text = all[e.path]
+      if (text === undefined) throw new Error(`ENOENT ${e.path}`)
+      return { value: text }
+    })
+  }
+
+  test('starts a mission when only AGENTS.md carries the section (no CLAUDE.md at the root)', async ($, on) => {
+    mock.clock(on)
+    mock.store(on)
+    setupRepoFiles(on, { '/repo/AGENTS.md': '# x\n\n## Agent skills\n' })
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    const result = await $.command.run({ command: 'mission-start', args: 'alpha', origin: { kind: 'composer' }, presentation: PRESENTATION })
+    expect(result.text).toContain('已建立')
+  })
+
+  test('still blocks when neither CLAUDE.md nor AGENTS.md has the section, naming both files', async ($, on) => {
+    mock.clock(on)
+    mock.store(on)
+    setupRepoFiles(on, { '/repo/CLAUDE.md': '# x\n', '/repo/AGENTS.md': '# y\n' })
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    const result = await $.command.run({ command: 'mission-start', args: 'alpha', origin: { kind: 'composer' }, presentation: PRESENTATION })
+    expect(result.text).toContain('還沒設定好')
+    expect(result.text).toContain('AGENTS.md')
+  })
+})

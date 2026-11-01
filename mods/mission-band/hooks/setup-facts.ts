@@ -4,7 +4,8 @@ import type { EngineInterface } from 'claude-code'
 
 import type { SetupFacts } from './setup'
 
-const CLAUDE_MD_NAME = 'CLAUDE.md'
+// Pocock 的 setup 把「## Agent skills」寫在 CLAUDE.md 或 AGENTS.md，兩份都要找。
+const AGENT_DOC_NAMES = ['CLAUDE.md', 'AGENTS.md'] as const
 const ISSUE_TRACKER_PATH = 'docs/agents/issue-tracker.md'
 const PSTACK_MODELS_RELATIVE_PATH = '.claude/rules/pstack-models.md'
 
@@ -29,15 +30,25 @@ async function safeRead($: EngineInterface, path: string): Promise<string | unde
   }
 }
 
+/** 根目錄 CLAUDE.md、AGENTS.md 存在的都讀進來接在一起；兩份都沒有就回 undefined。 */
+async function readAgentDocs($: EngineInterface, root: string): Promise<string | undefined> {
+  const texts: string[] = []
+  for (const name of AGENT_DOC_NAMES) {
+    const path = `${root}/${name}`
+    if (!(await safeExists($, path))) continue
+    const text = await safeRead($, path)
+    if (text !== undefined) texts.push(text)
+  }
+  return texts.length > 0 ? texts.join('\n') : undefined
+}
+
 /** 問出 /mission-start 前要檢查的三件事；讀檔前都先確認存在，不靠 fs.read 的 rejects 分支。 */
 export async function gatherSetupFacts($: EngineInterface): Promise<SetupFacts> {
   const repo = await $.session.repo()
   const inRepo = repo !== null
   const root = await $.session.root()
 
-  const claudeMdPath = `${root}/${CLAUDE_MD_NAME}`
-  const claudeMdExists = inRepo && (await safeExists($, claudeMdPath))
-  const claudeMdText = claudeMdExists ? await safeRead($, claudeMdPath) : undefined
+  const claudeMdText = inRepo ? await readAgentDocs($, root) : undefined
 
   const issueTrackerExists = inRepo && (await safeExists($, `${root}/${ISSUE_TRACKER_PATH}`))
 

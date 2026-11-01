@@ -21,7 +21,7 @@ export function setupGaps(facts: SetupFacts): SetupGap[] {
 
   if (facts.inRepo) {
     if (facts.claudeMdText === undefined || !facts.claudeMdText.includes(AGENT_SKILLS_HEADING)) {
-      gaps.push({ item: 'CLAUDE.md 沒有「## Agent skills」這段', hint: POCOCK_HINT })
+      gaps.push({ item: 'CLAUDE.md、AGENTS.md 都沒有「## Agent skills」這段', hint: POCOCK_HINT })
     }
     if (!facts.issueTrackerExists) {
       gaps.push({ item: 'docs/agents/issue-tracker.md 不存在', hint: POCOCK_HINT })
