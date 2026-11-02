@@ -23,6 +23,7 @@ import {
   skipNode,
   startMission,
   stripPluginPrefix,
+  withMissingIssueIidNotice,
 } from './model'
 import { maybeRecordIssueNoteEvent, maybeRecordMrEvent, maybeUpdateBranchCommits } from './product-events'
 import { codexCliReviewNamesIn, looksLikeMrCommand, pstackReadNames, pstackReadsInBashCommand } from './products'
@@ -224,7 +225,7 @@ export const register: Register = on => {
     const iid = issueIidFromMissionName(parsed.name)
     const issueUrl = iid === undefined ? undefined : issueUrlFromRemote(repo?.remote ?? null, iid)
 
-    return runMutationAndRemember($, missions => startMission(missions, parsed.name, binding, now, issueUrl, iid))
+    return runMutationAndRemember($, missions => withMissingIssueIidNotice(startMission(missions, parsed.name, binding, now, issueUrl, iid), binding))
   })
 
   on('command.run', { command: 'mission-restore' }, async ($, e) => {
@@ -232,7 +233,7 @@ export const register: Register = on => {
     if ('error' in parsed) return { text: parsed.error }
 
     const binding = await currentBinding($)
-    return runMutationAndRemember($, missions => restoreMission(missions, binding, parsed.name))
+    return runMutationAndRemember($, missions => withMissingIssueIidNotice(restoreMission(missions, binding, parsed.name), binding))
   })
 
   on('command.run', { command: 'mission-rename' }, async ($, e) => {

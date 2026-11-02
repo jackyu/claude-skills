@@ -14,8 +14,11 @@ export type { NodeState, NodeStatus } from './node-states'
 
 const EVENTS_CAP = 300
 const ISSUE_SUFFIX_PATTERN = /#(\d+)$/
+const ACCEPTANCE_RESOLVED_PATH_KEY_PATTERN = /acceptance-([^/]+)\.md$/
+const ALL_DIGITS_PATTERN = /^\d+$/
 const SESSION_BINDING_PREFIX = 'session:'
 const STORE_SIZE_WARNING_BYTES = 2 * 1024 * 1024
+const MISSING_ISSUE_IID_NOTICE = '這個任務名稱沒有 issue 號，freeze-spec 會偵測不到；用 /mission-rename <名稱> #<iid> 補上'
 
 /** 推進到 stageIndex 時要寫回的完整陣列；補齊中間缺的 index，避免陣列有洞。 */
 function withStageEnteredAt(mission: Mission, stageIndex: number, now: number): number[] {
@@ -93,6 +96,29 @@ function withoutMission(missions: Missions, name: string): Missions {
 /** 任務名稱結尾是不是 #<issue 號>；是的話回傳號碼，拿去跟 repo remote 組出 issue 網址。 */
 export function issueIidFromMissionName(name: string): string | undefined {
   return ISSUE_SUFFIX_PATTERN.exec(name)?.[1]
+}
+
+/**
+ * 名稱結尾的 #<issue 號> 優先；沒有的話，驗收清單已經解出來、檔名的 key 是純數字才當 issue
+ * 號用（使用者自己取的短名，例如 acceptance-tour-notes.md，不能當 issue 號）。
+ */
+export function issueIidForMission(name: string, mission: Mission): string | undefined {
+  const fromName = issueIidFromMissionName(name)
+  if (fromName !== undefined) return fromName
+
+  const path = mission.acceptance?.resolvedPath
+  const key = path === undefined ? undefined : ACCEPTANCE_RESOLVED_PATH_KEY_PATTERN.exec(path)?.[1]
+  return key !== undefined && ALL_DIGITS_PATTERN.test(key) ? key : undefined
+}
+
+/** mission-start／mission-restore 寫入成功後，接到綁在這個 binding 的任務身上；查不到 issue 號才補一行提醒。 */
+export function withMissingIssueIidNotice(outcome: CommandOutcome, binding: string): CommandOutcome {
+  if (!outcome.ok) return outcome
+  const bound = findBoundMission(outcome.missions, binding)
+  if (bound === undefined) return outcome
+  const [name, boundMission] = bound
+  if (issueIidForMission(name, boundMission) !== undefined) return outcome
+  return { ...outcome, text: `${outcome.text}\n${MISSING_ISSUE_IID_NOTICE}` }
 }
 
 /** 主 checkout 會同時被好幾個分析中的 session 共用，綁路徑會撞在一起，所以改綁 session；worktree 一個分支一個目錄，綁路徑才能在新 session 接回。 */

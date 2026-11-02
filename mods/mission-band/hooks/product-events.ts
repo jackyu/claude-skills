@@ -6,7 +6,7 @@ import { MR_SECTION_KEYWORDS } from '../flows/new-feature'
 import type { BranchCommit } from '../types'
 import { maybeRefreshAcceptance } from './acceptance-events'
 import { projectPathFromRemote } from './assets'
-import { findBoundMission, issueIidFromMissionName } from './model'
+import { findBoundMission, issueIidForMission } from './model'
 import { missingAcIdsInEvidence } from './mr-evidence'
 import {
   descriptionFilePathFromCommand,
@@ -135,7 +135,7 @@ export async function maybeRecordMrEvent($: EngineInterface, binding: string, co
 export async function maybeRecordIssueNoteEvent($: EngineInterface, binding: string, command: string): Promise<void> {
   const bound = findBoundMission(await loadMissions($), binding)
   if (bound === undefined) return
-  const iid = issueIidFromMissionName(bound[0])
+  const iid = issueIidForMission(bound[0], bound[1])
   if (iid === undefined) return
   const ownProjectPath = await ownProjectPathOf($)
   if (matchesIssueNoteCommand(command, iid, ownProjectPath)) {

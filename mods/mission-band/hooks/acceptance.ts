@@ -197,7 +197,7 @@ export function parseAcceptance(text: string): AcceptanceSummary {
 // 任務名裡隨便哪裡出現 #<數字> 都算，不要求在字串結尾——實際任務名常是
 // `MMDD-issue-#473` 這種「日期＋自訂標籤＋#issue」的形狀，不是只有 `MMDD-#473`。
 // 這條是 format.md 自己的規則，刻意不借用 model.ts 的 issueIidFromMissionName（那支管的是
-// 「這個任務的 issue 留言／URL」，端點不同，沒有理由耦合在一起）。
+// 「這個任務的 issue 留言／URL」，端點不同）。
 const MISSION_NAME_ISSUE_NUMBER_PATTERN = /#(\d+)/
 
 /**

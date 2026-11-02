@@ -830,7 +830,7 @@
         <tr><td><code>gitlab-issue</code></td><td>打 /gitlab-issue 把 spec 草稿嵌進 RD 票：已有 RD 票就更新描述，只有 PM 票就新開 RD 票並設 Ready to develop；拿到票號再把 spec 寫進 <code>.claude/specs/</code></td><td>偵測到打過</td><td>必做；任務名稱是 PM 票號的話用 <code>/mission-rename</code> 改成 RD 票號；舊任務不需要就 <code>/mission-skip gitlab-issue 理由</code></td></tr>
         <tr><td><code>to-acceptance</code></td><td>打 /to-acceptance 產生驗收清單</td><td>驗收清單檔存在</td><td>舊任務不需要就 <code>/mission-skip to-acceptance 理由</code></td></tr>
         <tr><td><code>to-tickets</code>（選用）</td><td>票數多才拆票；小票可以跳過</td><td>打過 /to-tickets</td><td>選用節點：沒碰過不會擋路</td></tr>
-        <tr><td><code>create-worktree</code></td><td>請 AI 用 orca 或 <code>git worktree add</code> 建 worktree（不要用 <code>!</code> 自己跑）</td><td>從 AI 跑的指令偵測到 worktree 路徑（orca 的 JSON、<code>--name</code> 對 <code>git worktree list</code>，或 cd 進 worktree）</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip create-worktree 理由</code></td></tr>
+        <tr><td><code>create-worktree</code></td><td>先跑 <code>resolve-base-branch.sh</code> 決定基底，再請 AI 用 orca 或 <code>git worktree add</code> 建 worktree（不要用 <code>!</code> 自己跑）</td><td>從 AI 跑的指令偵測到 worktree 路徑（orca 的 JSON、<code>--name</code> 對 <code>git worktree list</code>，或 cd 進 worktree）</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip create-worktree 理由</code></td></tr>
       </tbody>
     </table>
     </div>
@@ -867,7 +867,7 @@
       <thead><tr><th>步驟</th><th>做什麼</th><th>怎麼算完成</th><th>不需要時</th></tr></thead>
       <tbody>
         <tr><td><code>open-mr</code></td><td>打 /push 開 MR</td><td>偵測到本專案的 MR 網址</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip open-mr 理由</code></td></tr>
-        <tr><td><code>freeze-spec</code></td><td>/push 開完 MR 會自動把 spec 凍結到 issue 留言；已經開過就再跑一次 /push 選「僅推送」補發</td><td>偵測到對任務 issue 留言</td><td>沒有對應 issue 或 spec：<code>/mission-skip freeze-spec 理由</code></td></tr>
+        <tr><td><code>freeze-spec</code></td><td>/push 開完 MR 會自動把 spec 凍結到 issue 留言；已經開過就再跑一次 /push 選「僅推送」補發</td><td>偵測到對任務 issue 留言</td><td>留言發了還沒打勾，多半是任務名稱沒有 issue 號：<code>/mission-rename</code> 補上；真的沒有 issue 或 spec 才 <code>/mission-skip freeze-spec 理由</code></td></tr>
         <tr><td><code>mr-reading-map</code></td><td>打 /mr-reading-map &lt;MR 號&gt; 在 diff 上發導覽註解、把閱讀地圖插進 MR 描述；skill 會先判斷需不需要，不需要會直接告訴你，發完會告訴你下一步</td><td>呼叫過 /mr-reading-map（判斷不需要也算）</td><td>確定不需要：<code>/mission-skip mr-reading-map 理由</code>；MR 已核准還沒跑會自動顯示成已跳過</td></tr>
         <tr><td><code>await-review</code></td><td>等同事看過之後打 /mission-review 同步</td><td>同步到第一則別人的回饋，或 MR 已經 approved</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip await-review 理由</code></td></tr>
         <tr><td><code>review-triage</code></td><td>reviewer 有新留言：把還沒處理的留言照貼存成 finding 檔（標 note id），再打 /review-triage 判定，判完才修或回覆</td><td>每則還沒 resolved 的回饋討論，別人最後一則留言的 note id，都被某一份判定報告涵蓋；不同輪次各自判定不同的 note 也算，不限最新一份</td><td>自動視為跳過：沒有任何一則還沒 resolved 的回饋討論帶著別人的留言；band 會顯示最新一份報告的判定統計（例如「確認 2／待驗證 1」），有 ⚠ 代表判定報告標了「在修上一輪修法」，先停下來檢查前提</td></tr>

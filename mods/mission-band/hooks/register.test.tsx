@@ -2333,6 +2333,151 @@ describe('issue-note detection', () => {
     const log = await run('mission-log')
     expect(log.text).not.toContain('product issue-note')
   })
+
+  // 這兩個測試不套 setupIssueNoteRoot：它已經註冊過 fs.exists／fs.read，驗收清單掃描
+  // 需要照路徑客製回應，再註冊一次會被引擎拒絕（registered twice）。
+  test('a mission named without #<issue> (date-prefixed slug) still records issue-note once its acceptance key resolves the issue iid', async ($, on) => {
+    mock.clock(on)
+    const storeMap = mockStoreMap(on)
+    let missionName = ''
+    on('session.start', (_, e) => ({ cwd: e.cwd }))
+    on('session.root', () => ({ value: '/repo' }))
+    on('session.repo', () => ({ value: REPO_WITH_REMOTE }))
+    on('session.id', () => ({ value: 'sess-1' }))
+    on('command.register', (_, e) => ({ value: { command: e.name } }))
+    on('turn.complete', (_, e) => ({ text: e.answer }))
+    on('tool.call', () => ({ result: {} }))
+    mock.env(on, { HOME: '/home/x' })
+    mockProcessRun(on, {})
+    on('fs.list', (_, e) => (e.path === '/repo/.claude/specs' ? { value: [{ name: 'acceptance-482.md', kind: 'file', size: 0, mtimeMs: 0, isLink: false }] } : { value: [] }))
+    on('fs.exists', () => ({ value: true }))
+    on('fs.read', (_, e) => {
+      if (e.path === '/repo/.claude/specs/acceptance-482.md') {
+        return {
+          value: `# 驗收清單\n<!-- acceptance:meta {"key":"482","mission":"${missionName}"} -->\n\n- 整體回歸：未跑\n\n### AC-1 x\n- 結果：待驗\n`,
+        }
+      }
+      return { value: '# x\n\n## Agent skills\n' }
+    })
+    const run = (command: string, args = '') => $.command.run({ command, args, origin: { kind: 'composer' }, presentation: PRESENTATION })
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    await run('mission-start', 'bank-account-button')
+    missionName = Object.keys((storeMap.get('missions') as Record<string, unknown>) ?? {})[0] ?? ''
+
+    // 先讓驗收清單刷新跑過一次，mission.acceptance.resolvedPath 才會有值；mission-start
+    // 本身不會主動刷新（見「acceptance refresh」那組測試）。
+    await $.turn.complete({ answer: '', durationMs: 1, isAborted: false, turnId: 't1', reason: 'answer' })
+    await $.tool.call({ tool: 'Bash', command: 'issue-note.sh repo 482 "已將 spec 凍結到留言"' })
+
+    const log = await run('mission-log')
+    expect(log.text).toContain('product issue-note')
+  })
+
+  test('a mission named without #<issue> and with no resolvable acceptance file does not record issue-note', async ($, on) => {
+    mock.clock(on)
+    mock.store(on)
+    on('session.start', (_, e) => ({ cwd: e.cwd }))
+    on('session.root', () => ({ value: '/repo' }))
+    on('session.repo', () => ({ value: REPO_WITH_REMOTE }))
+    on('session.id', () => ({ value: 'sess-1' }))
+    on('command.register', (_, e) => ({ value: { command: e.name } }))
+    on('tool.call', () => ({ result: {} }))
+    mock.env(on, { HOME: '/home/x' })
+    mockProcessRun(on, {})
+    on('fs.exists', () => ({ value: true }))
+    on('fs.read', () => ({ value: '# x\n\n## Agent skills\n' }))
+    const run = (command: string, args = '') => $.command.run({ command, args, origin: { kind: 'composer' }, presentation: PRESENTATION })
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    await run('mission-start', 'bank-account-button')
+    await $.tool.call({ tool: 'Bash', command: 'issue-note.sh repo 482 "留言"' })
+
+    const log = await run('mission-log')
+    expect(log.text).not.toContain('product issue-note')
+  })
+})
+
+describe('missing issue iid notice', () => {
+  const REPO = { root: '/repo', remote: null, internal: true, name: 'repo' }
+
+  test('mission-start without #<issue> and with no resolvable acceptance file warns that freeze-spec will not detect it', async ($, on) => {
+    mock.clock(on)
+    mock.store(on)
+    on('session.start', (_, e) => ({ cwd: e.cwd }))
+    on('session.root', () => ({ value: '/repo' }))
+    on('session.repo', () => ({ value: REPO }))
+    on('session.id', () => ({ value: 'sess-1' }))
+    on('command.register', (_, e) => ({ value: { command: e.name } }))
+    mock.env(on, { HOME: '/home/x' })
+    on('fs.exists', () => ({ value: true }))
+    on('fs.read', () => ({ value: '# x\n\n## Agent skills\n' }))
+    const run = (command: string, args = '') => $.command.run({ command, args, origin: { kind: 'composer' }, presentation: PRESENTATION })
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    const started = await run('mission-start', 'bank-account-button')
+
+    expect(started.text).toContain('這個任務名稱沒有 issue 號')
+    expect(started.text).toContain('/mission-rename')
+  })
+
+  test('mission-start with a #<issue> suffix does not warn', async ($, on) => {
+    mock.clock(on)
+    mock.store(on)
+    on('session.start', (_, e) => ({ cwd: e.cwd }))
+    on('session.root', () => ({ value: '/repo' }))
+    on('session.repo', () => ({ value: REPO }))
+    on('session.id', () => ({ value: 'sess-1' }))
+    on('command.register', (_, e) => ({ value: { command: e.name } }))
+    mock.env(on, { HOME: '/home/x' })
+    on('fs.exists', () => ({ value: true }))
+    on('fs.read', () => ({ value: '# x\n\n## Agent skills\n' }))
+    const run = (command: string, args = '') => $.command.run({ command, args, origin: { kind: 'composer' }, presentation: PRESENTATION })
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    const started = await run('mission-start', '#482')
+
+    expect(started.text).not.toContain('這個任務名稱沒有 issue 號')
+  })
+
+  // 這條要證明的是「fallback 在 restore 也生效」，不是「名稱本身有 #」：先讓驗收清單刷新
+  // 解出 482，再換到另一個 worktree binding 用名稱（不帶 #）restore，通知也不該出現。
+  test('mission-restore does not warn once the acceptance key has already resolved the issue iid', async ($, on) => {
+    mock.clock(on)
+    const storeMap = mockStoreMap(on)
+    let missionName = ''
+    let root = '/main'
+    on('session.start', (_, e) => ({ cwd: e.cwd }))
+    on('session.root', () => ({ value: root }))
+    on('session.repo', () => ({ value: { root: '/main', remote: null, internal: true, name: 'repo' } }))
+    on('session.id', () => ({ value: 'sess-1' }))
+    on('command.register', (_, e) => ({ value: { command: e.name } }))
+    on('turn.complete', (_, e) => ({ text: e.answer }))
+    on('tool.call', () => ({ result: {} }))
+    mock.env(on, { HOME: '/home/x' })
+    on('fs.list', (_, e) => (e.path === '/main/.claude/specs' ? { value: [{ name: 'acceptance-482.md', kind: 'file', size: 0, mtimeMs: 0, isLink: false }] } : { value: [] }))
+    on('fs.exists', () => ({ value: true }))
+    on('fs.read', (_, e) => {
+      if (e.path === '/main/.claude/specs/acceptance-482.md') {
+        return {
+          value: `# 驗收清單\n<!-- acceptance:meta {"key":"482","mission":"${missionName}"} -->\n\n- 整體回歸：未跑\n\n### AC-1 x\n- 結果：待驗\n`,
+        }
+      }
+      return { value: '# x\n\n## Agent skills\n' }
+    })
+    const run = (command: string, args = '') => $.command.run({ command, args, origin: { kind: 'composer' }, presentation: PRESENTATION })
+
+    await $.session.start({ cwd: root, surface: null, isInteractive: false })
+    await run('mission-start', 'bank-account-button')
+    missionName = Object.keys((storeMap.get('missions') as Record<string, unknown>) ?? {})[0] ?? ''
+    await $.turn.complete({ answer: '', durationMs: 1, isAborted: false, turnId: 't1', reason: 'answer' })
+
+    root = '/main/.claude/worktrees/feat_x'
+    await $.session.start({ cwd: root, surface: null, isInteractive: false })
+    const restored = await run('mission-restore', 'bank-account-button')
+
+    expect(restored.text).not.toContain('這個任務名稱沒有 issue 號')
+  })
 })
 
 describe('acceptance refresh', () => {

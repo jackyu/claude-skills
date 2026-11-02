@@ -8,6 +8,7 @@ import {
   bindingFor,
   findBoundMission,
   finishMission,
+  issueIidForMission,
   issueIidFromMissionName,
   nextStage,
   nextStepHint,
@@ -21,6 +22,7 @@ import {
   stageEnteredAt,
   stripPluginPrefix,
   ticketsChangedSinceBuild,
+  withMissingIssueIidNotice,
   withSessionId,
 } from './model'
 import { isBlocking, resolveNodeHint } from './node-states'
@@ -819,6 +821,55 @@ describe('issueIidFromMissionName', () => {
 
   test('is undefined for a mission named without an issue number', () => {
     expect(issueIidFromMissionName('1022-ctbc-layout')).toBeUndefined()
+  })
+})
+
+describe('issueIidForMission', () => {
+  test('prefers the trailing #<n> in the name, even when the acceptance key disagrees', () => {
+    const m = mission({ acceptance: { exists: true, resolvedPath: '/repo/.claude/specs/acceptance-999.md', readAt: 0 } })
+    expect(issueIidForMission('1022-#473', m)).toBe('473')
+  })
+
+  test('falls back to the resolved acceptance file’s key when the name has no #<n>', () => {
+    const m = mission({ acceptance: { exists: true, resolvedPath: '/repo/.claude/specs/acceptance-482.md', readAt: 0 } })
+    expect(issueIidForMission('1102-bank-account-button', m)).toBe('482')
+  })
+
+  test('does not treat a non-numeric acceptance key (a user-picked short name) as an issue iid', () => {
+    const m = mission({ acceptance: { exists: true, resolvedPath: '/repo/.claude/specs/acceptance-tour-notes.md', readAt: 0 } })
+    expect(issueIidForMission('1022-tour-notes', m)).toBeUndefined()
+  })
+
+  test('is undefined when the name has no #<n> and no acceptance file has been resolved', () => {
+    expect(issueIidForMission('1022-ctbc-layout', mission())).toBeUndefined()
+  })
+})
+
+describe('withMissingIssueIidNotice', () => {
+  test('appends the rename notice when the bound mission has no resolvable issue iid', () => {
+    const missions: Missions = { '1022-ctbc-layout': mission({ name: '1022-ctbc-layout' }) }
+    const outcome = withMissingIssueIidNotice({ ok: true, missions, text: '已建立任務「1022-ctbc-layout」' }, '/repo')
+    expect(outcome.text).toContain('已建立任務「1022-ctbc-layout」')
+    expect(outcome.text).toContain('這個任務名稱沒有 issue 號')
+    expect(outcome.text).toContain('/mission-rename')
+  })
+
+  test('leaves the text alone when the name itself ends in #<n>', () => {
+    const missions: Missions = { '1022-#473': mission({ name: '1022-#473' }) }
+    const outcome = withMissingIssueIidNotice({ ok: true, missions, text: '已建立任務「1022-#473」' }, '/repo')
+    expect(outcome.text).toBe('已建立任務「1022-#473」')
+  })
+
+  test('leaves the text alone when the acceptance key fills in the issue iid', () => {
+    const bound = mission({ name: '1102-bank-account-button', acceptance: { exists: true, resolvedPath: '/repo/.claude/specs/acceptance-482.md', readAt: 0 } })
+    const missions: Missions = { '1102-bank-account-button': bound }
+    const outcome = withMissingIssueIidNotice({ ok: true, missions, text: '已建立任務「1102-bank-account-button」' }, '/repo')
+    expect(outcome.text).toBe('已建立任務「1102-bank-account-button」')
+  })
+
+  test('passes a failed outcome through untouched', () => {
+    const outcome = withMissingIssueIidNotice({ ok: false, text: '找不到任務' }, '/repo')
+    expect(outcome).toEqual({ ok: false, text: '找不到任務' })
   })
 })
 
