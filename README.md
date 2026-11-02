@@ -24,13 +24,13 @@ cd claude-skills
 
 ## Skill 目錄
 
-共 25 個 skills，依分類索引如下：
+依分類索引如下：
 
-- [前端開發](#前端開發) — 架構規範、issue 拆解、MR 審查與學習
+- [前端開發](#前端開發) — 架構規範、issue 拆解、MR 導讀、審查與學習、review 結果判定
 - [設計整合](#設計整合) — 設計稿驗證、Figma 整合、UI 審查
 - [框架最佳實踐](#框架最佳實踐) — React/Next.js、Remotion
 - [工具](#工具) — MR 生成、互動預覽、六步學習法、週報／A3 提案、PM 需求票
-- [工作流程](#工作流程) — skill 探索、完成前驗證、分支收尾、session 回顧
+- [工作流程](#工作流程) — skill 探索、完成前驗證、做法決策、驗收清單與驗收、分支收尾
 - [開發輔助](#開發輔助) — Agentation 視覺回饋
 - [系統維護](#系統維護) — macOS 清理、磁碟分析
 
@@ -45,6 +45,8 @@ cd claude-skills
 | [gitlab-issue](skills/gitlab-issue/) | 將 PM 需求 Issue 轉換為前端技術 Issue 草稿，含 Subtask 拆解 |
 | [fe-mr-review](skills/fe-mr-review/) | AI 輔助 GitLab MR 審查與 Review Comment 回覆（雙模式），含選用的 TL 視角補充 |
 | [fe-mr-read](skills/fe-mr-read/) | 讀懂 GitLab MR 並可沉澱成學習筆記：導讀（白話化說明、流程圖、AI 扮演作者答疑、好做法雷達）→ 問要不要存筆記 → 補 Review 討論分析寫進 Heptabase |
+| [mr-reading-map](skills/mr-reading-map/) | 在 MR diff 上發一串有順序的 inline 導覽註解（[1/M]、接著看 →），並把閱讀地圖插進 MR 描述；review 修正後重跑只補發過時的幾則。手動 `/mr-reading-map`，會寫入 GitLab |
+| [review-triage](skills/review-triage/) | code review 或 reviewer 留言回來後、動手修之前逐筆判定：分成指出 bug／質疑前提／提問／風格，bug 從真實入口複核可達性，判成確認／待驗證／撤銷／防禦性建議；重跑時抓「在修上一輪修法」的訊號 |
 
 > **架構規範的單一真相來源**：檔案該放哪一律以 [`fe-arch`](skills/fe-arch/) 為準；`gitlab-issue`／`fe-mr-generator`／`fe-mr-review`／`fe-mr-read` 只引用不複製，改規範只改一處。
 
@@ -85,6 +87,9 @@ cd claude-skills
 |---|---|
 | [find-skills](skills/find-skills/) | 從開放 skills 生態系中探索與安裝 agent skills |
 | [verification-before-completion](skills/verification-before-completion/) | 在宣稱完成前強制執行驗證指令，證據先於斷言 |
+| [approach](skills/approach/) | 動手前檢查這張票有沒有做法要先決定（套件或手寫、放哪裡、介面形狀、從哪開始），有把握的整批列、拿不準的逐題問並附推薦。手動 `/approach`，排在 `/to-spec` 前 |
+| [to-acceptance](skills/to-acceptance/) | 把 spec 和 RD 票轉成給人看的驗收清單（AC-1…，含前提、操作、預期、證據類型、要不要進回歸），草稿後逼問補漏；規格改過重跑保留編號。手動 `/to-acceptance` |
+| [verify-acceptance](skills/verify-acceptance/) | 照驗收清單逐條驗收：截圖、跑測試或指令，會改變的行為另拍 Before；結果寫回清單、要進回歸的寫進 verify-admin／verify-client，最後跑整體回歸。手動 `/verify-acceptance` |
 | [cleanup](skills/cleanup/) | MR 合併後刪掉這張票的 worktree 與本地分支，spec、驗收清單搬進 archive；沒合併要輸入 discard 才丟棄 |
 
 ### 開發輔助
@@ -183,7 +188,7 @@ claude-skills/
 │   │   ├── assets/            # 輸出範本與資源（選用）
 │   │   └── rules/             # 領域特定規則檔案（選用）
 │   ├── figma/
-│   └── ...                    # 共 25 個 skills
+│   └── ...                    # 每個 skill 一個目錄
 ├── mods/
 │   └── mission-band/          # Claude Code mod（安裝見其 README）
 ```
