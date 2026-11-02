@@ -76,6 +76,14 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
           hint: '實作完輸入 /pstack:no-comments；它會清註解、也可能直接改 code 修問題，並停下來等你核准編碼限制；舊任務不需要就 /mission-skip no-comments <理由>',
         },
         {
+          id: 'interrogate',
+          optional: true,
+          // 手打 /pstack:interrogate 記成 skill 事件，直接讀 SKILL.md 才是 read 事件，兩種都要認
+          matchSkillExact: 'pstack:interrogate',
+          matchRead: 'pstack:interrogate',
+          hint: '大票才跑（非測試檔超過 10 個、或動到共用模組、狀態流程）：在 code-review 之前跑一次 /pstack:interrogate 先問前提，finding 照樣存檔跑 /review-triage，確認的修完就進 code-review；每張票只跑這一次，之後不再重跑。小票就 /mission-skip interrogate <理由>',
+        },
+        {
           // Codex 不是獨立的一步，是 code review 的第二意見，所以跟 Claude 的審查併成同一個
           // 節點的兩條軌道，而不是後面接著的另一個節點；兩條都跑過、或 Codex 被跳過，才算完成。
           id: 'code-review',
@@ -137,14 +145,9 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
         },
         {
           id: 'blast-radius',
+          matchSkillExact: 'pstack:blast-radius',
           matchRead: 'pstack:blast-radius',
           hint: '讀過 pstack 的 blast-radius 判準，確認改動的爆炸半徑',
-        },
-        {
-          id: 'interrogate',
-          optional: true,
-          matchRead: 'pstack:interrogate',
-          hint: '有把握可以跳過；不確定自己講不講得出改動原因就讀 pstack 的 interrogate',
         },
       ],
     },

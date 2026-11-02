@@ -34,7 +34,7 @@ describe('progressText', () => {
   })
 
   test('marks optional nodes and keeps them in the unfinished list', () => {
-    const text = progressText(NEW_FEATURE_FLOW, mission({ stage: VERIFY }))
+    const text = progressText(NEW_FEATURE_FLOW, mission({ stage: 1 }))
     expect(text).toContain('- interrogate（選用）：還沒開始。')
   })
 

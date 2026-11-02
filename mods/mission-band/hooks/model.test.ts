@@ -222,9 +222,18 @@ describe('nodeStates', () => {
     }
   })
 
-  test('the build stage runs no-comments right after implement, before code-review', () => {
+  test('the build stage runs no-comments right after implement, then the optional interrogate before code-review', () => {
     const buildNodes = NEW_FEATURE_FLOW.stages[1]?.nodes ?? []
-    expect(buildNodes.map(n => n.id)).toEqual(['implement', 'no-comments', 'code-review'])
+    expect(buildNodes.map(n => n.id)).toEqual(['implement', 'no-comments', 'interrogate', 'code-review'])
+    expect(buildNodes.find(n => n.id === 'interrogate')?.optional).toBe(true)
+  })
+
+  test('interrogate starts from a typed /pstack:interrogate (skill event), not only from reading its SKILL.md', () => {
+    const buildNodes = NEW_FEATURE_FLOW.stages[1]?.nodes ?? []
+    const statusOf = (m: ReturnType<typeof mission>) => nodeStates(buildNodes, m).find(s => s.node.id === 'interrogate')?.status
+    expect(statusOf(mission({ stage: 1 }))).toBe('not-started')
+    expect(statusOf(mission({ stage: 1, events: [{ at: 1, kind: 'skill', name: 'pstack:interrogate' }] }))).not.toBe('not-started')
+    expect(statusOf(mission({ stage: 1, events: [{ at: 1, kind: 'read', name: 'pstack:interrogate' }] }))).not.toBe('not-started')
   })
 
   test('no-comments is required (not optional) and matches the plugin-prefixed /pstack:no-comments skill', () => {

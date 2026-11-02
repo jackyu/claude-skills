@@ -783,7 +783,6 @@ describe('bandPlan verify stage sample (requested for the report)', () => {
         segments: [{ text: '○', dim: true, width: 2 }, { text: 'verify-acceptance/overall（commit 變了）', dim: true }],
       },
       { key: 'blast-radius', segments: [{ text: '○', dim: true, width: 2 }, { text: 'blast-radius', dim: true }] },
-      { key: 'interrogate', segments: [{ text: '○', dim: true, width: 2 }, { text: 'interrogate', dim: true }] },
     ])
     expect(plan.next).toEqual({ key: 'next', segments: [{ text: '下一步：輸入 /verify-acceptance 逐條驗收' }] })
   })
