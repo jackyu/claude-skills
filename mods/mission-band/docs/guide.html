@@ -830,7 +830,7 @@
         <tr><td><code>gitlab-issue</code></td><td>打 /gitlab-issue 把 spec 草稿嵌進 RD 票：已有 RD 票就更新描述，只有 PM 票就新開 RD 票並設 Ready to develop；拿到票號再把 spec 寫進 <code>.claude/specs/</code></td><td>偵測到打過</td><td>必做；任務名稱是 PM 票號的話用 <code>/mission-rename</code> 改成 RD 票號；舊任務不需要就 <code>/mission-skip gitlab-issue 理由</code></td></tr>
         <tr><td><code>to-acceptance</code></td><td>打 /to-acceptance 產生驗收清單</td><td>驗收清單檔存在</td><td>舊任務不需要就 <code>/mission-skip to-acceptance 理由</code></td></tr>
         <tr><td><code>to-tickets</code>（選用）</td><td>票數多才拆票；小票可以跳過</td><td>打過 /to-tickets</td><td>選用節點：沒碰過不會擋路</td></tr>
-        <tr><td><code>create-worktree</code></td><td>先跑 <code>resolve-base-branch.sh</code> 決定基底，再請 AI 用 orca 或 <code>git worktree add</code> 建 worktree（不要用 <code>!</code> 自己跑）</td><td>從 AI 跑的指令偵測到 worktree 路徑（orca 的 JSON、<code>--name</code> 對 <code>git worktree list</code>，或 cd 進 worktree）</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip create-worktree 理由</code></td></tr>
+        <tr><td><code>create-worktree</code></td><td>先跑 <code>resolve-base-branch.sh</code> 決定基底，再請 AI 用 orca 或 <code>git worktree add</code> 建 worktree（不要用 <code>!</code> 自己跑），建好後自己用 <code>! cp</code> 把要用到的 app 的 <code>.env</code> 從主 checkout 複製過去（AI 不碰 .env）</td><td>從 AI 跑的指令偵測到 worktree 路徑（orca 的 JSON、<code>--name</code> 對 <code>git worktree list</code>，或 cd 進 worktree）</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip create-worktree 理由</code></td></tr>
       </tbody>
     </table>
     </div>

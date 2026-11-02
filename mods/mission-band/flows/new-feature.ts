@@ -55,7 +55,7 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
         {
           id: 'create-worktree',
           doneWhen: 'worktree',
-          hint: '先跑 ~/.claude/scripts/gitlab/resolve-base-branch.sh "<專案路徑>" <iid> 決定基底（issue 的 milestone 有對應的 rc 分支就用 rc），再跟 AI 說「orca worktree create --base-branch origin/<輸出>」請它建（不要加 !，band 是從 AI 跑的指令記下路徑），建好後請它跑 ~/.claude/scripts/gitlab/issue-status.sh "<專案路徑>" <iid> "Developing"；打勾後 /mission-next，再 /mission-go 開新分頁',
+          hint: '先跑 ~/.claude/scripts/gitlab/resolve-base-branch.sh "<專案路徑>" <iid> 決定基底（issue 的 milestone 有對應的 rc 分支就用 rc），再跟 AI 說「orca worktree create --base-branch origin/<輸出>」請它建（不要加 !，band 是從 AI 跑的指令記下路徑），建好後請它跑 ~/.claude/scripts/gitlab/issue-status.sh "<專案路徑>" <iid> "Developing"，再自己用 ! cp <主 checkout>/apps/<app>/.env <worktree>/apps/<app>/.env 把要用到的 app 的 .env 複製過去（AI 不碰 .env；少了它驗收會整輪受阻）；打勾後 /mission-next，再 /mission-go 開新分頁',
         },
       ],
     },

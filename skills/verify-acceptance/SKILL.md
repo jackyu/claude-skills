@@ -41,8 +41,9 @@ background: false
 6. **分支狀態**：
    - `<wt>` 沒有 `.claude/skills/verify-admin`（或 `verify-client`）→ 分支切得太早，請使用者 rebase，截圖類先記成 `受阻｜分支沒有驅動腳本，請先 rebase`
    - 未提交改動：`git status --porcelain --untracked-files=no` 有東西，或 `git status --porcelain -- apps packages` 有未追蹤檔 → 提醒驗收跑的是含未提交改動的版本
-7. **證據目錄**：`<main>/.claude/verify-evidence/<key>/`，沒有就建
-8. **列出要跑的條目**和各自的證據類型，給使用者看一眼就開始，不用等確認
+7. **`.env` 先檢查**：依 meta `app`（`both` 就兩個都看），`<wt>/apps/<app>/.env` 不存在、而且這一輪有截圖類條目或要跑 Step 6 → 立刻停下來，回報「請你執行 `! cp <main>/apps/<app>/.env <wt>/apps/<app>/.env`，再重跑」，結束。不要先跑測試類條目再回頭，缺 `.env` 的那一輪幾乎都得整輪重跑
+8. **證據目錄**：`<main>/.claude/verify-evidence/<key>/`，沒有就建
+9. **列出要跑的條目**和各自的證據類型，給使用者看一眼就開始，不用等確認
 
 ## Step 1：先分出跑不了 mock 的條目
 
@@ -200,7 +201,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 
 **這一輪 Step 5 有寫檔，或 `<wt>` 有未提交改動（照 Step 0 第 6 點的判斷）→ 跳過這步**，清單維持 `整體回歸：未跑`，回報請使用者 commit 後再跑一次。記下的 SHA 必須是實際跑的程式碼。
 
-否則對 After 跑回歸地圖裡的**全部**項目：
+否則對 After 跑回歸地圖裡的**全部**項目。每條 journey／指令都用前景 Bash 跑完（帶 timeout，最長 600000），不要丟背景、也不要掛 Monitor 等通知：這個 skill 跑在 fork 裡，回合一結束就收不到結果，整體回歸會變成沒跑完、只能整輪重跑。
 
 - admin：`<wt>/.claude/skills/verify-admin/journeys/*.json` 每一份各跑一次，`--port` 換成 After 的。features 檔裡標成「預期失敗」的變體（例：`--role sales` 驗無權限）照它寫的指令跑，結果符合它寫的預期就算過
 - client：`<wt>/.claude/skills/verify-client/features/*.md` 每份 Driving 段落的每條指令各跑一次（`--port` 換成 After 的）
