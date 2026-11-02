@@ -842,7 +842,7 @@
       <tbody>
         <tr><td><code>implement</code></td><td>照 TDD 或打 /implement 開始寫 code</td><td>偵測到 commit</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip implement 理由</code></td></tr>
         <tr><td><code>no-comments</code></td><td>打 /pstack:no-comments，清註解並直接修正接受的問題（可能改 code，確定要留的限制會等你核准才編碼）</td><td>偵測到打過這個 skill，或讀過它的 SKILL.md</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip no-comments 理由</code></td></tr>
-        <tr><td><code>code-review</code>（兩軌）</td><td>Claude 軌道打 /mattpocock-skills:code-review；Codex 軌道打 /codex:rescue 或直接跑 codex exec</td><td>兩條軌道各自「跑過或被跳過」就算完成（不是只有 Codex 可以跳，兩邊規則一樣）</td><td>可以只跳 Codex 軌道、只跳 Claude 軌道，或整個節點一起跳：<code>/mission-skip code-review:codex 理由</code>、<code>/mission-skip code-review:claude 理由</code>，或 <code>/mission-skip code-review 理由</code></td></tr>
+        <tr><td><code>code-review</code>（兩軌）</td><td>Claude 軌道打 /mattpocock-skills:code-review；Codex 軌道打 /codex:rescue 或直接跑 codex exec</td><td>兩條軌道各自「跑過或被跳過」就算完成（不是只有 Codex 可以跳，兩邊規則一樣）。第一輪審整個分支；修完重審只看這一輪的修正（base＝上一輪 HEAD），review-triage 判成確認的才在這張 MR 修，改善類收進後續票</td><td>可以只跳 Codex 軌道、只跳 Claude 軌道，或整個節點一起跳：<code>/mission-skip code-review:codex 理由</code>、<code>/mission-skip code-review:claude 理由</code>，或 <code>/mission-skip code-review 理由</code></td></tr>
       </tbody>
     </table>
     </div>
@@ -870,6 +870,7 @@
         <tr><td><code>freeze-spec</code></td><td>/push 開完 MR 會自動把 spec 凍結到 issue 留言；已經開過就再跑一次 /push 選「僅推送」補發</td><td>偵測到對任務 issue 留言</td><td>留言發了還沒打勾，多半是任務名稱沒有 issue 號：<code>/mission-rename</code> 補上；真的沒有 issue 或 spec 才 <code>/mission-skip freeze-spec 理由</code></td></tr>
         <tr><td><code>mr-reading-map</code></td><td>打 /mr-reading-map &lt;MR 號&gt; 在 diff 上發導覽註解、把閱讀地圖插進 MR 描述；skill 會先判斷需不需要，不需要會直接告訴你，發完會告訴你下一步</td><td>呼叫過 /mr-reading-map（判斷不需要也算）</td><td>確定不需要：<code>/mission-skip mr-reading-map 理由</code>；MR 已核准還沒跑會自動顯示成已跳過</td></tr>
         <tr><td><code>await-review</code></td><td>等同事看過之後打 /mission-review 同步</td><td>同步到第一則別人的回饋，或 MR 已經 approved</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip await-review 理由</code></td></tr>
+        <tr><td><code>followup</code>（選做）</td><td>有收進後續票的項目時，開這張功能票的後續 RD 票，從原分支切 stacked 分支開新任務接著做，不等原 MR 合併；原 MR 有修正就 merge 進來，不 rebase</td><td>選做節點，不擋流程</td><td>沒有後續項目：<code>/mission-skip followup 理由</code></td></tr>
         <tr><td><code>review-triage</code></td><td>reviewer 有新留言：把還沒處理的留言照貼存成 finding 檔（標 note id），再打 /review-triage 判定，判完才修或回覆</td><td>每則還沒 resolved 的回饋討論，別人最後一則留言的 note id，都被某一份判定報告涵蓋；不同輪次各自判定不同的 note 也算，不限最新一份</td><td>自動視為跳過：沒有任何一則還沒 resolved 的回饋討論帶著別人的留言；band 會顯示最新一份報告的判定統計（例如「確認 2／待驗證 1」），有 ⚠ 代表判定報告標了「在修上一輪修法」，先停下來檢查前提</td></tr>
         <tr><td><code>verify-acceptance/overall</code> / <code>reverify</code>（顯示名跟驗收階段那個相同，但是不同節點）</td><td>改完 code 或 rebase 之後要重跑整體回歸</td><td>整體回歸狀態是「通過」，而且記的 SHA 等於目前 HEAD</td><td>自動視為跳過：從來沒有整體回歸紀錄，或驗收階段本來就 <code>/mission-skip overall-regression</code> 跳過了；一般不用手動跳</td></tr>
         <tr><td><code>push-fix</code></td><td>本機跟遠端不一致就要 push；rebase 過要 force-push，自己用 <code>! git push --force-with-lease</code> 執行</td><td>遠端分支 SHA 等於本機 HEAD</td><td>必做（這個階段的節點不會直接擋 /mission-next，見下方備註）；真的不需要可 <code>/mission-skip push-fix 理由</code></td></tr>

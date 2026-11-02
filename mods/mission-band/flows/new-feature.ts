@@ -79,7 +79,7 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
           // Codex 不是獨立的一步，是 code review 的第二意見，所以跟 Claude 的審查併成同一個
           // 節點的兩條軌道，而不是後面接著的另一個節點；兩條都跑過、或 Codex 被跳過，才算完成。
           id: 'code-review',
-          hint: '實作完輸入 /mattpocock-skills:code-review 審 Spec、Standards 兩軸，順便跑 node ~/.claude/scripts/jev-xray/precheck.js --base origin/main 看重複程式碼和沒人用的檔案；要 Codex 再審一次就 /codex:rescue 用 $codex-evidence-review 審，或 codex exec -s read-only -C <worktree> \'$codex-evidence-review 審這個分支（base origin/main），附 spec 與驗收清單路徑\'；不用 Codex 就 /mission-skip code-review:codex <理由>。兩道都交回後，請 Claude 把原始 finding 存檔再跑 /review-triage 判定，確認的才派修',
+          hint: '實作完輸入 /mattpocock-skills:code-review 審 Spec、Standards 兩軸，順便跑 node ~/.claude/scripts/jev-xray/precheck.js --base origin/main 看重複程式碼和沒人用的檔案；要 Codex 再審一次就 /codex:rescue 用 $codex-evidence-review 審，或 codex exec -s read-only -C <worktree> \'$codex-evidence-review 審這個分支（base origin/main），附 spec 與驗收清單路徑\'；不用 Codex 就 /mission-skip code-review:codex <理由>。兩道都交回後，請 Claude 把原始 finding 存檔再跑 /review-triage 判定，確認的才派修；改善、防禦性建議收進這張功能票的後續票。修完重審兩道都只看這一輪的修正（base 換成上一輪 HEAD，派工照 templates.md 模板 5b），不再整支重審',
           tracks: [
             {
               id: 'claude',
@@ -98,7 +98,7 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
               // 合併前 codex-review 是獨立節點，舊資料的 skip key 沒有冒號；併進來後要當
               // 這條軌道被跳過，不然舊任務重新接回會變成還要再審一次。
               legacySkipIds: ['codex-review'],
-              hint: 'Codex 還沒審：叫 /codex:rescue 用 $codex-evidence-review 審這個分支，或直接跑 codex exec -s read-only -C <worktree> \'$codex-evidence-review 審這個分支（base origin/main），附 spec 與驗收清單路徑\'（codex review 的 --base 不能跟 prompt 一起用）；不用就 /mission-skip code-review:codex <理由>',
+              hint: 'Codex 還沒審：叫 /codex:rescue 用 $codex-evidence-review 審這個分支，或直接跑 codex exec -s read-only -C <worktree> \'$codex-evidence-review 審這個分支（base origin/main），附 spec 與驗收清單路徑\'（codex review 的 --base 不能跟 prompt 一起用）；修完重審時把範圍換成 <上一輪 HEAD>..HEAD 並附上一輪確認項；不用就 /mission-skip code-review:codex <理由>',
             },
           ],
         },
@@ -174,6 +174,11 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
           id: 'await-review',
           doneWhen: 'await-review',
           hint: '等同事看過之後，跑 /mission-review 同步 MR 狀態',
+        },
+        {
+          id: 'followup',
+          optional: true,
+          hint: 'review-triage 有收進後續票的項目：開這張功能票的後續 RD 票，從原分支切 stacked 分支開新任務接著做（不等原 MR 合併；原 MR 有修正就 merge 進來，不 rebase）。沒有後續項目就 /mission-skip followup <理由>',
         },
         {
           id: 'review-triage',

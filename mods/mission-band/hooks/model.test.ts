@@ -444,7 +444,7 @@ describe('nodeStates', () => {
         branchCommits: [{ hash: 'a', at: 11.5 }],
       })
       expect(nextStepHint(NEW_FEATURE_FLOW, m)).toBe(
-        '進行中：code-review　Codex 還沒審：叫 /codex:rescue 用 $codex-evidence-review 審這個分支，或直接跑 codex exec -s read-only -C <worktree> \'$codex-evidence-review 審這個分支（base origin/main），附 spec 與驗收清單路徑\'（codex review 的 --base 不能跟 prompt 一起用）；不用就 /mission-skip code-review:codex <理由>',
+        '進行中：code-review　Codex 還沒審：叫 /codex:rescue 用 $codex-evidence-review 審這個分支，或直接跑 codex exec -s read-only -C <worktree> \'$codex-evidence-review 審這個分支（base origin/main），附 spec 與驗收清單路徑\'（codex review 的 --base 不能跟 prompt 一起用）；修完重審時把範圍換成 <上一輪 HEAD>..HEAD 並附上一輪確認項；不用就 /mission-skip code-review:codex <理由>',
       )
     })
   })
@@ -1278,7 +1278,9 @@ describe('nextStage', () => {
       })
       const states = nodeStates(reviewNodes, m)
       const autoSkippedIds = new Set(['mr-reading-map', 'review-triage'])
-      expect(states.map(s => [s.node.id, s.status])).toEqual(states.map(s => [s.node.id, autoSkippedIds.has(s.node.id) ? 'skip' : 'done']))
+      const untouchedOptionalIds = new Set(['followup'])
+      const expected = (id: string) => (autoSkippedIds.has(id) ? 'skip' : untouchedOptionalIds.has(id) ? 'not-started' : 'done')
+      expect(states.map(s => [s.node.id, s.status])).toEqual(states.map(s => [s.node.id, expected(s.node.id)]))
       expect(nextStepHint(NEW_FEATURE_FLOW, m)).toBe('跑 /mission-review 同步 MR 狀態；合併後才能進入下一階段')
     })
 
