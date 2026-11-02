@@ -31,7 +31,9 @@ background: false
    - 沒有 → 用目前所在的 worktree。但目前分支是預設分支（`git symbolic-ref --short refs/remotes/origin/HEAD` 去掉 `origin/`）或 `rc/*` 時：有 `--branch` 就用它；沒有就停下來，回報「目前在 <分支>，請用 `--branch <功能分支>` 重跑」，結束
    - 確定後把分支名寫進 meta `branch`
 4. **決定比較基準 `<baseRef>`**（改動前＝這個分支切出來的地方）：
-   - meta `branchType` 是 `fix`（hotfix，目標是 `rc/*`）→ `<baseRef>`＝`origin/<MR 的目標分支>`；目標用 `--target`，沒給、也查不到這個分支的 MR 時，停下來回報「hotfix 要指定目標，請用 `--target rc/<版本>` 重跑」，結束
+   - 有 `--target` → `origin/<--target>`
+   - 這個分支有開著的 MR（`glab api "projects/:id/merge_requests?state=opened&source_branch=<分支>"`）→ `origin/<MR 的 target_branch>`，不管 branchType；feat 分支合進 `rc/*` 時拿預設分支比，會誤報落後、叫人 rebase 到錯的分支
+   - 都沒有、meta `branchType` 是 `fix`（hotfix，目標是 `rc/*`）→ 停下來回報「hotfix 要指定目標，請用 `--target rc/<版本>` 重跑」，結束
    - 其他 → `origin/<預設分支>`
    - `cd <wt> && git fetch origin`，算出分岔點 `<baseSha>`＝`git merge-base HEAD <baseRef>`。之後所有 diff 都用 `<baseSha>...HEAD`，Before 也跑在 `<baseSha>`
    - `git rev-list --count HEAD..<baseRef>` 大於 0 → 提醒「分支落後 N 個 commit，建議先 rebase」，不擋（Before 用分岔點，不會混到別人的改動）
