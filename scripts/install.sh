@@ -80,7 +80,7 @@ Options:
 
 Examples:
   $(basename "$0")                  # Install all skills to ~/.claude/skills/
-  $(basename "$0") -s figma         # Install only the figma skill
+  $(basename "$0") -s fe-arch        # Install only the fe-arch skill
   $(basename "$0") -s "fe-*"        # Install all skills matching fe-*
   $(basename "$0") -t agents        # Install to ~/.agents/skills/ (generic AI agents)
   $(basename "$0") -t codex         # Install to ~/.codex/skills/ (Codex CLI native skills)

@@ -95,7 +95,7 @@ git fetch origin <source_branch>:<source_branch>
 
 > **Cross-Context / Cross-Model 提示**：本 skill 在乾淨 session 只看最終產物（不帶產出時的對話歷史），本身即為 cross-context review。高風險區可再請不同 model 複查一次（例如 Codex 看 Claude 寫的），blind spot 不同。
 
-> **視覺化提示**：審核狀態機、多步驟表單這類高風險區，文字描述常常講不清楚「這次改動的形狀」。可依 `fe-show-me` 用 call-tree diff（改了哪一層呼叫）或 state diagram（狀態流轉）表達，比純文字快。只在高風險區、且畫圖確實比文字清楚時才用，不為畫而畫。
+> **視覺化提示**：審核狀態機、多步驟表單這類高風險區，文字描述常常講不清楚「這次改動的形狀」。可用 call-tree diff（改了哪一層呼叫）或 state diagram（狀態流轉）表達，比純文字快。只在高風險區、且畫圖確實比文字清楚時才用，不為畫而畫。
 
 ### Step R2: 判斷 MR 類型
 

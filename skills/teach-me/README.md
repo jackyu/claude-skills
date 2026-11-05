@@ -69,4 +69,4 @@ teach-me/
 
 ## 與其他 skill 的關係
 
-純主題學習用 `teach-me`；題目要綁 branch diff 或專案程式碼時用 `fe-ask-me-why`（有裝的話）。兩支不互相依賴。
+主要給純主題學習用；要綁 branch diff 或專案程式碼出題也可以，題目會改綁你指定的檔案。

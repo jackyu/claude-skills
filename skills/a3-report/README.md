@@ -92,7 +92,7 @@ GitLab token 從 `~/.claude/scripts/gitlab/.env` 或 `~/.claude.json` 讀。
 | `mattpocock-skills:retro` | 這次 session 有什麼可以改進 | 對象是工作流程，不是專案進度 |
 | `a3-report` | 主管要簽什麼、憑什麼簽 | 唯一一支產出「給主管做決定」的文件 |
 
-信心三級借自 `fe-mr-read`，HTML 規則借自 `fe-show-me`。
+信心三級借自 `fe-mr-read`。
 
 ## 安全邊界
 

@@ -13,7 +13,7 @@ cd claude-skills
 ./scripts/install.sh
 
 # 安裝特定 skill
-./scripts/install.sh -s figma
+./scripts/install.sh -s fe-arch
 
 # 列出可用 skills
 ./scripts/install.sh -l
@@ -58,8 +58,6 @@ cd claude-skills
 
 | Skill | 說明 |
 |---|---|
-| [figma](skills/figma/) | 整合 Figma API 進行設計自動化與程式碼生成 |
-| [web-design-guidelines](skills/web-design-guidelines/) | 依據 Web Interface Guidelines 審查 UI 程式碼的合規性與無障礙性 |
 
 ### 框架最佳實踐
 
@@ -73,10 +71,6 @@ cd claude-skills
 | Skill | 說明 |
 |---|---|
 | [fe-mr-generator](skills/fe-mr-generator/) | 從分支變更內容生成結構化 Merge Request 描述 |
-| [preview](skills/preview/) | 把提案/計畫/想法做成互動 HTML、部署 Vercel 取得分享連結，內嵌註解 overlay 收集回饋 |
-| [comment-polish](skills/comment-polish/) | 整批改寫既有程式碼註解：去翻譯腔與 AI 贅字、拆短句，核可後只動註解行（依 comment-style rule） |
-| [fe-show-me](skills/fe-show-me/) | 用最小視覺形式（pseudocode／call tree／component tree／file tree／Mermaid／diff／單頁 HTML）講重點；HTML 產出強制假資料、self-contained、固定落在 `.claude/tmp/` |
-| [fe-ask-me-why](skills/fe-ask-me-why/) | 針對當前 branch diff 扮演 reviewer 逐題反問「為什麼這樣做／為什麼不那樣做／API 怎麼接」，不知道就切導師模式講解再換角度重問，收尾產掌握度報告寫進 Heptabase |
 | [teach-me](skills/teach-me/) | 六步學習法學任何主題：5 級階梯 → 20% 計畫 → 一次一題考官 → 一頁速查表（必問嵌進哪個必經路徑）→ 驗證過的 5 個資源 → 費曼補漏；進度存 `<repo>/.claude/learn/`，pure skill、網頁版也能用 |
 | [a3-report](skills/a3-report/) | 給主管的週報與 A3 提案：進度／blocker／拍板事項（縮小版 A3：問題→現況→方案比較→建議）／下週，或完整 8 格 A3；素材來自手打筆記、PM issue、GitLab 本週 MR／issue；沒數據標「待確認」不腦補；`--format md\|ppt\|html` |
 | [pm-issue](skills/pm-issue/) | 用 PM 口吻寫需求 issue：任務概述 → 需求 → Given/When/Then 驗收情境，白話不帶工程用語；自動列待補的設計稿、截圖、文案，符合條件附 Mermaid 流程圖；確認後 dry-run 再建到 rsc-pm |
@@ -86,7 +80,6 @@ cd claude-skills
 | Skill | 說明 |
 |---|---|
 | [find-skills](skills/find-skills/) | 從開放 skills 生態系中探索與安裝 agent skills |
-| [verification-before-completion](skills/verification-before-completion/) | 在宣稱完成前強制執行驗證指令，證據先於斷言 |
 | [approach](skills/approach/) | 動手前檢查這張票有沒有做法要先決定（套件或手寫、放哪裡、介面形狀、從哪開始），有把握的整批列、拿不準的逐題問並附推薦。手動 `/approach`，排在 `/to-spec` 前 |
 | [to-acceptance](skills/to-acceptance/) | 把 spec 和 RD 票轉成給人看的驗收清單（AC-1…，含前提、操作、預期、證據類型、要不要進回歸），草稿後逼問補漏；規格改過重跑保留編號。手動 `/to-acceptance` |
 | [verify-acceptance](skills/verify-acceptance/) | 照驗收清單逐條驗收：截圖、跑測試或指令，會改變的行為另拍 Before；結果寫回清單、要進回歸的寫進 verify-admin／verify-client，最後跑整體回歸。手動 `/verify-acceptance` |
@@ -96,7 +89,6 @@ cd claude-skills
 
 | Skill | 說明 |
 |---|---|
-| [agentation](skills/agentation/) | 為 Next.js 專案加入 Agentation 視覺回饋工具列 |
 
 ### 系統維護
 
@@ -180,14 +172,12 @@ claude-skills/
 ├── scripts/
 │   └── install.sh             # 安裝腳本（symlink 部署）
 ├── skills/
-│   ├── agentation/
 │   │   ├── SKILL.md           # Agent 指令（必要）
 │   │   ├── README.md          # 人類可讀文件（必要，繁體中文）
 │   │   ├── scripts/           # 可執行工具（選用）
 │   │   ├── references/        # 按需載入的詳細文件（選用）
 │   │   ├── assets/            # 輸出範本與資源（選用）
 │   │   └── rules/             # 領域特定規則檔案（選用）
-│   ├── figma/
 │   └── ...                    # 每個 skill 一個目錄
 ├── mods/
 │   └── mission-band/          # Claude Code mod（安裝見其 README）

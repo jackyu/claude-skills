@@ -59,12 +59,12 @@
 
 兩種模式共用同一個外殼檔（A3 橫向、print CSS、樣式全 inline）。`proposal` 用它原本的 2 欄 × 4 格；`weekly` 把 `.a3-grid` 改成單欄、依序放進進度、風險與 blocker、需要拍板的事、下週四個 `.cell`，`.header` 與 `.checklist` 不動，不使用 `.decision-banner`。`a3-onepage.html` `<body>` 開頭的註解寫的是同一套對應，不要另建第二個 HTML 檔。
 
-遵守 `../fe-show-me/SKILL.md` 的 HTML 規則第 2、3、4 條：
+HTML 規則：
 
 - **self-contained**：CSS 全部 inline 或 `<style>` 內嵌，禁止任何外部 CDN，不發外部請求。
 - **路徑固定** `.claude/tmp/a3-report-<slug>.html`。動手前檢查專案 `.gitignore` 有沒有 `.claude/tmp/`，沒有就補一行。絕不寫進 `src/`、`app/` 這些原始碼路徑。
 - **不主動執行 `open`**，產出後印絕對路徑讓使用者自己開。
 
-**規則 1「一律假資料」在這裡縮限：** 週報本來就是報真實進度，MR 編號、issue 標題、完成票數照實寫。但不准放客戶個資、帳號密碼、金額明細、API 原始回應內容。要示範資料形狀就編一組明顯是假的。
+**資料照實寫，但有底線：** 週報本來就是報真實進度，MR 編號、issue 標題、完成票數照實寫。但不准放客戶個資、帳號密碼、金額明細、API 原始回應內容。要示範資料形狀就編一組明顯是假的。
 
 cwd 不是 git repo 時沒有 `.claude/tmp/` 可落，改落 scratchpad 目錄，並在收尾時告訴使用者檔案在哪、為什麼不在專案裡。

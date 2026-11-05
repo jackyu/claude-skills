@@ -100,7 +100,7 @@ description: 產出給主管看的週報與 A3 提案。使用時機：(1) 用�
 
 - **md**：輸出到對話。
 - **ppt**：用 `Skill` tool 呼叫 `document-skills:pptx`，傳最終 markdown、投影片對應表、約束三樣。回 `disable-model-invocation` 就改用 pptxgenjs 自己產，不要重試。輸出 `.claude/tmp/a3-report-<slug>.pptx`。
-- **html**：套 `assets/a3-onepage.html`，遵守 `../fe-show-me/SKILL.md` HTML 規則的第 2、3、4 條（self-contained、路徑固定、不主動 `open`）。規則 1「一律假資料」縮限：專案進度照實寫，但不放客戶個資、帳號、金額明細、API 原始回應。輸出 `.claude/tmp/a3-report-<slug>.html`；cwd 不是 git repo 就落 scratchpad 並告知。
+- **html**：套 `assets/a3-onepage.html`，HTML 要 self-contained、路徑固定、不主動 `open`。專案進度照實寫，但不放客戶個資、帳號、金額明細、API 原始回應。輸出 `.claude/tmp/a3-report-<slug>.html`；cwd 不是 git repo 就落 scratchpad 並告知。
 
 轉格式階段不新增、不改寫內容，只搬版面。
 
