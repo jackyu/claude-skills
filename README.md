@@ -27,11 +27,9 @@ cd claude-skills
 依分類索引如下：
 
 - [前端開發](#前端開發) — 架構規範、issue 拆解、MR 導讀、審查與學習、review 結果判定
-- [設計整合](#設計整合) — 設計稿驗證、Figma 整合、UI 審查
 - [框架最佳實踐](#框架最佳實踐) — React/Next.js、Remotion
-- [工具](#工具) — MR 生成、互動預覽、六步學習法、週報／A3 提案、PM 需求票
-- [工作流程](#工作流程) — skill 探索、完成前驗證、做法決策、驗收清單與驗收、分支收尾
-- [開發輔助](#開發輔助) — Agentation 視覺回饋
+- [工具](#工具) — MR 生成、六步學習法、週報／A3 提案、PM 需求票
+- [工作流程](#工作流程) — skill 探索、做法決策、驗收清單與驗收、分支收尾
 - [系統維護](#系統維護) — macOS 清理、磁碟分析
 
 ---
@@ -53,11 +51,6 @@ cd claude-skills
 > **品質門檻的單一真相來源**：函式長度、複雜度、巢狀深度、單檔行數、重複率的數字，一律以 [`fe-guardrails/references/thresholds.md`](skills/fe-guardrails/references/thresholds.md) 為準；`fe-mr-review` 只引用不寫死。**review skill 產出的是建議，`fe-guardrails` 裝的是 pre-commit 硬閘**，兩者互補。
 
 > **fe-mr-\* 系列的時機分工**：Pocock `/mattpocock-skills:code-review`（Spec／Standards 兩軸）＋ Codex `$codex-evidence-review`（作者推送前的雙軌預審，結果交 `/review-triage`；爆炸半徑由驗收階段的 pstack `blast-radius` 負責）→ `fe-mr-read` Phase 1（reviewer review **前**的導讀）→ `fe-mr-review`（review **中**的審查與 comment 產出）→ `fe-mr-read` Phase 3（導讀或 review **之後**的 Heptabase 學習筆記，`fe-mr-review` 審完也可直接接）。共用判準（流程圖規則、好做法目錄、難度分級等）放在 [`skills/_shared/fe-mr-common/`](skills/_shared/fe-mr-common/)。
-
-### 設計整合
-
-| Skill | 說明 |
-|---|---|
 
 ### 框架最佳實踐
 
@@ -84,11 +77,6 @@ cd claude-skills
 | [to-acceptance](skills/to-acceptance/) | 把 spec 和 RD 票轉成給人看的驗收清單（AC-1…，含前提、操作、預期、證據類型、要不要進回歸），草稿後逼問補漏；規格改過重跑保留編號。手動 `/to-acceptance` |
 | [verify-acceptance](skills/verify-acceptance/) | 照驗收清單逐條驗收：截圖、跑測試或指令，會改變的行為另拍 Before；結果寫回清單、要進回歸的寫進 verify-admin／verify-client，最後跑整體回歸。手動 `/verify-acceptance` |
 | [cleanup](skills/cleanup/) | MR 合併後刪掉這張票的 worktree 與本地分支，spec、驗收清單搬進 archive；沒合併要輸入 discard 才丟棄 |
-
-### 開發輔助
-
-| Skill | 說明 |
-|---|---|
 
 ### 系統維護
 
@@ -172,6 +160,7 @@ claude-skills/
 ├── scripts/
 │   └── install.sh             # 安裝腳本（symlink 部署）
 ├── skills/
+│   ├── <skill-name>/
 │   │   ├── SKILL.md           # Agent 指令（必要）
 │   │   ├── README.md          # 人類可讀文件（必要，繁體中文）
 │   │   ├── scripts/           # 可執行工具（選用）
