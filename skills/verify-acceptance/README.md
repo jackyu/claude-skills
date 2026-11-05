@@ -12,7 +12,7 @@
 
 - 使用者打 `/verify-acceptance`
 - 修完未過的條目後重跑（預設只跑沒過的）
-- rebase 之後條目不用重驗、只要重記整體回歸的 SHA：`/verify-acceptance <key> --regression-only`（要先 commit，有未提交改動會停下來）
+- rebase 之後條目不用重驗、只要重記整體回歸的 SHA：`/verify-acceptance <key> --regression-only`（要先 commit，而且條目都已經過、回歸都已入庫，否則會停下來請你用預設模式跑）
 
 會起 dev server、寫清單，所以設成 `disable-model-invocation: true`，只能手打。
 

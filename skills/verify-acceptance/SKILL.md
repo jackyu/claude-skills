@@ -19,7 +19,7 @@ background: false
 - `--regression-only` 只跑整體回歸、重記 SHA：rebase 之後條目不用重驗時用。跳過 Step 1、3、4、5 和 Before，條目結果沿用上一輪。跟 `--all`、`--only`、`--no-regression` 一起給就停下來回報「`--regression-only` 不能跟 <旗標> 一起用」，結束
 - 不 commit、不 push。驗收過程發現程式要改，回報給使用者，回實作階段修
 - `--branch`、`--target`、`--spec-ok` 是回答停下來的問題用的，見 Step 0 第 3～5 點
-- **通常要跑兩輪**：第一輪逐條驗收、把回歸寫進 worktree；使用者 commit 之後再跑一次，這次條目都過了會直接進整體回歸，記下的 SHA 才是最後要進 MR 的那一個
+- **通常要跑兩輪**：第一輪逐條驗收、把回歸寫進 worktree；使用者 commit 之後再跑一次，這次條目都過了會直接進整體回歸，記下的 SHA 才是最後要進 MR 的那一個。第二輪條目都已經過、只差整體回歸時，可以改用 `--regression-only`
 
 ## Step 0：準備
 
@@ -40,12 +40,14 @@ background: false
    - `git rev-list --count HEAD..<baseRef>` 大於 0 → 提醒「分支落後 N 個 commit，建議先 rebase」，不擋（Before 用分岔點，不會混到別人的改動）
 5. **規格改過沒有**：meta `spec` 不是 null 時，spec 檔現在的 mtime（取到整秒）比 `specMtime` 新 → 沒有 `--spec-ok` 就停下來，回報「規格改過，清單可能沒跟上：先跑 /to-acceptance 更新；確定不用更新就加 `--spec-ok` 重跑」，結束
 6. **分支狀態**：
-   - `<wt>` 沒有 `.claude/skills/verify-admin`（或 `verify-client`）→ 分支切得太早，請使用者 rebase，截圖類先記成 `受阻｜分支沒有驅動腳本，請先 rebase`
-   - 未提交改動：`git status --porcelain --untracked-files=no` 有東西，或 `git status --porcelain -- apps packages` 有未追蹤檔 → 提醒驗收跑的是含未提交改動的版本
+   - `<wt>` 沒有 `.claude/skills/verify-admin`（或 `verify-client`）→ 分支切得太早，請使用者 rebase，截圖類先記成 `受阻｜分支沒有驅動腳本，請先 rebase`。`--regression-only` 不改條目，改寫 `整體回歸：受阻｜分支沒有驅動腳本` 後結束
+   - 未提交改動：`git status --porcelain --untracked-files=no` 有東西，或 `git status --porcelain -- apps packages .claude/skills` 有未追蹤檔（含 Step 5 新增、還沒 commit 的 journey） → 提醒驗收跑的是含未提交改動的版本
 7. **`.env` 先檢查**：依 meta `app`（`both` 就兩個都看），`<wt>/apps/<app>/.env` 不存在、而且這一輪有截圖類條目或要跑 Step 6 → 立刻停下來，回報「請你執行 `! cp <main>/apps/<app>/.env <wt>/apps/<app>/.env`，再重跑」，結束。不要先跑測試類條目再回頭，缺 `.env` 的那一輪幾乎都得整輪重跑
 8. **證據目錄**：`<main>/.claude/verify-evidence/<key>/`，沒有就建
 9. **列出要跑的條目**和各自的證據類型，給使用者看一眼就開始，不用等確認。`--regression-only` 改列回歸地圖的 journey 數，並註明條目結果沿用上一輪、這一輪不重驗
-10. **`--regression-only` 先擋未提交改動**：第 6 點判斷 `<wt>` 有未提交改動 → 停下來回報「有未提交改動，SHA 記了也對不上實際跑的程式碼：請先 commit 再重跑」，結束。不起 app
+10. **`--regression-only` 開跑前先擋兩種情況**，都是停下來回報、結束，不起 app：
+    - 第 6 點判斷 `<wt>` 有未提交改動 →「有未提交改動，SHA 記了也對不上實際跑的程式碼：請先 commit 再重跑」
+    - 有條目結果不是 `通過`（`受阻` 而且 `驗不了時` 是 `可後補` 的不算），或有條目是 `回歸入庫：待寫` →「還有 AC-n 沒驗完或回歸沒入庫，先用預設模式跑」
 
 ## Step 1：先分出跑不了 mock 的條目
 
@@ -62,16 +64,16 @@ background: false
 
 ### After（有截圖類條目，或這一輪要跑 Step 6 整體回歸才做）
 
-依 meta `app`（`both` 時看每條的 `範圍`）：
+依 meta `app`（`both` 時看每條的 `範圍`；`--regression-only` 時 `both` 就兩個都起）：
 
 | app | 怎麼起 | 預設 port |
 |-----|--------|-----------|
-| admin | `cd <wt> && .claude/skills/verify-admin/scripts/launch.sh <port> webpack <這次要驗的頁面路徑>`，再跑 doctor | 3201 |
+| admin | `cd <wt> && .claude/skills/verify-admin/scripts/launch.sh <port> webpack <這次要驗的頁面路徑>`，再跑 doctor（`--regression-only` 的頁面路徑用回歸地圖裡 journey 的 route） | 3201 |
 | client | `cd <wt> && .claude/skills/verify-client/scripts/launch.sh <port>`，再跑 doctor | 3202 |
 
 - 預設 port 被別人占用就換一個（3211、3212…）。之後 drive、doctor、cleanup，以及寫進 `.cmd.txt` 的指令，一律明寫 `--port`。不碰 3000、3001，那是使用者自己的 dev server
 - 會用到 PdfViewer 的 admin 頁面改用 `turbopack`（見 verify-admin SKILL.md）
-- 前置條件不滿足（`.env` 不在、`node_modules` 沒裝）：`.env` 只能請使用者自己 `! cp <main>/apps/<app>/.env <wt>/apps/<app>/.env`，主對話不讀不複製。等不到就把所有截圖類條目記成 `受阻｜<app> 起不來：<原因>`，繼續跑測試和指令類
+- 前置條件不滿足（`.env` 不在、`node_modules` 沒裝）：`.env` 只能請使用者自己 `! cp <main>/apps/<app>/.env <wt>/apps/<app>/.env`，主對話不讀不複製。等不到就把所有截圖類條目記成 `受阻｜<app> 起不來：<原因>`，繼續跑測試和指令類。`--regression-only` 不改條目，改寫 `整體回歸：受阻｜<app> 起不來：<原因>` 後結束
 - After 的 app 開到 Step 6 整體回歸跑完才關
 
 ### Before（有 `needsBefore` 的條目才做；`--regression-only` 不做）
