@@ -37,6 +37,12 @@ const SAME_AS_EXPECTED_PREFIX = '同預期'
 const REGRESSION_YES_PREFIX = '是'
 const REGRESSION_DONE_WORD = '已寫'
 
+const UNRESOLVED_HEDGE_MARKERS = ['待確認', '待使用者', '沒驗到', '未驗證', '待補'] as const
+
+function findUnresolvedHedgeMarker(resultValue: string): string | undefined {
+  return UNRESOLVED_HEDGE_MARKERS.find(marker => resultValue.includes(marker))
+}
+
 /**
  * 值是不是白名單裡的某個詞：那個詞要整個等於值（先 trim 頭尾空白／CRLF 殘留的 \r），
  * 或值以那個詞開頭、中間可以有空白、再緊接著分隔符（全形｜或半形|，例如使用者多打一個
@@ -119,11 +125,19 @@ function computeNeedsBefore(beforeValue: string | undefined): boolean {
 }
 
 function toAcceptanceItem(raw: RawAcceptanceItem): AcceptanceItem {
+  const resultValue = raw.fields['結果'] ?? ''
   // 缺少「結果」行的條目當成待驗，跟結果認不得狀態時的 fallback 一樣。
-  const status: AcceptanceItemStatus = matchWhitelistWord(raw.fields['結果'] ?? '', RESULT_WHITELIST, '待驗')
+  const parsedStatus: AcceptanceItemStatus = matchWhitelistWord(resultValue, RESULT_WHITELIST, '待驗')
+  const hedgeMarker = parsedStatus === '通過' ? findUnresolvedHedgeMarker(resultValue) : undefined
+  const status: AcceptanceItemStatus = hedgeMarker === undefined ? parsedStatus : '受阻'
   // 缺「驗不了時」這欄，或值不是白名單裡的詞，都當成必須驗過（見 format.md 解析規則）。
   const deferrability: AcceptanceDeferrability = matchDeferrability(raw.fields['驗不了時'] ?? '')
-  return { id: raw.id, deleted: raw.deleted, title: raw.title, fields: raw.fields, status, deferrability, needsBefore: computeNeedsBefore(raw.fields['改動前']) }
+  return { id: raw.id, deleted: raw.deleted, title: raw.title, fields: raw.fields, status, deferrability, needsBefore: computeNeedsBefore(raw.fields['改動前']), hedgeMarker }
+}
+
+/** 每一條被保留字樣降級的 AC 一句中文理由，依清單裡的原始順序排列；沒有就回空陣列。 */
+export function hedgeReasons(items: readonly AcceptanceItem[]): readonly string[] {
+  return items.filter(item => item.hedgeMarker !== undefined).map(item => `${item.id} 寫通過但還有『${item.hedgeMarker}』，算受阻`)
 }
 
 // ===== 整體回歸 =====

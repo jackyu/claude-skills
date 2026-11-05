@@ -2886,6 +2886,73 @@ describe('acceptance refresh', () => {
     expect(logs.filter(text => text.includes('讀取驗收清單失敗'))).toHaveLength(2)
   })
 
+  test('結果欄寫通過但帶保留字樣：記一次中文理由，不是每個 turn 都記', async ($, on) => {
+    mock.clock(on)
+    mock.store(on)
+    setupRepoRoot(on)
+    const text = [
+      '# 驗收清單：#473 x',
+      '<!-- acceptance:meta {"key":"473"} -->',
+      '',
+      '- 整體回歸：未跑',
+      '',
+      '### AC-7 x',
+      '- 結果：通過｜測試（待使用者確認）',
+      '',
+    ].join('\n')
+    on('fs.exists', () => ({ value: true }))
+    on('fs.read', (_, e) => ({ value: e.path === ACCEPTANCE_PATH ? text : '# x\n\n## Agent skills\n' }))
+    const logs: string[] = []
+    on('ui.log', (_, e) => {
+      logs.push(e.text)
+      return { value: undefined }
+    })
+    const run = (command: string, args = '') => $.command.run({ command, args, origin: { kind: 'composer' }, presentation: PRESENTATION })
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    await run('mission-start', '#473')
+    await $.turn.complete({ answer: '', durationMs: 1, isAborted: false, turnId: 't1', reason: 'answer' })
+
+    expect(logs.filter(t => t.includes('AC-7') && t.includes('待使用者'))).toHaveLength(1)
+
+    await $.turn.complete({ answer: '', durationMs: 2, isAborted: false, turnId: 't2', reason: 'answer' })
+    expect(logs.filter(t => t.includes('AC-7') && t.includes('待使用者'))).toHaveLength(1)
+  })
+
+  test('兩筆各自夾著保留字樣的 AC，各記一句理由', async ($, on) => {
+    mock.clock(on)
+    mock.store(on)
+    setupRepoRoot(on)
+    const text = [
+      '# 驗收清單：#473 x',
+      '<!-- acceptance:meta {"key":"473"} -->',
+      '',
+      '- 整體回歸：未跑',
+      '',
+      '### AC-1 x',
+      '- 結果：通過｜測試（待確認）',
+      '',
+      '### AC-2 y',
+      '- 結果：通過｜測試（未驗證）',
+      '',
+    ].join('\n')
+    on('fs.exists', () => ({ value: true }))
+    on('fs.read', (_, e) => ({ value: e.path === ACCEPTANCE_PATH ? text : '# x\n\n## Agent skills\n' }))
+    const logs: string[] = []
+    on('ui.log', (_, e) => {
+      logs.push(e.text)
+      return { value: undefined }
+    })
+    const run = (command: string, args = '') => $.command.run({ command, args, origin: { kind: 'composer' }, presentation: PRESENTATION })
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    await run('mission-start', '#473')
+    await $.turn.complete({ answer: '', durationMs: 1, isAborted: false, turnId: 't1', reason: 'answer' })
+
+    expect(logs.some(t => t.includes('AC-1') && t.includes('待確認'))).toBe(true)
+    expect(logs.some(t => t.includes('AC-2') && t.includes('未驗證'))).toBe(true)
+  })
+
   test('Write/Edit to the checklist path under a worktree’s own .claude/specs hints the wrong location instead of trying to refresh', async ($, on) => {
     mock.clock(on)
     mock.store(on)

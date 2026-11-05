@@ -7,6 +7,7 @@ import {
   evaluateAcceptanceRunDoneWhen,
   evaluateOverallRegressionDoneWhen,
   evaluateRegressionWriteDoneWhen,
+  hedgeReasons,
   isAcceptanceFileName,
   isSpecStale,
   looksLikeAcceptanceFileWrite,
@@ -297,6 +298,77 @@ describe('parseAcceptance: 驗不了時（後補 vs 受阻）', () => {
     const text = ['### AC-1 x', '- 驗不了時：可後補｜等後端部署', '- 結果：已刪除｜2026-10-26 規格改了'].join('\n')
     const summary = parseAcceptance(text)
     expect(summary.counts).toMatchObject({ total: 0, failed: 0, blocked: 0, deferred: 0 })
+  })
+})
+
+describe('parseAcceptance: 結果寫通過但還留著沒驗到的保留字樣，算受阻', () => {
+  // 照抄 #483 AC-7 的真實案例：結果寫通過，但附註裡還有「待使用者…確認」沒解決。
+  test('真實案例：通過但夾著「待使用者」，降成受阻', () => {
+    const text = [
+      '### AC-7 x',
+      '- 結果：通過｜.claude/verify-evidence/483/AC-7-output.json（...輸出不含建檔完成時間，「當天建檔」前提待使用者用 ... 確認）',
+    ].join('\n')
+    const summary = parseAcceptance(text)
+    expect(summary.items[0]?.status).toBe('受阻')
+    expect(summary.counts).toMatchObject({ total: 1, passed: 0, blocked: 1, deferred: 0 })
+  })
+
+  test('五種保留字樣各自都會把通過降成受阻', () => {
+    const markers = ['待確認', '待使用者', '沒驗到', '未驗證', '待補']
+    for (const marker of markers) {
+      const text = `### AC-1 x\n- 結果：通過｜測試（${marker}）\n`
+      expect(parseAcceptance(text).items[0]?.status).toBe(`受阻`)
+    }
+  })
+
+  test('搭配驗不了時：可後補，降成受阻後算 deferred 不算 blocked', () => {
+    const text = ['### AC-1 x', '- 驗不了時：可後補｜等後端部署', '- 結果：通過｜截圖（待確認是否符合預期）'].join('\n')
+    const summary = parseAcceptance(text)
+    expect(summary.items[0]?.status).toBe('受阻')
+    expect(summary.counts).toMatchObject({ total: 1, blocked: 0, deferred: 1 })
+  })
+
+  test('搭配驗不了時：只驗前端，降成受阻後算 blocked（只驗前端不算 deferred）', () => {
+    const text = ['### AC-1 x', '- 驗不了時：只驗前端', '- 結果：通過｜只驗前端｜截圖（待確認）'].join('\n')
+    const summary = parseAcceptance(text)
+    expect(summary.items[0]?.status).toBe('受阻')
+    expect(summary.counts).toMatchObject({ blocked: 1, deferred: 0 })
+  })
+
+  test('保留字樣出現在「前提」欄，不影響「結果」欄——只看結果欄本身', () => {
+    const text = ['### AC-1 x', '- 前提：待確認後端是否已部署', '- 結果：通過｜測試 x（通過）'].join('\n')
+    const summary = parseAcceptance(text)
+    expect(summary.items[0]?.status).toBe('通過')
+    expect(summary.counts).toMatchObject({ passed: 1, blocked: 0 })
+  })
+
+  test('本來就受阻的條目，結果欄帶「待補」不會被誤判成通過降級（只有通過才會被降級）', () => {
+    const text = '### AC-1 x\n- 結果：受阻｜截圖待補\n'
+    const summary = parseAcceptance(text)
+    expect(summary.items[0]?.status).toBe('受阻')
+    expect(hedgeReasons(summary.items)).toEqual([])
+  })
+
+  test('「通過（部分）」本來就認不得、退回待驗，不會進入降級判斷', () => {
+    const text = '### AC-1 x\n- 結果：通過（部分）（待確認）\n'
+    expect(parseAcceptance(text).items[0]?.status).toBe('待驗')
+  })
+
+  test('hedgeReasons：沒有被降級的條目回空陣列', () => {
+    const text = '### AC-1 x\n- 結果：通過｜測試 x（通過）\n'
+    expect(hedgeReasons(parseAcceptance(text).items)).toEqual([])
+  })
+
+  test('hedgeReasons：降級的條目回傳附 AC id 跟保留字樣的中文訊息', () => {
+    const text = '### AC-7 x\n- 結果：通過｜測試（待使用者確認）\n'
+    const summary = parseAcceptance(text)
+    expect(hedgeReasons(summary.items)).toEqual(['AC-7 寫通過但還有『待使用者』，算受阻'])
+  })
+
+  test('hedgeReasons：多條降級各自一句，依原順序排列', () => {
+    const text = ['### AC-1 x', '- 結果：通過｜測試（待確認）', '### AC-2 y', '- 結果：通過｜測試（未驗證）'].join('\n')
+    const summary = parseAcceptance(text)
+    expect(hedgeReasons(summary.items)).toEqual(['AC-1 寫通過但還有『待確認』，算受阻', 'AC-2 寫通過但還有『未驗證』，算受阻'])
   })
 })
 

@@ -7,6 +7,7 @@ import type { AcceptanceOverall, MissionAcceptance } from '../types'
 import {
   acceptanceKeyFromMissionName,
   acceptancePath,
+  hedgeReasons,
   isAcceptanceFileName,
   isExcludedFromTotal,
   isSpecStale,
@@ -92,7 +93,7 @@ function toSummary(resolved: Resolved | undefined, now: number): MissionAcceptan
   // 跟 computeCounts 用同一條「排除在 total 外」規則，已刪除的 AC 不會被 MR Evidence
   // 檢查要求補截圖（只看標題的「（已刪除）」會漏掉只改了結果欄的情況）。
   const acIds = items.filter(item => !isExcludedFromTotal(item)).map(item => item.id)
-  return { exists: true, counts, overall, metaSpec: meta.spec, metaSpecMtime: meta.specMtime, resolvedPath: resolved.path, acIds, readAt: now }
+  return { exists: true, counts, overall, metaSpec: meta.spec, metaSpecMtime: meta.specMtime, resolvedPath: resolved.path, acIds, hedgeReasons: hedgeReasons(items), readAt: now }
 }
 
 /** meta.spec 現在的 mtime 比 meta.specMtime 晚（見 isSpecStale）；spec 是 null／沒有，或查不到（檔案被刪）都不算改過。 */
@@ -162,8 +163,16 @@ function sameContent(a: MissionAcceptance | undefined, b: MissionAcceptance): bo
     a.overallStale === b.overallStale &&
     JSON.stringify(a.counts) === JSON.stringify(b.counts) &&
     JSON.stringify(a.overall) === JSON.stringify(b.overall) &&
-    JSON.stringify(a.acIds) === JSON.stringify(b.acIds)
+    JSON.stringify(a.acIds) === JSON.stringify(b.acIds) &&
+    JSON.stringify(a.hedgeReasons) === JSON.stringify(b.hedgeReasons)
   )
+}
+
+function logNewHedgeReasons($: EngineInterface, previous: readonly string[] | undefined, next: readonly string[] | undefined): void {
+  const previousSet = new Set(previous ?? [])
+  for (const reason of next ?? []) {
+    if (!previousSet.has(reason)) $.ui.log(`mission-band: ${reason}`)
+  }
 }
 
 /**
@@ -226,6 +235,8 @@ export async function maybeRefreshAcceptance($: EngineInterface, binding: string
     const overallStale = summary.overall === undefined ? false : await computeOverallStale($, mission.worktreePath, summary.overall)
     summary = { ...summary, specStale, overallStale }
   }
+
+  logNewHedgeReasons($, mission.acceptance?.hedgeReasons, summary.hedgeReasons)
 
   await mutate($, missions => {
     const bound2 = findBoundMission(missions, binding)

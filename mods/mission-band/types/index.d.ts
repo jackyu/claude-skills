@@ -245,6 +245,7 @@ export type AcceptanceItem = {
   status: AcceptanceItemStatus
   deferrability: AcceptanceDeferrability
   needsBefore: boolean
+  hedgeMarker?: string
 }
 
 export type AcceptanceCounts = {
@@ -302,6 +303,7 @@ export type MissionAcceptance = {
   // acIds：驗收清單裡（非已刪除的）AC id 清單，open-mr 節點檢查 MR 描述的 Evidence
   // 段落有沒有漏提到哪個 AC 時要用；存這裡省得開 MR 那一刻還要重讀一次清單檔。
   acIds?: readonly string[]
+  hedgeReasons?: readonly string[]
   readAt: number
 }
 
