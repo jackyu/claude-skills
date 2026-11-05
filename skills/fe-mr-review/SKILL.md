@@ -124,6 +124,7 @@ git fetch origin <source_branch>:<source_branch>
 | TypeScript | 型別完整性、any 濫用、型別斷言合理性 |
 | 錯誤處理 | try-catch 完整性、邊界條件、API 錯誤處理；**錯誤與副作用收在對的層**——別把分類/回報/轉換推到太下游、避免重複 Sentry 回報、副作用別塞進 effect/map（見 `review-focus.md`「實戰關注點 §1」） |
 | 安全性 | XSS、敏感資料外洩、不安全的動態渲染 |
+| 效能 | diff 動到元件、資料請求或 import 時，載入 `vercel-react-best-practices`，只套 CRITICAL／HIGH 三類：`async-`（請求一個等一個）、`bundle-`（barrel import、該 dynamic import 沒做）、`server-`（傳給 client 的資料太多、server action 沒驗權限）。`rerender-*` 只在 diff 裡看得出實際重繪問題時才提，不為了優化而建議加 memo |
 | 可維護性 | 重複邏輯、過長函式、單檔行數、magic number——**用數字判定，不憑感覺**，門檻見下方 |
 | 🔴 高風險區（依 R1） | 對 R1 標記的高風險段落逐行檢查；對齊業務規則而非只看語法；標明哪些必須人工/cross-model 複查 |
 | 架構規範 | 新增／搬移檔案的位置是否合規；載入 `fe-arch` skill 跑其 Code Review 檢查清單（見 `review-focus.md`「架構規範檢查」） |
