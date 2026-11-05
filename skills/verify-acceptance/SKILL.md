@@ -10,12 +10,13 @@ background: false
 
 清單格式以 `~/.claude/skills/_shared/acceptance/format.md` 為準，先讀它。這個 skill 只寫清單的 `結果`、`回歸入庫`、`整體回歸`、meta 的 `branch`，其他欄位是 `/to-acceptance` 的，不要改。
 
-**用法**：`/verify-acceptance [key] [--all] [--only AC-1,AC-3] [--no-regression] [--branch <分支>] [--target <分支>] [--spec-ok]`
+**用法**：`/verify-acceptance [key] [--all] [--only AC-1,AC-3] [--no-regression] [--regression-only] [--branch <分支>] [--target <分支>] [--spec-ok]`
 
 **這個 skill 在 subagent 裡跑**（frontmatter `context: fork`）：驗收要起 app、讀大量輸出，放在主對話會讓之後每一次呼叫都重讀這些內容。subagent 中途問不了使用者，所以遇到要使用者決定的地方，一律停下來把問題寫進回報、結束這一輪，使用者回答後帶對應的旗標重跑。Step 7 的回報是主對話唯一看得到的內容，要能單獨讀懂。
 
 - 預設只跑結果是 `待驗`、`未過`、`受阻`、`待重驗` 的條目；`--all` 連 `通過` 的也重跑；`--only` 只跑指定的
 - 逐條跑完後接著做回歸入庫（Step 5）和整體回歸（Step 6）；`--no-regression` 跳過這兩步
+- `--regression-only` 只跑整體回歸、重記 SHA：rebase 之後條目不用重驗時用。跳過 Step 1、3、4、5 和 Before，條目結果沿用上一輪。跟 `--all`、`--only`、`--no-regression` 一起給就停下來回報「`--regression-only` 不能跟 <旗標> 一起用」，結束
 - 不 commit、不 push。驗收過程發現程式要改，回報給使用者，回實作階段修
 - `--branch`、`--target`、`--spec-ok` 是回答停下來的問題用的，見 Step 0 第 3～5 點
 - **通常要跑兩輪**：第一輪逐條驗收、把回歸寫進 worktree；使用者 commit 之後再跑一次，這次條目都過了會直接進整體回歸，記下的 SHA 才是最後要進 MR 的那一個
@@ -43,7 +44,8 @@ background: false
    - 未提交改動：`git status --porcelain --untracked-files=no` 有東西，或 `git status --porcelain -- apps packages` 有未追蹤檔 → 提醒驗收跑的是含未提交改動的版本
 7. **`.env` 先檢查**：依 meta `app`（`both` 就兩個都看），`<wt>/apps/<app>/.env` 不存在、而且這一輪有截圖類條目或要跑 Step 6 → 立刻停下來，回報「請你執行 `! cp <main>/apps/<app>/.env <wt>/apps/<app>/.env`，再重跑」，結束。不要先跑測試類條目再回頭，缺 `.env` 的那一輪幾乎都得整輪重跑
 8. **證據目錄**：`<main>/.claude/verify-evidence/<key>/`，沒有就建
-9. **列出要跑的條目**和各自的證據類型，給使用者看一眼就開始，不用等確認
+9. **列出要跑的條目**和各自的證據類型，給使用者看一眼就開始，不用等確認。`--regression-only` 改列回歸地圖的 journey 數，並註明條目結果沿用上一輪、這一輪不重驗
+10. **`--regression-only` 先擋未提交改動**：第 6 點判斷 `<wt>` 有未提交改動 → 停下來回報「有未提交改動，SHA 記了也對不上實際跑的程式碼：請先 commit 再重跑」，結束。不起 app
 
 ## Step 1：先分出跑不了 mock 的條目
 
@@ -72,7 +74,7 @@ background: false
 - 前置條件不滿足（`.env` 不在、`node_modules` 沒裝）：`.env` 只能請使用者自己 `! cp <main>/apps/<app>/.env <wt>/apps/<app>/.env`，主對話不讀不複製。等不到就把所有截圖類條目記成 `受阻｜<app> 起不來：<原因>`，繼續跑測試和指令類
 - After 的 app 開到 Step 6 整體回歸跑完才關
 
-### Before（有 `needsBefore` 的條目才做）
+### Before（有 `needsBefore` 的條目才做；`--regression-only` 不做）
 
 `needsBefore`＝`改動前` 不是 `無（新功能）`、也不是 `同預期` 開頭。整份清單沒有這種條目就整段跳過。
 
@@ -201,7 +203,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 
 **這一輪 Step 5 有寫檔，或 `<wt>` 有未提交改動（照 Step 0 第 6 點的判斷）→ 跳過這步**，清單維持 `整體回歸：未跑`，回報請使用者 commit 後再跑一次。記下的 SHA 必須是實際跑的程式碼。
 
-否則對 After 跑回歸地圖裡的**全部**項目。每條 journey／指令都用前景 Bash 跑完（帶 timeout，最長 600000），不要丟背景、也不要掛 Monitor 等通知：這個 skill 跑在 fork 裡，回合一結束就收不到結果，整體回歸會變成沒跑完、只能整輪重跑。
+否則對 After 跑回歸地圖裡的**全部**項目。`--regression-only` 從 Step 2 的 After 直接跳到這裡。每條 journey／指令都用前景 Bash 跑完（帶 timeout，最長 600000），不要丟背景、也不要掛 Monitor 等通知：這個 skill 跑在 fork 裡，回合一結束就收不到結果，整體回歸會變成沒跑完、只能整輪重跑。
 
 - admin：`<wt>/.claude/skills/verify-admin/journeys/*.json` 每一份各跑一次，`--port` 換成 After 的。features 檔裡標成「預期失敗」的變體（例：`--role sales` 驗無權限）照它寫的指令跑，結果符合它寫的預期就算過
 - client：`<wt>/.claude/skills/verify-client/features/*.md` 每份 Driving 段落的每條指令各跑一次（`--port` 換成 After 的）
@@ -217,5 +219,6 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 - 受阻的條目（`驗不了時：必須驗過`，或缺漏／值不認得，含 `只驗前端` 但連前端那一半都拿不到證據的情況）列出缺什麼、誰能解（例：「請你執行 `! cp …`」），這些會擋合併
 - 後補的條目（`驗不了時：可後補｜<X>`）另外列一組，寫清楚在等什麼；說明這些不擋 push／合併，等條件到了再補驗
 - 回歸入庫改了哪些檔、要不要 commit 後再跑一次；整體回歸的結果
+- `--regression-only`：只報整體回歸的結果和記下的 SHA，並附一句「條目結果沿用上一輪；rebase 帶進的改動會影響某條的話，改用預設模式重跑那幾條（`--only AC-n`）」
 - Step 3 在 `<wt>` 新增、但沒進回歸入庫的檔（例：條目未過時新增的 client 情境），請使用者決定留不留
 - Before 跟「改動前」描述對不上的條目
