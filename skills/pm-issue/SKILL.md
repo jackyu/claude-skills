@@ -1,6 +1,7 @@
 ---
 name: pm-issue
 description: 以 PM 角色撰寫需求 issue（rsc-pm 的格式：任務概述、需求、Given/When/Then 驗收標準），用非工程人員看得懂的白話，講清楚要做什麼、解決什麼問題、怎樣算驗收合格，並主動列出還缺的設計稿、截圖、文案，判斷要不要附簡易流程圖，最後可直接建到 GitLab。使用時機：(1) 使用者要開 PM 票、寫需求單、寫 user story, (2) 使用者丟一段口語需求、會議筆記、客戶反饋要整理成 issue, (3) 使用者要改寫既有 PM 票讓非工程人員看得懂, (4) 使用者提到 rsc-pm 開票。即使只說「幫我把這個需求寫成票」也應觸發。不觸發於：把 PM 票拆成前端技術票（用 gitlab-issue）、RD 驗收清單（用 to-acceptance）。
+disable-model-invocation: true
 ---
 
 # pm-issue：用 PM 口吻寫需求 issue
