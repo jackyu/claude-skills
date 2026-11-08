@@ -64,7 +64,7 @@ background: false
 
 **判成確認後：一個點還是一類**。問題如果來自可以機械搜尋的特徵（某種寫法形狀、某個旗標、某個缺少的測試案例、某個型別），就是「一類」：對整個 diff 掃那一類（跨出 diff 才判得準的就掃整個 repo），列出找到的每一處。只有被點名那一處也要寫「掃過，只有這處」，否則分不出是驗過沒事還是沒看。只掃描、不修。
 
-**要不要實跑 UI**：牽涉 UI 時序、生命週期、遮罩或導航，而程式碼讀不出定論 → 用 `<wt>/.claude/skills/verify-admin` 或 `verify-client` 的 drive 走真實入口（起 app、port 規則、cleanup 照各自 SKILL.md；不碰 3000、3001）。reviewer 描述了操作或附了影片，就照它走。證據放 `<main>/.claude/verify-evidence/<key>/triage-r<N>/`。跑不起來就判待驗證、寫明卡在哪，不要用直接呼叫 handler 的測試冒充。
+**要不要實跑 UI**：牽涉 UI 時序、生命週期、遮罩或導航，而程式碼讀不出定論 → 用使用者層 `~/.claude/skills/verify-admin` 或 `verify-client` 的 drive 走真實入口，指令寫成 `cd <wt> && ~/.claude/skills/verify-<app>/scripts/…`（腳本從目前目錄找 repo 根；起 app、port 規則、cleanup 照各自 SKILL.md；不碰 3000、3001）。reviewer 描述了操作或附了影片，就照它走。證據放 `<main>/.claude/verify-evidence/<key>/triage-r<N>/`。跑不起來就判待驗證、寫明卡在哪，不要用直接呼叫 handler 的測試冒充。
 
 **`others-mr` 的證據上限是控制流**：不起 app、不 checkout 對方的分支。控制流已證實可達（入口與防護都有 `檔案:行號`）就能判確認，佐證寫「依程式碼推導，未在 UI 實跑」；只有底層行為成立就判待驗證。落在高風險區、要確認之前想實跑的，在回報裡列出來請使用者決定，不自己跑。
 
