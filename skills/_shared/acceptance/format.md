@@ -127,7 +127,7 @@
 | 證據 | `截圖（寬度）`、`測試`、`指令輸出` 用頓號串接。寬度：admin `1280`，client `375／768／1280` | to-acceptance |
 | 驗不了時 | 三選一：`必須驗過`（沒證據不能合併）、`可後補｜<等什麼>`（先合併，條件到了再補驗）、`只驗前端`（後端那一半不在這張票範圍，只判前端那一半）。缺這欄，或值不是這三種 → 當成 `必須驗過` | to-acceptance |
 | 回歸 | `否`，或 `是，更新 <skill>/<feature>：<理由>`、`是，新增 <skill>/<feature>：<理由>`；多個目標用 `；` 串接 | to-acceptance |
-| 回歸入庫 | 只有 `回歸：是` 的條目才有：`待寫`，或 `已寫｜<repo 相對路徑>、<repo 相對路徑>` | to-acceptance 寫 `待寫`，verify-acceptance 改成 `已寫` |
+| 回歸入庫 | 只有 `回歸：是` 的條目才有：`待寫`，或 `已寫｜<~/.claude/skills/ 開頭的路徑>、<~/.claude/skills/ 開頭的路徑>` | to-acceptance 寫 `待寫`，verify-acceptance 改成 `已寫` |
 | 來源 | 對應 issue 或 spec 的哪一條，多個用頓號串接 | to-acceptance |
 | 結果 | 見下 | to-acceptance 寫 `待驗`，verify-acceptance 寫回 |
 

@@ -19,11 +19,12 @@ background: false
 - `--regression-only` 只跑整體回歸、重記 SHA：rebase 之後條目不用重驗時用。跳過 Step 1、3、4、5 和 Before，條目結果沿用上一輪。跟 `--all`、`--only`、`--no-regression` 一起給就停下來回報「`--regression-only` 不能跟 <旗標> 一起用」，結束
 - 不 commit、不 push。驗收過程發現程式要改，回報給使用者，回實作階段修
 - `--branch`、`--target`、`--spec-ok` 是回答停下來的問題用的，見 Step 0 第 3～5 點
-- **通常要跑兩輪**：第一輪逐條驗收、把回歸寫進 worktree；使用者 commit 之後再跑一次，這次條目都過了會直接進整體回歸，記下的 SHA 才是最後要進 MR 的那一個。第二輪條目都已經過、只差整體回歸時，可以改用 `--regression-only`
+- verify-admin／verify-client 放在使用者層 `~/.claude/skills/verify-{admin,client}/`，不在 repo 裡：drive 腳本、journey、情境、feature 檔都在那裡讀寫，不跟功能進 MR
+- 條目全過、`<wt>` 沒有未提交改動時，同一輪就會跑完整體回歸；`<wt>` 有未提交改動就跳過整體回歸，請使用者 commit 後再跑一次，記下的 SHA 才是最後要進 MR 的那一個。條目都已經過、只差整體回歸時，可以改用 `--regression-only`
 
 ## Step 0：準備
 
-`<main>` 是主 checkout、`<wt>` 是功能 worktree、`<base>` 是 baseline worktree，都用絕對路徑。**起 app、drive、跑測試、git 指令一律寫成 `cd <目錄> && …`**：verify-admin／verify-client 的腳本從自己的位置推回 repo 根，從別的目錄呼叫會起到別的 checkout 的 app。清單和證據目錄在 `<main>`，用絕對路徑讀寫。
+`<main>` 是主 checkout、`<wt>` 是功能 worktree、`<base>` 是 baseline worktree，都用絕對路徑。**起 app、drive、跑測試、git 指令一律寫成 `cd <目錄> && …`**：verify-admin／verify-client 的腳本從目前目錄用 `git rev-parse --show-toplevel` 找 repo 根（或讀 `RSC_WT=<路徑>`），從別的目錄呼叫會起到別的 checkout 的 app。清單和證據目錄在 `<main>`，用絕對路徑讀寫。
 
 1. `<main>`：`dirname "$(git rev-parse --path-format=absolute --git-common-dir)"`
 2. **找清單**：給了 key 就讀 `<main>/.claude/specs/acceptance-<key>.md`；沒給就照 format.md「檔案與 key」從目前分支或 mission 名稱找。找不到 → 請使用者先跑 `/to-acceptance`，結束
@@ -40,8 +41,8 @@ background: false
    - `git rev-list --count HEAD..<baseRef>` 大於 0 → 提醒「分支落後 N 個 commit，建議先 rebase」，不擋（Before 用分岔點，不會混到別人的改動）
 5. **規格改過沒有**：meta `spec` 不是 null 時，spec 檔現在的 mtime（取到整秒）比 `specMtime` 新 → 沒有 `--spec-ok` 就停下來，回報「規格改過，清單可能沒跟上：先跑 /to-acceptance 更新；確定不用更新就加 `--spec-ok` 重跑」，結束
 6. **分支狀態**：
-   - `<wt>` 沒有 `.claude/skills/verify-admin`（或 `verify-client`）→ 分支切得太早，請使用者 rebase，截圖類先記成 `受阻｜分支沒有驅動腳本，請先 rebase`。`--regression-only` 不改條目，改寫 `整體回歸：受阻｜分支沒有驅動腳本` 後結束
-   - 未提交改動：`git status --porcelain --untracked-files=no` 有東西，或 `git status --porcelain -- apps packages .claude/skills` 有未追蹤檔（含 Step 5 新增、還沒 commit 的 journey） → 提醒驗收跑的是含未提交改動的版本
+   - `~/.claude/skills/verify-admin/scripts/launch.sh`（client 換成 `verify-client`）不存在 → 截圖類先記成 `受阻｜使用者層沒有 verify-<app> skill`。`--regression-only` 不改條目，改寫 `整體回歸：受阻｜使用者層沒有 verify-<app> skill` 後結束
+   - 未提交改動：`git status --porcelain --untracked-files=no` 有東西，或 `git status --porcelain -- apps packages` 有未追蹤檔 → 提醒驗收跑的是含未提交改動的版本
 7. **`--regression-only` 開跑前先擋兩種情況**，都是停下來回報、結束，不起 app：
    - 第 6 點判斷 `<wt>` 有未提交改動 →「有未提交改動，SHA 記了也對不上實際跑的程式碼：請先 commit 再重跑」
    - 有條目結果不是 `通過`（`受阻` 而且 `驗不了時` 是 `可後補` 的不算），或有條目是 `回歸入庫：待寫` →「還有 AC-n 沒驗完或回歸沒入庫，先用預設模式跑」
@@ -68,8 +69,8 @@ background: false
 
 | app | 怎麼起 | 預設 port |
 |-----|--------|-----------|
-| admin | `cd <wt> && .claude/skills/verify-admin/scripts/launch.sh <port> webpack <這次要驗的頁面路徑>`，再跑 doctor（`--regression-only` 的頁面路徑取回歸地圖第一份 journey 的 route） | 3201 |
-| client | `cd <wt> && .claude/skills/verify-client/scripts/launch.sh <port>`，再跑 doctor | 3202 |
+| admin | `cd <wt> && ~/.claude/skills/verify-admin/scripts/launch.sh <port> webpack <這次要驗的頁面路徑>`，再跑 doctor（`--regression-only` 的頁面路徑取回歸地圖第一份 journey 的 route） | 3201 |
+| client | `cd <wt> && ~/.claude/skills/verify-client/scripts/launch.sh <port>`，再跑 doctor | 3202 |
 
 - 預設 port 被別人占用就換一個（3211、3212…）。之後 drive、doctor、cleanup，以及寫進 `.cmd.txt` 的指令，一律明寫 `--port`。不碰 3000、3001，那是使用者自己的 dev server
 - 會用到 PdfViewer 的 admin 頁面改用 `turbopack`（見 verify-admin SKILL.md）
@@ -96,7 +97,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
    - `git diff --name-only <切換前的 HEAD> <baseSha> -- pnpm-lock.yaml` 有東西，或 launch／測試回報缺 `node_modules` → `pnpm install --frozen-lockfile`
 4. install 之後看 `git -C <base> status --short`，lockfile 被改寫就 `git checkout -- pnpm-lock.yaml`，保持 `<base>` 乾淨
 5. 確認 `<base>` 有 `.env`（`git check-ignore -q apps/<app>/.env && test -f apps/<app>/.env`）。沒有就把 Before 截圖記成 `受阻｜baseline 沒有 .env`；Before journey 照樣寫好（補了 `.env` 重跑就能直接用），After 和測試紅轉綠照跑（測試不需要 `.env`）
-6. 有 `.env` 才起 app（沒有的話 launch 一定失敗，不用試）：admin `cd <base> && .claude/skills/verify-admin/scripts/launch.sh <port> …`（預設 3203），client 預設 3204，再跑 doctor 並記下 `<base>` 的 HEAD；PdfViewer 頁面一樣用 turbopack
+6. 有 `.env` 才起 app（沒有的話 launch 一定失敗，不用試）：admin `cd <base> && ~/.claude/skills/verify-admin/scripts/launch.sh <port> …`（預設 3203），client 預設 3204，再跑 doctor 並記下 `<base>` 的 HEAD；PdfViewer 頁面一樣用 turbopack
 7. `<base>` 只拿來跑，不 commit、不改追蹤的檔案；暫時放進去的檔案用完就刪
 
 ## Step 3：逐條跑
@@ -106,12 +107,12 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 ### 截圖：admin
 
 1. 寫臨時 journey 到 `<證據目錄>/journeys/AC-<n>.json`（Step 5 回歸入庫會用到，不要刪）。已經存在、而且 mock 跟「前提」對得上就沿用；條目內容改過（`待重驗`）就重寫
-   - 範本：`<wt>/.claude/skills/verify-admin/journeys/*.json` 裡同區域的那份，照抄後依「前提」改 `mocks` 的資料
+   - 範本：`~/.claude/skills/verify-admin/journeys/*.json` 裡同區域的那份，照抄後依「前提」改 `mocks` 的資料
    - 必填：`route`、`roles`、`ready`、`mocks`、`steps`。角色以 AC「前提／操作」寫的為準，沒寫才用範本的（吉盈頁面給 `ji_admin`）
    - `steps`：照「操作」寫動作；「預期」寫成 `expectVisible`／`expectCount`／`expectUrl` 等斷言。`capture` 拍兩張：第一個動作之前一張、最後一個斷言之後一張
    - drive 沒有的動作（例：hover）改用等效的鍵盤操作（例：focus 觸發 tooltip），並在結果裡寫明替代方式
    - 定位注意：真瀏覽器的 ARIA role 可能跟 jsdom 測試不同（例：表頭 `<th>` 在 Chromium 是 `cell`）；同一段文字出現在多處（側欄、標題、麵包屑）要加 `nth` 或換定位
-2. 跑：`cd <wt> && node .claude/skills/verify-admin/scripts/drive.mjs --port <After port> --journey <證據目錄>/journeys/AC-<n>.json`
+2. 跑：`cd <wt> && node ~/.claude/skills/verify-admin/scripts/drive.mjs --port <After port> --journey <證據目錄>/journeys/AC-<n>.json`
 3. 判定：exit 0、斷言都過才算過。順序、字數這類斷言寫不出來的，讀 capture 的 `.aria.txt` 核對，結果裡寫明「順序由 ARIA snapshot 核對」。有 `aborted-unmocked` 的請求要說明影不影響結果
 4. 判定前用 Read 看斷言後那張截圖：
    - 畫面是錯誤、空白或載入失敗狀態（常見於 aborted-unmocked），而這條要證明的不是這個畫面 → 補 mock 讓畫面正常再拍；補不了就在結果寫明「截圖是 <狀態> 畫面，只證明 <斷言內容>」
@@ -119,7 +120,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 
 ### 截圖：client
 
-1. 從 `<wt>/.claude/skills/verify-client/scripts/scenarios.mjs` 挑符合「前提」的情境。**沒有合適的就在 `<wt>` 的 scenarios.mjs 新增一個**（欄位名照真實後端：proxy 逐字轉發不轉 case，回應形狀以 `apps/client/src` 對應 api 模組的型別為準），這個檔要跟功能一起進 MR，記進 Step 5 的回歸入庫清單
+1. 從 `~/.claude/skills/verify-client/scripts/scenarios.mjs` 挑符合「前提」的情境。**沒有合適的就在這份 scenarios.mjs 新增一個**（欄位名照真實後端：proxy 逐字轉發不轉 case，回應形狀以 `<wt>/apps/client/src` 對應 api 模組的型別為準），直接改使用者層這份、不進 MR，記進 Step 5 的回歸入庫清單
 2. 寫兩個檔到 `<證據目錄>/journeys/`：`AC-<n>.actions.json`（動作陣列，「預期」寫成 `waitText`／`expectAbsentText`／`expectEnabled` 等）和 `AC-<n>.cmd.txt`（完整的 drive 指令，含 `--port --feature --route --scenario --wait-text --widths --actions`）
 3. 跑 `AC-<n>.cmd.txt` 那行（在 `<wt>`）。預設有沒 mock 到的 `/api/*` 就整體失敗：先看是不是情境不夠；確認不影響這條的判定才加 `--allow-unmocked`，並在結果裡寫明
 4. 判定：每個寬度都 `PASS`。順序類的讀 capture 的 `.aria.yml` 核對
@@ -159,7 +160,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
    - 步驟只留改動前存在的部分（點不到改動後才有的元素）；「預期」的斷言拿掉，換成「改動前」寫得出來的斷言，寫不出來就只靠 capture
    - mock：改動前的程式可能打不同的端點。先跑一次看 `network.jsonl`（client 是 `network.json`）有哪些 `aborted-unmocked`，補上它實際打的端點再跑
    - 真的走不到要拍的畫面：拿 `failure.png` 當 Before 證據，結果裡寫明
-2. 跑：**用 `<wt>` 的 drive**（跟 After 同一份腳本，不用 `<base>` 那份舊的），只把 port 換成 Before 的。admin：`cd <wt> && node .claude/skills/verify-admin/scripts/drive.mjs --port <Before port> --journey <證據目錄>/journeys/AC-<n>.before.json`；client：`AC-<n>.before.cmd.txt` 一樣在 `<wt>` 跑、`--port` 寫 Before 的
+2. 跑：跟 After 同一份使用者層的 drive，一樣 `cd <wt>`（證據才會落在 `<wt>/.claude/verify-evidence/`），只把 port 換成 Before 的。admin：`cd <wt> && node ~/.claude/skills/verify-admin/scripts/drive.mjs --port <Before port> --journey <證據目錄>/journeys/AC-<n>.before.json`；client：`AC-<n>.before.cmd.txt` 一樣在 `<wt>` 跑、`--port` 寫 Before 的
 3. 收證據：整個 run 目錄複製到 `<證據目錄>/runs/AC-<n>-before/`，截圖複製成 `<證據目錄>/AC-<n>-before-<寬度>.png`
 4. Before 畫面跟「改動前」描述對不上 → 不影響這條的判定，但回報時列出來，請使用者回頭修清單
 
@@ -190,7 +191,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 
 ## Step 5：回歸入庫
 
-對 `回歸：是`、`回歸入庫：待寫` 的條目，把臨時腳本正式寫進 `<wt>`，跟功能一起進 MR。條件是 After 截圖已經過；結果是 `通過`，或只因為缺 Before 而 `受阻` 都可以（回歸只跑 After）。
+對 `回歸：是`、`回歸入庫：待寫` 的條目，把臨時腳本正式寫進使用者層的 `~/.claude/skills/verify-admin/`（client 是 `verify-client/`），不進 MR。條件是 After 截圖已經過；結果是 `通過`，或只因為缺 Before 而 `受阻` 都可以（回歸只跑 After）。
 
 - **verify-admin**：一份 journey 只有一個 route、一組角色、一條線性步驟，不要硬併進既有的 journey
   - 新增 `journeys/<feature>-<描述>.json`（例：`manual-filing-list-backend-order.json`），內容就是臨時 journey
@@ -198,17 +199,17 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
   - `新增 <feature>`：照 `features/README.md` 的「Feature entry contract」寫 `features/<feature>.md`，並加進 README 的 Features 清單
 - **verify-client**：actions 放 `scripts/actions/<feature>-<描述>.json`（不要覆蓋既有的檔）；在 `features/<feature>.md` 的 Driving 段落加上可照抄、帶 `--port` 的 drive 指令；Step 3 新增的情境也算進來
 - 寫完用新的 journey／指令對 After 再跑一次，要過
-- 清單改成 `- 回歸入庫：已寫｜<repo 相對路徑>、<repo 相對路徑>`
-- **不 commit**：回報時列出改了哪些檔，請使用者跟功能一起 commit，commit 後再跑一次這個 skill 做整體回歸
+- 清單改成 `- 回歸入庫：已寫｜<~/.claude/skills/ 開頭的路徑>、<~/.claude/skills/ 開頭的路徑>`
+- 回報時列出改了哪些檔。使用者層的 skill 不是 git repo，改壞了沒有版本可退：改既有檔之前先複製一份到 `~/.claude/backups/`
 
 ## Step 6：整體回歸
 
-**這一輪 Step 5 有寫檔，或 `<wt>` 有未提交改動（照 Step 0 第 6 點的判斷）→ 跳過這步**，清單維持 `整體回歸：未跑`，回報請使用者 commit 後再跑一次。記下的 SHA 必須是實際跑的程式碼。
+**`<wt>` 有未提交改動（照 Step 0 第 6 點的判斷）→ 跳過這步**，清單維持 `整體回歸：未跑`，回報請使用者 commit 後再跑一次。記下的 SHA 必須是實際跑的程式碼。
 
 否則對 After 跑回歸地圖裡的**全部**項目。`--regression-only` 從 Step 2 的 After 直接跳到這裡。每條 journey／指令都用前景 Bash 跑完（帶 timeout，最長 600000），不要丟背景、也不要掛 Monitor 等通知：這個 skill 跑在 fork 裡，回合一結束就收不到結果，整體回歸會變成沒跑完、只能整輪重跑。
 
-- admin：`<wt>/.claude/skills/verify-admin/journeys/*.json` 每一份各跑一次，`--port` 換成 After 的。features 檔裡標成「預期失敗」的變體（例：`--role sales` 驗無權限）照它寫的指令跑，結果符合它寫的預期就算過
-- client：`<wt>/.claude/skills/verify-client/features/*.md` 每份 Driving 段落的每條指令各跑一次（`--port` 換成 After 的）
+- admin：`~/.claude/skills/verify-admin/journeys/*.json` 每一份各跑一次，`--port` 換成 After 的。features 檔裡標成「預期失敗」的變體（例：`--role sales` 驗無權限）照它寫的指令跑，結果符合它寫的預期就算過
+- client：`~/.claude/skills/verify-client/features/*.md` 每份 Driving 段落的每條指令各跑一次（`--port` 換成 After 的）
 - 全過 → `- 整體回歸：通過｜<ISO 時間>｜<cd <wt> && git rev-parse HEAD>｜<N> 條 journey`
 - 有失敗 → `- 整體回歸：未過｜<哪幾條、為什麼>`；是這次改動造成的就回實作階段修，是 journey 本身過時就回報請使用者決定
 - 起不來 → `- 整體回歸：受阻｜<原因>`
@@ -220,7 +221,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 - 未過的條目附原因和截圖路徑，建議回實作階段修
 - 受阻的條目（`驗不了時：必須驗過`，或缺漏／值不認得，含 `只驗前端` 但連前端那一半都拿不到證據的情況）列出缺什麼、誰能解（例：「請你執行 `! cp …`」），這些會擋合併
 - 後補的條目（`驗不了時：可後補｜<X>`）另外列一組，寫清楚在等什麼；說明這些不擋 push／合併，等條件到了再補驗
-- 回歸入庫改了哪些檔、要不要 commit 後再跑一次；整體回歸的結果
+- 回歸入庫改了哪些檔；`<wt>` 有未提交改動時請使用者 commit 後再跑一次；整體回歸的結果
 - `--regression-only`：只報整體回歸的結果和記下的 SHA，並附一句「條目結果沿用上一輪；rebase 帶進的改動會影響某條的話，改用預設模式重跑那幾條（`--only AC-n`）」
-- Step 3 在 `<wt>` 新增、但沒進回歸入庫的檔（例：條目未過時新增的 client 情境），請使用者決定留不留
+- Step 3 在使用者層新增、但沒進回歸入庫的檔（例：條目未過時新增的 client 情境），請使用者決定留不留
 - Before 跟「改動前」描述對不上的條目
