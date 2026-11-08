@@ -18,7 +18,7 @@ disable-model-invocation: true
 | spec 檔 | `<主 checkout>/.claude/specs/spec-<iid>-*.md`；找不到就問使用者，沒有 spec 也可以只用 RD 票 | 主要來源：User Stories、Solution、Implementation Decisions |
 | RD 票 | `glab api "projects/:id/issues/<iid>" \| jq -r '.title, .description'`（唯讀） | 對照用：票上有「驗收條件」就逐條對照；沒有就拿「實作範圍」和其他具體要求（例：上版順序）對照 |
 | 對話 | 這個 session 前面 grill、to-spec 的討論（沒有就略過） | 補規格沒寫、但討論定案的邊界情況 |
-| 回歸地圖 | `git -C <主 checkout> ls-tree --name-only origin/main .claude/skills/verify-admin/features/`（client 換成 `verify-client`），內容用 `git show origin/main:<路徑>` 讀 | 判斷回歸要「更新」既有 feature 還是「新增」 |
+| 回歸地圖 | `ls ~/.claude/skills/verify-admin/features/`（client 換成 `verify-client`），內容用 Read 讀。這份在使用者層、不是 git repo，會包含還沒合進 main 的功能的 feature 檔；判「更新」時對到的 feature 屬於還沒合進 main 的功能，在「完成後」摘要提一句 | 判斷回歸要「更新」既有 feature 還是「新增」 |
 | 程式碼 | 先 `git -C <主 checkout> fetch origin`，一律讀 origin/main 的版本：`git -C <主 checkout> show origin/main:<路徑>`。功能合併進 main 之前，實作前或實作後跑都一樣 | 寫「改動前」 |
 | 專案問題清單 | `git -C <主 checkout> show origin/main:.claude/reference/acceptance-questions.md`；讀不到就改讀 `<主 checkout>/.claude/reference/acceptance-questions.md`；兩者都沒有就只用這份 skill 內建的通用題，不用報錯 | Step 4 的 B：專案特有的漏寫檢查題 |
 
