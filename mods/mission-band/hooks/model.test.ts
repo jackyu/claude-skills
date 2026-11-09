@@ -1307,6 +1307,50 @@ describe('nextStage', () => {
       expect(nextStepHint(NEW_FEATURE_FLOW, m)).toBe('跑 /mission-review 同步 MR 狀態；合併後才能進入下一階段')
     })
 
+    describe('followup when a triage report has defensive findings', () => {
+      const defensiveReport = { round: 1, head: 'abc', notes: [1], counts: { confirmed: 0, pending: 0, withdrawn: 0, defensive: 1, premise: 0 }, warn: false }
+      const defensiveTriage = { reports: [defensiveReport] }
+      const merged = (skips: Record<string, string> = {}) =>
+        mission({
+          stage: 3,
+          skips,
+          reviewTriage: defensiveTriage,
+          review: { round: 1, roundStartedAt: 0, lastSyncAt: 1, discussions: [], mrState: 'merged', approved: true },
+        })
+      const followupState = (m: Mission) => nodeStates(reviewNodes, m).find(s => s.node.id === 'followup')
+
+      test('followup blocks, the hint names it, and a merged MR stays in review until it is handled', () => {
+        const m = merged()
+        const state = followupState(m)
+        expect(state !== undefined && isBlocking(state)).toBe(true)
+        expect(nextStepHint(NEW_FEATURE_FLOW, m)).toContain('/mission-skip followup')
+
+        const store = { demo: m }
+        const result = nextStage(store, '/repo', NEW_FEATURE_FLOW, 1000, false)
+        expect(result.ok).toBe(false)
+        expect(result.text).toContain('followup')
+      })
+
+      test('/mission-skip followup lets the merged MR advance', () => {
+        const m = merged({ followup: '不開票，後端格式固定' })
+        const state = followupState(m)
+        expect(state?.status).toBe('skip')
+        expect(nextStepHint(NEW_FEATURE_FLOW, m)).toContain('/mission-next')
+        expect(nextStage({ demo: m }, '/repo', NEW_FEATURE_FLOW, 1000, false).ok).toBe(true)
+      })
+
+      test('without defensive findings followup stays optional', () => {
+        const m = mission({
+          stage: 3,
+          reviewTriage: { reports: [{ ...defensiveReport, counts: { confirmed: 0, pending: 0, withdrawn: 2, defensive: 0, premise: 0 } }] },
+          review: { round: 1, roundStartedAt: 0, lastSyncAt: 1, discussions: [], mrState: 'merged', approved: true },
+        })
+        const state = followupState(m)
+        expect(state !== undefined && isBlocking(state)).toBe(false)
+        expect(nextStage({ demo: m }, '/repo', NEW_FEATURE_FLOW, 1000, false).ok).toBe(true)
+      })
+    })
+
     test('a rebase after approval: reverify／push-fix 都退回未完成；下一次同步（approvedFrom 回 false）approved 也跟著退回未完成', () => {
       const rebased = mission({
         stage: 3,

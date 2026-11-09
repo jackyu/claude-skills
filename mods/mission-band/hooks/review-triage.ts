@@ -109,9 +109,15 @@ function pendingOtherNoteIds(mission: Mission): readonly number[] {
 
 const NO_PENDING_FEEDBACK_SKIP_REASON = '沒有待處理的回饋留言，不用判定'
 
-/** skipWhen：沒有任何一則回饋討論帶著別人的 note，就沒有東西要判定，自動顯示成已跳過。 */
+/** skipWhen：沒有報告、也沒有任何一則回饋討論帶著別人的 note，才顯示成已跳過；判定過就要看得到計數。 */
 export function reviewTriageSkipReason(mission: Mission): string | undefined {
+  if (latestReviewTriageReport(mission) !== undefined) return undefined
   return pendingOtherNoteIds(mission).length === 0 ? NO_PENDING_FEEDBACK_SKIP_REASON : undefined
+}
+
+/** 任一份報告判出防禦性建議，就要有去處：開後續票，或 /mission-skip followup 留下理由。 */
+export function hasDefensiveFindings(mission: Mission): boolean {
+  return (mission.reviewTriage?.reports ?? []).some(report => report.counts.defensive > 0)
 }
 
 /**

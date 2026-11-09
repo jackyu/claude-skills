@@ -79,6 +79,8 @@ export type MissionFlowNode = EventMatcher & {
   id: NodeId
   label?: string
   optional?: true
+  /** 看任務當下狀態，把 optional 節點改成必須處理：回 true 時會擋路，合併後也不能進下一階段，直到它做完或被 /mission-skip。 */
+  requiredWhen?: (mission: Mission) => boolean
   doneWhen?: DoneWhen
   tracks?: readonly MissionFlowTrack[]
   hint: string | ((mission: Mission) => string)

@@ -7,7 +7,7 @@
 import type { Mission, MissionEvent, MissionFlow, MissionStage, Missions, NodeId } from '../types'
 import { addCollectedAssets, dedupeKey, ownIssueAsset } from './assets'
 import { normalizeLabel } from './command-args'
-import { isBlocking, nodeStates, REVIEW_STAGE_ID, stageAt, stageEnteredAt } from './node-states'
+import { isBlocking, nodeStates, pendingRequiredStates, REVIEW_STAGE_ID, stageAt, stageEnteredAt } from './node-states'
 
 export { stripPluginPrefix, stageEnteredAt, nodeStates, stageAt, stageLabelFor, nextStepHint, ticketsChangedSinceBuild, REVIEW_STAGE_ID } from './node-states'
 export type { NodeState, NodeStatus } from './node-states'
@@ -297,6 +297,11 @@ export function nextStage(missions: Missions, binding: string, flow: MissionFlow
   if (stage.id === REVIEW_STAGE_ID) {
     if (mission.review?.mrState !== 'merged') {
       return { ok: false, text: `MR 還沒合併。跑 /mission-review 同步狀態；MR 被關閉沒合併就用 /mission-finish ${name} --force` }
+    }
+    const pendingRequired = pendingRequiredStates(stage.nodes, mission)
+    if (pendingRequired.length > 0) {
+      const list = pendingRequired.map(s => s.node.id).join('、')
+      return { ok: false, text: `MR 已合併，但還要處理 ${list}：開好後續票或確定不用，都打 /mission-skip ${list} <理由>，再跑 /mission-next` }
     }
   } else {
     const states = nodeStates(stage.nodes, mission)

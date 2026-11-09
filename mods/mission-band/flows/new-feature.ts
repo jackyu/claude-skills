@@ -1,5 +1,5 @@
 import { latestMrIid, reverifySkipReason } from '../hooks/review-stage'
-import { reviewTriageSkipReason } from '../hooks/review-triage'
+import { hasDefensiveFindings, reviewTriageSkipReason } from '../hooks/review-triage'
 import type { MissionFlow } from '../types'
 
 // MR 描述要有的段落關鍵字；跟 fe-mr-generator 的段落順序對齊（第 2 項定案後再調整）。
@@ -182,6 +182,7 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
         {
           id: 'followup',
           optional: true,
+          requiredWhen: hasDefensiveFindings,
           hint: 'review-triage 有收進後續票的項目：開這張功能票的後續 RD 票，從原分支切 stacked 分支開新任務、開 draft MR 接著做（不等原 MR 合併；原 MR 有修正就 merge 進來，不 rebase；後續 MR 一樣照「第一輪整支、修完只審修正」的審查規則）。這個節點偵測不到完成，開好後續票或確定不用都 /mission-skip followup <理由>。沒有後續項目就 /mission-skip followup <理由>',
         },
         {

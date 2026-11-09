@@ -166,6 +166,17 @@ function isResolved(node: MissionFlowNode, started: boolean, skipped: boolean, d
   return skipped || doneViaDoneWhen || (node.optional === true && !started) || !hasStartMatcher(node)
 }
 
+function withRequiredWhenApplied(node: MissionFlowNode, mission: Mission): MissionFlowNode {
+  if (node.requiredWhen?.(mission) !== true) return node
+  const { optional: _optional, ...required } = node
+  return required
+}
+
+/** 帶 requiredWhen 的節點裡，現在還擋路的那些；MR 合併後也不能略過它們。 */
+export function pendingRequiredStates(nodes: readonly MissionFlowNode[], mission: Mission): NodeState[] {
+  return nodeStates(nodes, mission).filter(state => state.node.requiredWhen !== undefined && isBlocking(state))
+}
+
 /**
  * 同一階段裡，一個節點「完成」的條件：
  * - 有 tracks 的節點（例如 code-review）：交給 tracksNodeStatus 判斷，不看後面的節點、也不看
@@ -175,7 +186,8 @@ function isResolved(node: MissionFlowNode, started: boolean, skipped: boolean, d
  *   做完／是從沒開始過的 optional 節點（代表流程已經往後走，回頭看這個節點就算做完）。
  * 跳過的節點永遠是 skip，不會變 done。
  */
-export function nodeStates(nodes: readonly MissionFlowNode[], mission: Mission): NodeState[] {
+export function nodeStates(flowNodes: readonly MissionFlowNode[], mission: Mission): NodeState[] {
+  const nodes = flowNodes.map(node => withRequiredWhenApplied(node, mission))
   const enteredAt = stageEnteredAt(mission, mission.stage)
   // 自動跳過（skipWhen 回傳原因）跟使用者打 /mission-skip 顯示方式完全一樣，只是原因文字
   // 的來源不同：explicit 用 mission.skips 記的那句，derived 用 skipWhen 現場算出來的。
@@ -276,7 +288,11 @@ export function nextStepHint(flow: MissionFlow, mission: Mission): string {
   // 繼續等一個已經不會發生的審查。這兩種狀態要排在逐節點迴圈之前判斷。
   if (stage.id === REVIEW_STAGE_ID) {
     if (mission.review?.mrState === 'closed') return closedMrHint(mission)
-    if (mission.review?.mrState === 'merged') return `MR 已合併，/mission-next 進入「${stageAt(flow, mission.stage + 1).label}」`
+    if (mission.review?.mrState === 'merged') {
+      const pendingRequired = pendingRequiredStates(stage.nodes, mission)[0]
+      if (pendingRequired !== undefined) return `MR 已合併，還要處理 ${displayName(pendingRequired.node)}：${resolveNodeHint(pendingRequired.node, mission)}`
+      return `MR 已合併，/mission-next 進入「${stageAt(flow, mission.stage + 1).label}」`
+    }
   }
 
   const states = nodeStates(stage.nodes, mission)

@@ -151,6 +151,12 @@ describe('reviewTriageSkipReason', () => {
     expect(reviewTriageSkipReason(m)).toBeDefined()
   })
 
+  test('a triage report exists even though nothing is pending: not skipped, so the counts stay visible', () => {
+    const m = mission({ reviewTriage: reviewTriage([report({ counts: { confirmed: 0, pending: 0, withdrawn: 7, defensive: 1, premise: 0 } })]) })
+    expect(reviewTriageSkipReason(m)).toBeUndefined()
+    expect(evaluateReviewTriageDoneWhen(m)).toEqual({ done: true, detail: '撤銷 7／防禦性建議 1' })
+  })
+
   test('at least one feedback discussion with another person’s note: not skipped', () => {
     const m = mission({ review: review({ discussions: [discussion({ isFeedback: true, lastOtherNoteId: 101 })] }) })
     expect(reviewTriageSkipReason(m)).toBeUndefined()
