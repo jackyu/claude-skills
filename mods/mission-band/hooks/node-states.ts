@@ -308,6 +308,7 @@ export function nextStepHint(flow: MissionFlow, mission: Mission): string {
   // lastNode 的 done 只可能來自「它是（扣掉後面不擋路的節點後）最後一個、自己開始就算數」，
   // 不像前面的節點有更晚的節點佐證，所以提示語氣要是「完成後」而不是「已經完成」。
   if (lastNode !== undefined && lastNode.status === 'done') {
+    if (lastNode.node.doneHint !== undefined) return lastNode.node.doneHint
     return isLastStage
       ? `${lastNode.node.id} 完成後，/mission-finish 清除紀錄`
       : `${lastNode.node.id} 完成後，/mission-next 進入「${stageAt(flow, mission.stage + 1).label}」`

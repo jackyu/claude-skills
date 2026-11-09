@@ -87,7 +87,8 @@ export const NEW_FEATURE_FLOW: MissionFlow = {
           // Codex 不是獨立的一步，是 code review 的第二意見，所以跟 Claude 的審查併成同一個
           // 節點的兩條軌道，而不是後面接著的另一個節點；兩條都跑過、或 Codex 被跳過，才算完成。
           id: 'code-review',
-          hint: '實作完輸入 /mattpocock-skills:code-review 審 Spec、Standards 兩軸，第一輪順便跑 node ~/.claude/scripts/jev-xray/precheck.js --base origin/main 看重複程式碼和沒人用的檔案；要 Codex 再審一次就 /codex:rescue 用 $codex-evidence-review 審，或 codex exec -s read-only -C <worktree> \'$codex-evidence-review 審這個分支（base origin/main），附 spec 與驗收清單路徑\'；不用 Codex 就 /mission-skip code-review:codex <理由>。兩道都交回後，請 Claude 把原始 finding 存檔再跑 /review-triage 判定，確認的才派修；改善、防禦性建議收進這張功能票的後續票，修正範圍外的確認 bug 交你決定。修完重審兩道都只看這一輪的修正（base 換成上一輪 HEAD，派工照 templates.md 模板 5b），不再整支重審',
+          doneHint: '兩道 review 的報告都交回後，跟 Claude 說「把剛才兩道 review 的結果丟給 review-triage」（Claude 會把原始 finding 存檔再跑 /review-triage）；確認項修完、重審沒有新的確認項，再 /mission-next 進入「驗收」',
+          hint: '實作完輸入 /mattpocock-skills:code-review 審 Spec、Standards 兩軸，第一輪順便跑 node ~/.claude/scripts/jev-xray/precheck.js --base origin/main 看重複程式碼和沒人用的檔案；要 Codex 再審一次就 /codex:rescue 用 $codex-evidence-review 審，或 codex exec -s read-only -C <worktree> \'$codex-evidence-review 審這個分支（base origin/main），附 spec 與驗收清單路徑\'；不用 Codex 就 /mission-skip code-review:codex <理由>。兩道都交回後，跟 Claude 說「把剛才兩道 review 的結果丟給 review-triage」（Claude 會把原始 finding 存檔再跑 /review-triage），判定完確認的才派修；改善、防禦性建議收進這張功能票的後續票，修正範圍外的確認 bug 交你決定。修完重審兩道都只看這一輪的修正（base 換成上一輪 HEAD，派工照 templates.md 模板 5b），不再整支重審',
           tracks: [
             {
               id: 'claude',

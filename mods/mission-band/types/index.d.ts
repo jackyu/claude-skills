@@ -82,6 +82,8 @@ export type MissionFlowNode = EventMatcher & {
   doneWhen?: DoneWhen
   tracks?: readonly MissionFlowTrack[]
   hint: string | ((mission: Mission) => string)
+  /** 這個節點是階段裡最後一個做完的節點時，下一步改顯示這句，取代預設的「完成後，/mission-next」。 */
+  doneHint?: string
   skipWhen?: (mission: Mission) => string | undefined
 }
 

@@ -614,7 +614,7 @@
       <div class="qs-card" data-stage="build">
         <span class="qs-eyebrow">實作</span>
         <div class="qs-code"><code>/mattpocock-skills:code-review</code></div>
-        <details><summary>細節</summary><p>要 Codex 再審一次就 <code>/codex:rescue</code>，一律點名 <code>$codex-evidence-review</code>，不需要就 <code>/mission-skip code-review:codex 理由</code>。兩道都交回後，請 Claude 把原始 finding 存檔再跑 <code>/review-triage</code>，逐筆判定是不是使用者真的會碰到，確認的才派修。</p></details>
+        <details><summary>細節</summary><p>要 Codex 再審一次就 <code>/codex:rescue</code>，一律點名 <code>$codex-evidence-review</code>，不需要就 <code>/mission-skip code-review:codex 理由</code>。兩道都交回後，跟 Claude 說「把剛才兩道 review 的結果丟給 review-triage」，它會把原始 finding 存檔再跑 <code>/review-triage</code>，逐筆判定是不是使用者真的會碰到，確認的才派修。</p></details>
       </div>
 
       <div class="qs-card" data-stage="verify">
@@ -843,7 +843,7 @@
         <tr><td><code>implement</code></td><td>照 TDD 或打 /implement 開始寫 code</td><td>偵測到 commit</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip implement 理由</code></td></tr>
         <tr><td><code>no-comments</code></td><td>打 /pstack:no-comments，清註解並直接修正接受的問題（可能改 code，確定要留的限制會等你核准才編碼）</td><td>偵測到打過這個 skill，或讀過它的 SKILL.md</td><td>必做；沒做完會擋 /mission-next，真的不需要可 <code>/mission-skip no-comments 理由</code></td></tr>
         <tr><td><code>interrogate</code>（選用）</td><td>大票才跑（非測試檔超過 10 個、或動到共用模組、狀態流程）：在 code-review 之前打一次 /pstack:interrogate 先問前提，finding 照樣跑 /review-triage，確認的修完再進 code-review；每張票只跑這一次</td><td>偵測到打過 /pstack:interrogate，或讀過它的 SKILL.md</td><td>小票：<code>/mission-skip interrogate 理由</code>；不碰也不擋路</td></tr>
-        <tr><td><code>code-review</code>（兩軌）</td><td>Claude 軌道打 /mattpocock-skills:code-review；Codex 軌道打 /codex:rescue 或直接跑 codex exec</td><td>兩條軌道各自「跑過或被跳過」就算完成（不是只有 Codex 可以跳，兩邊規則一樣）。第一輪審整個分支；修完重審只看這一輪的修正（base＝上一輪 HEAD），review-triage 判成確認的才在這張 MR 修，改善類收進後續票，修正範圍外的確認 bug 交使用者決定</td><td>可以只跳 Codex 軌道、只跳 Claude 軌道，或整個節點一起跳：<code>/mission-skip code-review:codex 理由</code>、<code>/mission-skip code-review:claude 理由</code>，或 <code>/mission-skip code-review 理由</code></td></tr>
+        <tr><td><code>code-review</code>（兩軌）</td><td>Claude 軌道打 /mattpocock-skills:code-review；Codex 軌道打 /codex:rescue 或直接跑 codex exec</td><td>兩條軌道各自「跑過或被跳過」就算完成（不是只有 Codex 可以跳，兩邊規則一樣）；完成後下一步會提示先跟 Claude 說「把剛才兩道 review 的結果丟給 review-triage」，判完、修完再 /mission-next。第一輪審整個分支；修完重審只看這一輪的修正（base＝上一輪 HEAD），review-triage 判成確認的才在這張 MR 修，改善類收進後續票，修正範圍外的確認 bug 交使用者決定</td><td>可以只跳 Codex 軌道、只跳 Claude 軌道，或整個節點一起跳：<code>/mission-skip code-review:codex 理由</code>、<code>/mission-skip code-review:claude 理由</code>，或 <code>/mission-skip code-review 理由</code></td></tr>
       </tbody>
     </table>
     </div>

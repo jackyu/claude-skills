@@ -821,6 +821,20 @@ describe('nextStepHint', () => {
     })
     expect(nextStepHint(NEW_FEATURE_FLOW, m)).toBe('create-worktree 完成後，/mission-next 進入「實作」')
   })
+
+  test('code-review done as the last build node points at review-triage before mission-next', () => {
+    const m = mission({
+      stage: 1,
+      skips: { implement: '測試情境', 'no-comments': '測試情境' },
+      events: [
+        { at: 1, kind: 'skill', name: 'x:code-review' },
+        { at: 2, kind: 'agent', name: 'codex:codex-rescue' },
+      ],
+    })
+    const hint = nextStepHint(NEW_FEATURE_FLOW, m)
+    expect(hint).toContain('把剛才兩道 review 的結果丟給 review-triage')
+    expect(hint).toContain('/mission-next 進入「驗收」')
+  })
 })
 
 describe('issueIidFromMissionName', () => {
