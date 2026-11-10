@@ -152,6 +152,7 @@
   - 截圖：`Before <路徑>`、`After <路徑>`，路徑相對於主 checkout，例 `After .claude/verify-evidence/473/AC-1-after-1280.png`；多個寬度各寫一個
   - 測試：`測試 <測試名稱>（紅→綠）`；沒有 Before 的條目寫 `（通過）`
   - 指令輸出：`輸出 <路徑>`，輸出存到證據目錄（例：API 回應存成 `.claude/verify-evidence/<key>/AC-4-response.json`）
+  - 拍攝版本：有 After 截圖的條目，最後一段寫 `拍攝於 <拍 After 時功能分支 HEAD 的完整 SHA>`；工作區有未提交改動時寫 `拍攝於 <SHA>（有未提交改動）`。開 MR 時拿它跟 HEAD 比，判斷截圖能不能沿用（`/push` 用 `shot-check.sh`）
 - **只有「會改變的行為」拍 Before**：`改動前` 是 `無（新功能）` 或 `同預期（既有行為不變）` 的條目只有 After，測試證據寫 `（通過）`
 - 缺少 `結果` 行的條目當成 `待驗`
 
