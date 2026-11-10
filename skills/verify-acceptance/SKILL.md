@@ -164,7 +164,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
    - 真的走不到要拍的畫面：拿 `failure.png` 當 Before 證據，結果裡寫明
 2. 跑：跟 After 同一份使用者層的 drive，一樣 `cd <wt>`（證據才會落在 `<wt>/.claude/verify-evidence/`），只把 port 換成 Before 的。admin：`cd <wt> && node ~/.claude/skills/verify-admin/scripts/drive.mjs --port <Before port> --journey <證據目錄>/journeys/AC-<n>.before.json`；client：`AC-<n>.before.cmd.txt` 一樣在 `<wt>` 跑、`--port` 寫 Before 的
 3. 收證據：整個 run 目錄複製到 `<證據目錄>/runs/AC-<n>-before/`，截圖複製成 `<證據目錄>/AC-<n>-before-<寬度>.png`
-4. Before 畫面跟「改動前」描述對不上 → 不影響這條的判定，但回報時列出來，請使用者回頭修清單
+4. Before 畫面跟「改動前」描述對不上 → 不影響這條的判定；回報時列出來，並附照 Before 實測改寫好的「改動前」句子，讓使用者一次確認。描述有 `推測：` 而 Before 符合時，回報建議拿掉 `推測：`
 
 **測試紅轉綠**
 
@@ -229,4 +229,4 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 - 整體回歸跑了哪幾份（照 `--journeys` 的名稱列）；沒跑的話附候選清單
 - `--regression-only`：只報整體回歸的結果和記下的 SHA，並附一句「條目結果沿用上一輪；rebase 帶進的改動會影響某條的話，改用預設模式重跑那幾條（`--only AC-n`）」
 - Step 3 在使用者層新增、但沒進回歸入庫的檔（例：條目未過時新增的 client 情境），請使用者決定留不留
-- Before 跟「改動前」描述對不上的條目
+- Before 跟「改動前」描述對不上的條目，附改寫好的句子；`推測：` 已被 Before 證實的條目
