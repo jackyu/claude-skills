@@ -21,7 +21,7 @@ background: false
    - 開頭 meta：來源（`ai-review`、`reviewer` 或 `others-mr`）、審查範圍（第一輪是 `<base>...HEAD`，修正輪是 `<上一輪 HEAD>..HEAD`）、worktree 絕對路徑、base（預設 `origin/<預設分支>`）、目前 HEAD SHA、spec 與驗收清單路徑（沒有就寫無）；來源是 reviewer 時另附 MR iid
    - 來源是 `others-mr`（審別人的 MR）時：`<key>` 用 `mr-<iid>`；worktree 改寫成「本機能讀到這個 MR 的目錄」，HEAD 改寫成 MR 的 head SHA；另附 MR iid、R1 標的高風險區
    - `ai-review`：每道審查一節，**原文照貼**（Pocock code-review、Codex 的回報），標明來源
-   - `reviewer`：每則還沒處理的別人留言一節，標 discussion id 與 **note id**、作者、貼在哪個檔案哪一行（inline 的話），**原文照貼**；附件（影片、截圖）列出連結。用 `/mission-review` 同步過的討論串，每串都要列到它最新那則別人的 note
+   - `reviewer`：「還沒處理」以 `~/.claude/scripts/gitlab/mr-pending-notes.sh <專案路徑> <iid>` 的輸出為準，不照對話裡記的待回清單；輸出的每則都要進 finding 檔，少收的要寫出理由。每則一節，標 discussion id 與 **note id**、作者、貼在哪個檔案哪一行（inline 的話），**原文照貼**；附件（影片、截圖）列出連結。用 `/mission-review` 同步過的討論串，每串都要列到它最新那則別人的 note
    - `others-mr`：fe-mr-review R3 的 finding 原文照貼
    - 不附主對話自己的判斷、實作者的辯護或開發對話
 4. 呼叫 `/review-triage <那個檔的絕對路徑>`
