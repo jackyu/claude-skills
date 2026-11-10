@@ -20,44 +20,51 @@ import {
   sameBranchCommits,
 } from './products'
 import { loadMissions, mutate, recordEvent } from './store'
+import { retireMissingWorktreePath } from './worktree-events'
 
 export async function ownProjectPathOf($: EngineInterface): Promise<string | undefined> {
   const repo = await $.session.repo()
   return projectPathFromRemote(repo?.remote ?? null)?.path
 }
 
-async function currentBranchCommits(
-  $: EngineInterface,
-  cwd: string,
-  onError: (error: unknown) => void,
-): Promise<BranchCommit[] | undefined> {
+type BranchCommitsResult = { ok: true; commits: BranchCommit[] } | { ok: false; error?: unknown }
+
+async function currentBranchCommits($: EngineInterface, cwd: string): Promise<BranchCommitsResult> {
   try {
     const branchResult = await $.process.run(['git', 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD'], { cwd })
     const defaultBranch = resolveDefaultBranchName(branchResult.stdout, branchResult.exitCode)
     const logResult = await $.process.run(['git', 'log', '--format=%H%x09%ct', `${defaultBranch}..HEAD`], { cwd })
-    if (logResult.exitCode !== 0) return undefined
-    return parseBranchCommitsLog(logResult.stdout)
+    if (logResult.exitCode !== 0) return { ok: false }
+    return { ok: true, commits: parseBranchCommitsLog(logResult.stdout) }
   } catch (error) {
-    onError(error)
-    return undefined
+    return { ok: false, error }
   }
 }
 
 /**
  * 只有這個 binding 綁了任務才查 git；有 worktreePath 就只在那裡查（commit 是在 worktree 裡
- * 做的，不是主 checkout）——worktree 目錄不見了或 git 失敗就先不更新，**不**退回 session root
- * （退回去查到的會是主 checkout 的 commit，混進這個任務的快照裡是錯的）。只有 worktreePath
- * 根本還沒定下來（還在主 checkout 分析中）才查 session root。commit 快照整包覆蓋，沒變化就不寫 store。
+ * 做的，不是主 checkout）——git 失敗就先不更新，**不**退回 session root（退回去查到的會是
+ * 主 checkout 的 commit，混進這個任務的快照裡是錯的）。查失敗時 worktree 目錄確定不在了，
+ * 就把路徑收進 missingWorktreePath，之後也不查 session root。只有 worktreePath 根本還沒
+ * 定下來（還在主 checkout 分析中）才查 session root。commit 快照整包覆蓋，沒變化就不寫 store。
  */
 export async function maybeUpdateBranchCommits($: EngineInterface, binding: string): Promise<void> {
   const bound = findBoundMission(await loadMissions($), binding)
   if (bound === undefined) return
   const [, mission] = bound
+  if (mission.worktreePath === undefined && mission.missingWorktreePath !== undefined) return
 
   const cwd = mission.worktreePath ?? (await $.session.root())
-  const logContext = mission.worktreePath === undefined ? '' : `worktree「${mission.worktreePath}」`
-  const commits = await currentBranchCommits($, cwd, error => $.ui.log(`mission-band: ${logContext}讀取分支 commit 快照失敗，暫不更新：${String(error)}`))
-  if (commits === undefined) return
+  const result = await currentBranchCommits($, cwd)
+  if (!result.ok) {
+    if (mission.worktreePath !== undefined && (await retireMissingWorktreePath($, binding, mission.worktreePath))) return
+    if ('error' in result) {
+      const logContext = mission.worktreePath === undefined ? '' : `worktree「${mission.worktreePath}」`
+      $.ui.log(`mission-band: ${logContext}讀取分支 commit 快照失敗，暫不更新：${String(result.error)}`)
+    }
+    return
+  }
+  const { commits } = result
 
   await mutate($, missions => {
     const bound2 = findBoundMission(missions, binding)

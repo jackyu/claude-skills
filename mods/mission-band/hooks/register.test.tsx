@@ -54,7 +54,7 @@ const PLAYBOOK_PATH = '/Users/x/.claude/pstack/v1/skills/poteto-mode/playbooks/p
 // fs.read 回一段帶「## Agent skills」的內容，讓既有的 mission-start 測試不會被 setup 檢查擋下。
 type TestSessionRepo = { root: string; remote: string | null; internal: boolean; name: string }
 
-function setupRoot(on: On, repo: TestSessionRepo | null = null) {
+function setupRoot(on: On, repo: TestSessionRepo | null = null, exists: (path: string) => boolean = () => true) {
   let root = '/repo'
   on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('session.root', () => ({ value: root }))
@@ -65,7 +65,7 @@ function setupRoot(on: On, repo: TestSessionRepo | null = null) {
   on('tool.call', () => ({ result: {} }))
   on('turn.complete', (_, e) => ({ text: e.answer }))
   mock.env(on, { HOME: '/home/x' })
-  on('fs.exists', () => ({ value: true }))
+  on('fs.exists', (_, e) => ({ value: exists(e.path) }))
   on('fs.read', () => ({ value: '# x\n\n## Agent skills\n' }))
 
   return (next: string) => {
@@ -1244,6 +1244,64 @@ describe('commit snapshot (branchCommits)', () => {
     expect(logs.some(text => text.includes('暫不更新'))).toBe(true)
     expect(logs.some(text => text.includes('改用 session root'))).toBe(false)
     await ui.unmount()
+  })
+  test('once the recorded worktree directory is gone, the path is retired with one log, and session root is still not queried for the snapshot', async ($, on) => {
+    mock.clock(on)
+    const storeMap = mockStoreMap(on)
+    const WORKTREE = '/repo/.claude/worktrees/feat_x'
+    const NEXT_WORKTREE = '/repo/.claude/worktrees/feat_y'
+    let worktreeGone = false
+    const setRoot = setupRoot(on, null, path => !(worktreeGone && path === WORKTREE))
+    const logs: string[] = []
+    on('ui.log', (_, e) => {
+      logs.push(e.text)
+      return { value: undefined }
+    })
+    const logCwds: string[] = []
+    on('process.run', (_, e) => {
+      if (e.argv.includes('rev-parse')) {
+        const target = e.argv[e.argv.indexOf('-C') + 1] ?? WORKTREE
+        return { value: { exitCode: 0, stdout: `${target}\n`, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+      }
+      const cwd = e.init?.cwd ?? ''
+      if (worktreeGone && cwd === WORKTREE) throw new Error('ENOENT: worktree 目錄不見了')
+      if (e.argv[1] === 'symbolic-ref') return { value: { exitCode: 0, stdout: 'origin/main\n', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+      if (e.argv[1] === 'log') {
+        logCwds.push(cwd)
+        const stdout = cwd === WORKTREE ? 'abc123\t1700000000\n' : cwd === NEXT_WORKTREE ? 'def456\t1700000001\n' : 'main01\t1600000000\n'
+        return { value: { exitCode: 0, stdout, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+      }
+      return { value: { exitCode: 1, stdout: '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+    })
+    const run = (command: string, args = '') => $.command.run({ command, args, origin: { kind: 'composer' }, presentation: PRESENTATION })
+    const stored = () => Object.values((storeMap.get('missions') as Missions | undefined) ?? {})[0]
+
+    setRoot('/repo')
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    await run('mission-start', 'demo')
+    await $.tool.call({ tool: 'Bash', command: `git worktree add ${WORKTREE} -b feat_x` })
+    await $.tool.call({ tool: 'Bash', command: 'git commit -m x' })
+    expect(stored()?.worktreePath).toBe(WORKTREE)
+    expect(stored()?.branchCommits?.map(c => c.hash)).toEqual(['abc123'])
+
+    worktreeGone = true
+    logCwds.length = 0
+    await $.tool.call({ tool: 'Bash', command: 'ls' })
+    await $.turn.complete({ answer: '', durationMs: 1, isAborted: false, turnId: 't1', reason: 'answer' })
+    await $.tool.call({ tool: 'Bash', command: 'ls' })
+
+    expect(stored()?.worktreePath).toBeUndefined()
+    expect(stored()?.missingWorktreePath).toBe(WORKTREE)
+    expect(logs.filter(text => text.includes('已經不在'))).toHaveLength(1)
+    expect(logs.some(text => text.includes('暫不更新'))).toBe(false)
+    expect(logCwds).not.toContain('/repo')
+    expect(stored()?.branchCommits?.map(c => c.hash)).toEqual(['abc123'])
+
+    await $.tool.call({ tool: 'Bash', command: `git worktree add ${NEXT_WORKTREE} -b feat_y` })
+    await $.tool.call({ tool: 'Bash', command: 'git commit -m y' })
+    expect(stored()?.worktreePath).toBe(NEXT_WORKTREE)
+    expect(stored()?.missingWorktreePath).toBeUndefined()
+    expect(stored()?.branchCommits?.map(c => c.hash)).toEqual(['def456'])
   })
 })
 

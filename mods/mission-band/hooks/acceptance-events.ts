@@ -133,7 +133,8 @@ export function shaDiffers(recordedSha: string, headSha: string): boolean {
  * 任務有 worktreePath、清單也真的記了 sha 才查。git 查不到（process.run 失敗、worktree
  * 目錄不見了）當作沒有過期，相信清單記錄的狀態——跟 maybeUpdateBranchCommits 查不到
  * commit 時不清空既有快照是同一個保守原則：查不到不代表「換了」，貿然判定過期只會錯誤
- * 擋住 overall-regression，比相信舊記錄更糟。
+ * 擋住 overall-regression，比相信舊記錄更糟。目錄確定不在時 maybeUpdateBranchCommits 會先
+ * 把 worktreePath 收進 missingWorktreePath，這裡拿到 undefined 就直接當作沒過期。
  */
 async function computeOverallStale($: EngineInterface, worktreePath: string | undefined, overall: AcceptanceOverall): Promise<boolean> {
   if (overall.status !== '通過' || worktreePath === undefined || overall.sha === undefined) return false

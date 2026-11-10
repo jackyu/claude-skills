@@ -106,8 +106,31 @@ export async function maybeRecordWorktreePath($: EngineInterface, binding: strin
     if (bound2 === undefined) return missions
     const [name, m] = bound2
     if (m.worktreePath === path) return missions
-    return { ...missions, [name]: { ...m, worktreePath: path } }
+    const { missingWorktreePath: _missing, ...rest } = m
+    return { ...missions, [name]: { ...rest, worktreePath: path } }
   })
+}
+
+/**
+ * 任務記的 worktree 目錄確定不在了，就把路徑搬到 missingWorktreePath，只在搬的這次記 log；
+ * 回傳有沒有搬。目錄還在、或連查都查不到，都不動，交給呼叫端照原本的錯誤處理。
+ */
+export async function retireMissingWorktreePath($: EngineInterface, binding: string, path: string): Promise<boolean> {
+  const exists = await $.fs.exists(path).catch(() => true)
+  if (exists) return false
+
+  let retired = false
+  await mutate($, missions => {
+    const bound = findBoundMission(missions, binding)
+    if (bound === undefined) return missions
+    const [name, m] = bound
+    if (m.worktreePath !== path) return missions
+    retired = true
+    const { worktreePath: _gone, ...rest } = m
+    return { ...missions, [name]: { ...rest, missingWorktreePath: path } }
+  })
+  if (retired) $.ui.log(`mission-band: worktree「${path}」已經不在，之後不再查它的分支 commit 快照`)
+  return retired
 }
 
 /** 主 checkout 的 GLOSSARY.md／ADR 有沒有還沒搬過去 worktree 的改動；查不到或出錯都當沒有。 */

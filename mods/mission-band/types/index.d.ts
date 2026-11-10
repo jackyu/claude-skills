@@ -156,6 +156,9 @@ export type Mission = {
   // 第四版才加的欄位：這個任務在跑的 worktree 絕對路徑，從 orca／git worktree 指令或
   // cd 進 worktree 目錄偵測出來；舊資料沒有這個欄位，當作沒有 worktree（在主 checkout 分析中）。
   worktreePath?: string
+  // 記過的 worktree 目錄確定不在了（MR 合併後刪掉這類），路徑從 worktreePath 搬到這裡；
+  // 有這欄而沒有 worktreePath 時，不查分支 commit 快照，也不改查 session root。重新偵測到 worktree 就拿掉。
+  missingWorktreePath?: string
   // 第五版才加的欄位：驗收清單（acceptance-<key>.md）讀進來的精簡摘要；舊資料沒有這個欄位，
   // 當作還沒讀過（exists 當 false），見 hooks/acceptance.ts 的 evaluateAcceptanceDoneWhen。
   acceptance?: MissionAcceptance
