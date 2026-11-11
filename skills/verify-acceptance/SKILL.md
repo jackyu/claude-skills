@@ -214,6 +214,7 @@ Before 跑在 baseline worktree `<base>`＝`<main>/.claude/worktrees/verify-base
 - admin：`--journeys` 選到的 `~/.claude/skills/verify-admin/journeys/<名稱>.json` 每一份各跑一次，`--port` 換成 After 的。選到的 journey 對應的 features 檔若有標成「預期失敗」的變體（例：`--role sales` 驗無權限），也一起跑，照它寫的指令跑，結果符合它寫的預期就算過
 - client：`--journeys` 選到的 `~/.claude/skills/verify-client/features/<名稱>.md`，每份 Driving 段落的每條指令各跑一次（`--port` 換成 After 的）
 - 候選清單：admin、client 分開列出全部名稱；這份驗收清單 `回歸` 欄提到的 feature，以及這一輪 Step 5 寫進去的 journey，標成「建議」
+- 開跑前跑一次 `uptime` 記下 load average。next dev 每個路由第一次被打才編譯，負載高時第一條打到新路由的 journey 可能逾時：紅在逾時（`page.goto`、等待文字或元素逾時）的 journey，全部跑完後單獨重跑一次；重跑過了算通過，在通過那行最後加一欄 `｜<名稱> 首跑逾時、重跑過，load <數字>`。紅在斷言不符、或重跑仍逾時，就算未過，不再重跑第二次
 - 全過 → `- 整體回歸：通過｜<ISO 時間>｜<cd <wt> && git rev-parse HEAD>｜<N> 條 journey`
 - 有失敗 → `- 整體回歸：未過｜<哪幾條、為什麼>`；是這次改動造成的就回實作階段修，是 journey 本身過時就回報請使用者決定
 - 起不來 → `- 整體回歸：受阻｜<原因>`

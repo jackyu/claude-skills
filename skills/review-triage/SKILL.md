@@ -1,6 +1,6 @@
 ---
 name: review-triage
-description: 在 code review 交回 finding、reviewer 在 MR 留言、或審別人 MR 自己列出 finding 之後，派人修正、回覆或留言之前，逐筆判定：先分成指出 bug／質疑前提／改善／提問／風格五類，改善與範圍外的新 finding 收進這張功能票的後續票；指出 bug 的標重現層級、從真實入口複核可達性、必要時用 verify-admin／verify-client 實跑，判成確認／待驗證／撤銷／防禦性建議；質疑前提的追出處、交使用者決定。修正後重跑時核對上一輪確認的有沒有關掉，並抓出「在修上一輪修法」的訊號。由主對話把原始 finding 或 reviewer 留言照貼存檔後呼叫。
+description: 在 code review 交回 finding、reviewer 在 MR 留言、或審別人 MR 自己列出 finding 之後，派人修正、回覆或留言之前，逐筆判定：先分成指出 bug／質疑前提／改善／提問／風格五類，改善與範圍外的新 finding 收進這張功能票的後續票；指出 bug 的標重現層級、從真實入口複核可達性、必要時用 verify-admin／verify-client 實跑，判成確認／待驗證／撤銷／防禦性建議；質疑前提的追出處、交使用者決定。修正後重跑時核對上一輪確認的有沒有關掉，並抓出「在修上一輪修法」的訊號。由主對話把原始 finding 或 reviewer 留言照貼存成 <main>/.claude/verify-evidence/<key>/review-findings-r<N>.md（含 meta）後呼叫，存檔前先讀本檔「主對話的準備」。
 context: fork
 background: false
 ---
@@ -11,7 +11,7 @@ background: false
 
 **用法**：`/review-triage <finding 檔的絕對路徑>`
 
-這個 skill 跑在乾淨的上下文，看不到主對話。呼叫前主對話要先把原文存成 finding 檔，參數只給路徑。沒有參數或檔案不存在 → 回報「請主對話先存 finding 檔」並結束。
+這個 skill 跑在乾淨的上下文，看不到主對話。呼叫前主對話要先把原文存成 finding 檔，參數只給路徑。沒有參數或檔案不存在 → 回報「請主對話先存 finding 檔」並結束。路徑不是 `.claude/verify-evidence/<key>/review-findings-r<N>.md`、或開頭沒有 meta → 回報「請主對話照『主對話的準備』第 3 步重存」並結束。
 
 ## 主對話的準備（呼叫前）
 
