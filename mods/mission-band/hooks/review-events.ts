@@ -11,6 +11,7 @@ import { ownProjectPathOf } from './product-events'
 import {
   applyReviewSync,
   approvedFrom,
+  descriptionRegressionShaFrom,
   classifyDiscussion,
   discussionReplyMatch,
   markDiscussionRepliedLocally,
@@ -106,7 +107,13 @@ export async function syncReview($: EngineInterface, binding: string, now: numbe
     .map(raw => classifyDiscussion(raw as RawReviewDiscussion, selfUsername))
     .filter((d): d is NonNullable<ReturnType<typeof classifyDiscussion>> => d !== undefined)
 
-  const snapshot: ReviewSyncSnapshot = { mrState, approved: approvedFrom(approvalsJson), selfUsername, discussions }
+  const snapshot: ReviewSyncSnapshot = {
+    mrState,
+    approved: approvedFrom(approvalsJson),
+    selfUsername,
+    descriptionRegressionSha: descriptionRegressionShaFrom(mrJson),
+    discussions,
+  }
 
   let nextReview: MissionReview | undefined
   await mutate($, missions => {

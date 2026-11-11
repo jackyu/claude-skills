@@ -215,6 +215,8 @@ export type MissionReview = {
   // 跟驗收清單記的整體回歸 sha。
   localHead?: string
   remoteHead?: string
+  // MR 描述「整體回歸：…（<SHA>）」那行記的 SHA，/mission-review 每次同步都重讀；push-fix 拿它比 localHead。
+  descriptionRegressionSha?: string
   discussions: readonly ReviewDiscussion[]
 }
 

@@ -31,9 +31,9 @@ function isBySelf(note: RawReviewNote, selfUsername: string | undefined): boolea
   return selfUsername !== undefined && note.author?.username === selfUsername
 }
 
-// CI 的 Claude bot 用 GitLab 專案 bot 帳號（project_<id>_bot_…）留言，API 的 author.bot 卻是 false，
-// 只能靠帳號名稱或 review 摘要裡的標記認。
-const BOT_USERNAME_PATTERN = /^project_\d+_bot/
+// CI 的 Claude bot 用 GitLab 專案 bot 帳號（project_<id>_bot_…）留言，風險分級 bot 是 ai- 開頭的一般帳號，
+// API 的 author.bot 都是 false，只能靠帳號名稱或 review 摘要裡的標記認。帳號規則跟 mr-pending-notes.sh 相同。
+const BOT_USERNAME_PATTERN = /^project_\d+_bot|_bot_|^ai-|bot$/
 const BOT_REVIEW_MARKER = '<!-- claude-review -->'
 
 function isBot(note: RawReviewNote): boolean {
@@ -48,7 +48,7 @@ function maxNoteId(notes: readonly RawReviewNote[]): number | undefined {
 
 /**
  * 單一討論分類成 ReviewDiscussion；系統 note 先濾掉，濾完沒有任何 note 就不是討論（回 undefined）。
- * isFeedback 只排除「導覽註解或 bot 開的串、且沒有真人回覆」那兩種——導覽註解用標記判斷，不用作者判斷：自己留的
+ * isFeedback 只排除「導覽註解，或有 bot 留言（含自己 @ bot 觸發）的串，且沒有真人回覆」那兩種——導覽註解用標記判斷，不用作者判斷：自己留的
  * 非導覽提醒（例如「這裡還要改」）照樣算回饋討論，只是因為最後一則就是自己，reply 節點本來
  * 就會判斷完成，不需要額外排除。導覽註解底下只要有別人回覆，整串就轉成一般回饋討論。
  */
@@ -59,7 +59,7 @@ export function classifyDiscussion(raw: RawReviewDiscussion, selfUsername: strin
 
   const othersNotes = notes.filter(note => !isBySelf(note, selfUsername) && !isBot(note))
   const hasNoHumanReply = othersNotes.length === 0
-  const isFeedback = !((isTourNote(first) || isBot(first)) && hasNoHumanReply)
+  const isFeedback = !((isTourNote(first) || notes.some(isBot)) && hasNoHumanReply)
 
   const lastNote = notes.at(-1)
   const lastBySelf = lastNote !== undefined && isBySelf(lastNote, selfUsername)
@@ -78,6 +78,7 @@ export type ReviewSyncSnapshot = {
   mrState: 'opened' | 'merged' | 'closed'
   approved: boolean
   selfUsername?: string
+  descriptionRegressionSha?: string
   discussions: readonly ReviewDiscussion[]
 }
 
@@ -125,8 +126,18 @@ export function applyReviewSync(prev: MissionReview | undefined, snapshot: Revie
     selfUsername: snapshot.selfUsername ?? base.selfUsername,
     localHead: base.localHead,
     remoteHead: base.remoteHead,
+    descriptionRegressionSha: snapshot.descriptionRegressionSha,
     discussions: snapshot.discussions,
   }
+}
+
+const DESCRIPTION_REGRESSION_PATTERN = /整體回歸[：:][^\n]*?[（(]([0-9a-f]{7,40})[）)]/
+
+/** MR 描述 Evidence 段「整體回歸：…（<SHA>）」記的 SHA；fe-mr-generator 產的描述才有這行，沒有就回 undefined。 */
+export function descriptionRegressionShaFrom(json: unknown): string | undefined {
+  const description = asRecord(json)?.description
+  if (typeof description !== 'string') return undefined
+  return DESCRIPTION_REGRESSION_PATTERN.exec(description)?.[1]
 }
 
 // ===== 本機回覆偵測（不用等同步） =====
@@ -341,12 +352,20 @@ export function evaluateReplyDoneWhen(mission: Mission): DoneWhenResult {
   return { done: pending.length === 0, detail: pending.length > 0 ? `${pending.length} 則待回` : undefined }
 }
 
-/** push-fix：本機 HEAD 跟遠端分支 HEAD 一樣才算完成（見 hooks/review-events.ts 怎麼查這兩個欄位）。 */
+/**
+ * push-fix：本機 HEAD 跟遠端分支 HEAD 一樣，而且 MR 描述記的整體回歸 SHA（有記的話）就是這個 HEAD，
+ * 才算完成。修正 commit push 上去後描述沒跟著更新，合併時 Evidence 就是舊的。
+ */
 export function evaluatePushFixDoneWhen(mission: Mission): DoneWhenResult {
   const { localHead, remoteHead } = mission.review ?? {}
   if (localHead === undefined) return { done: false }
   if (remoteHead === undefined) return { done: false, detail: '讀不到遠端分支' }
-  return { done: localHead === remoteHead, detail: localHead === remoteHead ? undefined : '還沒 push' }
+  if (localHead !== remoteHead) return { done: false, detail: '還沒 push' }
+  const described = mission.review?.descriptionRegressionSha
+  if (described !== undefined && !localHead.startsWith(described)) {
+    return { done: false, detail: `MR 描述的整體回歸還是 ${described}，重跑整體回歸後用 /push 選 b 更新描述` }
+  }
+  return { done: true }
 }
 
 const VERIFY_STAGE_SKIPPED_REASON = '驗收階段已跳過整體回歸'

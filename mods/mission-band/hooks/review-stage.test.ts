@@ -8,6 +8,7 @@ import {
   discussionReplyMatch,
   evaluateApprovedDoneWhen,
   evaluateAwaitReviewDoneWhen,
+  descriptionRegressionShaFrom,
   evaluatePushFixDoneWhen,
   evaluateReplyDoneWhen,
   evaluateReverifyDoneWhen,
@@ -127,6 +128,25 @@ describe('classifyDiscussion', () => {
     const result = classifyDiscussion(raw, 'me')
     expect(result?.isFeedback).toBe(false)
     expect(result?.lastOtherNoteId).toBeUndefined()
+  })
+
+  test('a thread I opened to @ the risk-triage bot, answered only by the bot, is not feedback', () => {
+    const raw: RawReviewDiscussion = {
+      id: 'd1',
+      notes: [
+        { id: 1, body: '@ai-tang-risk-triage-fugle', author: { username: 'me' } },
+        { id: 2, body: '開始分級', author: { username: 'ai-tang-risk-triage-fugle' } },
+        { id: 3, body: '等級 2', author: { username: 'ai-tang-risk-triage-fugle' } },
+      ],
+    }
+    const result = classifyDiscussion(raw, 'me')
+    expect(result?.isFeedback).toBe(false)
+    expect(result?.lastOtherNoteId).toBeUndefined()
+  })
+
+  test('a reminder I left for myself with no bot and no reply is still feedback', () => {
+    const raw: RawReviewDiscussion = { id: 'd1', notes: [{ id: 1, body: '這裡還要改', author: { username: 'me' } }] }
+    expect(classifyDiscussion(raw, 'me')?.isFeedback).toBe(true)
   })
 
   test('a review summary carrying the claude-review marker is not feedback even under another username', () => {
@@ -545,6 +565,36 @@ describe('evaluatePushFixDoneWhen', () => {
 
   test('done when local and remote heads match', () => {
     expect(evaluatePushFixDoneWhen(mission({ review: review({ localHead: 'abc', remoteHead: 'abc' }) })).done).toBe(true)
+  })
+
+  test('not done when the MR description still cites an older regression sha', () => {
+    const result = evaluatePushFixDoneWhen(
+      mission({ review: review({ localHead: '2053c38219d7', remoteHead: '2053c38219d7', descriptionRegressionSha: '68775d89c' }) }),
+    )
+    expect(result.done).toBe(false)
+    expect(result.detail).toContain('68775d89c')
+  })
+
+  test('done when the MR description cites the current head by its short sha', () => {
+    const result = evaluatePushFixDoneWhen(
+      mission({ review: review({ localHead: '2053c38219d7', remoteHead: '2053c38219d7', descriptionRegressionSha: '2053c3821' }) }),
+    )
+    expect(result.done).toBe(true)
+  })
+})
+
+describe('descriptionRegressionShaFrom', () => {
+  test('reads the sha from a passed overall regression line', () => {
+    expect(descriptionRegressionShaFrom({ description: '## Evidence\n\n整體回歸：34 條 journey 通過（68775d89c）\n' })).toBe('68775d89c')
+  })
+
+  test('reads the sha from a skipped overall regression line', () => {
+    expect(descriptionRegressionShaFrom({ description: '整體回歸：已跳過（2053c3821）：30 條通過、3 條失敗，等 #468' })).toBe('2053c3821')
+  })
+
+  test('undefined when the description has no overall regression line', () => {
+    expect(descriptionRegressionShaFrom({ description: '## Summary\n只改文件' })).toBeUndefined()
+    expect(descriptionRegressionShaFrom({})).toBeUndefined()
   })
 })
 
