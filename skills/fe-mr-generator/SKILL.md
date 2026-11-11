@@ -74,8 +74,10 @@ pr 的段落順序是 Summary → Evidence → Merge Danger；這個 skill 刻�
     - `未過`、`待驗`、`待重驗`，或 `受阻` 且 `驗不了時` 是 `必須驗過`／缺漏：寫 `AC-n 待補：<原因>`，不要寫成通過。原因改寫成白話的功能描述（不貼函式名、路徑、指令）；已經拿到的證據照樣列在下面
     - 結果裡的 `拍攝於 <SHA>` 那段不放進表格格子。SHA 跟 HEAD 不同時，/push 會傳來沿用理由：在表格下面寫一行「AC-n 的截圖拍在 <SHA 前 9 碼>，<沿用理由>」。沒傳理由就寫成 `AC-n 待補：截圖拍在舊版本，沒確認能不能沿用`
     - 品質關卡（lint、type-check、test、build）不是 AC：/push 傳了 `summary.txt` 就在 Evidence 最後加一行「品質關卡：<每道 exit code>｜<各套件 jest 摘要>（HEAD <SHA 前 9 碼>）」，數字照抄 `summary.txt`
-    - 整體回歸是 `通過` 就在最後加一行 `整體回歸：<N> 條 journey 通過（<SHA 前 9 碼>）`，其他狀態寫 `整體回歸：待補`
-    - 截圖是主 checkout 的本機檔案，MR 上要看得到得先上傳（`glab api --method POST "projects/<專案>/uploads" --form "file=@<檔名>"` 取回 markdown）。這個 skill 不上傳：先用 inline code 寫證據檔路徑、標「待上傳」，提醒使用者或 /push 處理。這是下面「不寫路徑」規則的例外，上傳換成圖片後路徑就不見了
+    - 整體回歸是 `通過` 就在最後加一行 `整體回歸：<N> 條 journey 通過（<SHA 前 9 碼>）`
+    - /push 傳來「使用者已跳過整體回歸」（mission-band 的 `verify-acceptance/overall` 已跳過）時，寫 `整體回歸：已跳過（<SHA 前 9 碼>）：<N> 條通過、<M> 條失敗，<失敗原因一句白話>`，數字和原因照清單的整體回歸那行；清單沒有跑過的紀錄就寫 `整體回歸：已跳過，沒有跑`。「已跳過」是使用者裁定不擋合併，跟待補不同
+    - 其他狀態寫 `整體回歸：待補`
+    - 截圖是主 checkout 的本機檔案，MR 上要看得到得先上傳（`~/.claude/scripts/gitlab/mr-upload-evidence.sh`）。這個 skill 不上傳：先用 inline code 寫證據檔路徑、標「待上傳」，提醒使用者或 /push 處理。這是下面「不寫路徑」規則的例外，上傳換成圖片後路徑就不見了
   - **沒有清單**：列對話裡實際有的證據；沒有就寫「待補：缺 <什麼>」
 - **詞彙**：專案有 `GLOSSARY.md` 就用裡面的領域詞
 
