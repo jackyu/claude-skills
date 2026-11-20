@@ -8,6 +8,8 @@
 #   1. 分支自己改的檔：拍攝時與現在，分支自己的 +/- 行是否相同（same／CHANGED）
 #      只比 +/- 行，rebase 帶進來的周圍 context 行不算差異
 #   2. 截圖後才變、但分支沒改的檔：base 推進帶進來的，要人判斷在不在截圖頁的渲染路徑上
+#      設 SHOT_APP=<app>（acceptance meta 的 app）時，只列 apps/<app>/、packages/ 和根目錄的非 .md 檔，
+#      其他 app、docs/、.claude/ 與 .md 只印件數
 # exit：0＝第 1 問全 same；1＝有 CHANGED，要重拍；2＝參數或 git 錯誤
 set -uo pipefail
 
@@ -41,6 +43,17 @@ done <<< "$branch_files"
 
 echo "--- 2. 截圖後才變、但分支沒改的檔"
 drift=$(comm -23 <(git diff --name-only "$shot" "$head" | sort) <(printf '%s\n' "$branch_files"))
-if [ -n "$drift" ]; then printf '%s\n' "$drift"; else echo "（沒有）"; fi
+if [ -z "$drift" ]; then
+  echo "（沒有）"
+elif [ -z "${SHOT_APP:-}" ]; then
+  printf '%s\n' "$drift"
+else
+  in_scope() { grep -E "^(apps/${SHOT_APP}/|packages/|[^/]+$)" | grep -vE '\.md"?$'; }
+  shown=$(printf '%s\n' "$drift" | in_scope)
+  total=$(printf '%s\n' "$drift" | grep -c .)
+  shown_n=$(printf '%s\n' "$shown" | grep -c .)
+  if [ -n "$shown" ]; then printf '%s\n' "$shown"; else echo "（apps/${SHOT_APP}、packages、根目錄設定都沒有）"; fi
+  [ "$total" -gt "$shown_n" ] && echo "另有 $((total - shown_n)) 個檔在其他 app、docs、.claude 或是 .md，沒列出"
+fi
 
 exit "$changed"
