@@ -22,6 +22,9 @@ import {
 import { loadMissions, mutate, recordEvent } from './store'
 import { retireMissingWorktreePath } from './worktree-events'
 
+const GIT_TIMEOUT_MS = 10_000
+const GLAB_TIMEOUT_MS = 15_000
+
 export async function ownProjectPathOf($: EngineInterface): Promise<string | undefined> {
   const repo = await $.session.repo()
   return projectPathFromRemote(repo?.remote ?? null)?.path
@@ -31,9 +34,9 @@ type BranchCommitsResult = { ok: true; commits: BranchCommit[] } | { ok: false; 
 
 async function currentBranchCommits($: EngineInterface, cwd: string): Promise<BranchCommitsResult> {
   try {
-    const branchResult = await $.process.run(['git', 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD'], { cwd })
+    const branchResult = await $.process.run(['git', 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD'], { cwd, timeoutMs: GIT_TIMEOUT_MS })
     const defaultBranch = resolveDefaultBranchName(branchResult.stdout, branchResult.exitCode)
-    const logResult = await $.process.run(['git', 'log', '--format=%H%x09%ct', `${defaultBranch}..HEAD`], { cwd })
+    const logResult = await $.process.run(['git', 'log', '--format=%H%x09%ct', `${defaultBranch}..HEAD`], { cwd, timeoutMs: GIT_TIMEOUT_MS })
     if (logResult.exitCode !== 0) return { ok: false }
     return { ok: true, commits: parseBranchCommitsLog(logResult.stdout) }
   } catch (error) {
@@ -91,7 +94,7 @@ async function mrDescriptionText($: EngineInterface, command: string, iid: strin
 
   try {
     const root = await $.session.root()
-    const result = await $.process.run(['glab', 'api', `projects/:id/merge_requests/${iid}`], { cwd: root })
+    const result = await $.process.run(['glab', 'api', `projects/:id/merge_requests/${iid}`], { cwd: root, timeoutMs: GLAB_TIMEOUT_MS })
     if (result.exitCode !== 0) return undefined
     const parsed: unknown = JSON.parse(result.stdout)
     const description = typeof parsed === 'object' && parsed !== null ? (parsed as { description?: unknown }).description : undefined

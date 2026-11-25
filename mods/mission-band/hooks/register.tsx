@@ -12,6 +12,7 @@ import { MISSION_COMMANDS } from './commands'
 import { finishWithCost, missionCostText, rememberSession, runMutationAndRemember } from './cost'
 import { missionGoText } from './handoff'
 import { missionHelpText, openGuide } from './help'
+import { commandFailureCatch, recordHookFailure, recentHookFailuresText } from './hook-failure'
 import {
   bindingFor,
   finishMission,
@@ -67,14 +68,14 @@ export const register: Register = on => {
     await refreshMissionsState($)
 
     return next(await withProgressContext($, e))
-  }).catch(($, e, next) => next(e))
+  }).catch(async ($, e, next) => (await recordHookFailure($, 'prompt.submit', next.error), next(e)))
 
   // 子 agent 自己的壓縮不影響主對話看到的進度
   on('session.compact', async ($, e, next) => {
     const result = await next(e)
     if (e.agentId === undefined) await resetProgressContext($)
     return result
-  }).catch(($, e, next) => next(e))
+  }).catch(async ($, e, next) => (await recordHookFailure($, 'session.compact', next.error), next(e)))
 
   on('skill.prompt', async ($, e, next) => {
     await recordEvent($, { at: await $.clock.now(), kind: 'skill', name: e.skill })
@@ -95,7 +96,7 @@ export const register: Register = on => {
     }
 
     return result
-  }).catch(($, e, next) => next(e))
+  }).catch(async ($, e, next) => (await recordHookFailure($, 'tool.call:Read', next.error), next(e)))
 
   // subagent 派工合約規定每個 Bash 都先 cd <絕對路徑>，所以實際指令常是
   // `cd /abs && head -n 1 '<path>'`；pstackReadsInBashCommand 會照 && / || / ; / | 切開
@@ -155,7 +156,7 @@ export const register: Register = on => {
     }
 
     return call
-  }).catch(($, e, next) => next(e))
+  }).catch(async ($, e, next) => (await recordHookFailure($, 'tool.call:Bash', next.error), next(e)))
 
   // Write／Edit 寫到驗收清單檔就刷新；寫到 worktree 自己那份底下只提醒位置寫錯；寫到
   // 不相關的檔案什麼都不做——細節（含 worktree 判斷、runStep 隔離）在
@@ -167,14 +168,14 @@ export const register: Register = on => {
     await handleAcceptanceFileWrite($, e.file_path)
     await handleReviewTriageFileWrite($, e.file_path)
     return result
-  }).catch(($, e, next) => next(e))
+  }).catch(async ($, e, next) => (await recordHookFailure($, 'tool.call:Write', next.error), next(e)))
 
   on('tool.call', { tool: 'Edit' }, async ($, e, next) => {
     const result = await next(e)
     await handleAcceptanceFileWrite($, e.file_path)
     await handleReviewTriageFileWrite($, e.file_path)
     return result
-  }).catch(($, e, next) => next(e))
+  }).catch(async ($, e, next) => (await recordHookFailure($, 'tool.call:Edit', next.error), next(e)))
 
   // Agent 工具呼叫（含 subagent_type，例如 codex:codex-rescue）記成 agent 事件；
   // 比對規則在 flow 節點的 matchAgentPrefix，這裡只負責記錄，不負責判斷。
@@ -192,7 +193,7 @@ export const register: Register = on => {
     }
 
     return result
-  }).catch(($, e, next) => next(e))
+  }).catch(async ($, e, next) => (await recordHookFailure($, 'tool.call:Agent', next.error), next(e)))
 
   // 背景 Bash 拿不到 stdout，但它結束會觸發下一個 turn，所以在這裡補查 commit 快照；子 agent 的
   // Bash 已在 tool.call 處理過，有 agentId 就跳過。先 next(e) 結束 turn，查 git 才不會拖慢它。
@@ -210,7 +211,7 @@ export const register: Register = on => {
     }
 
     return r
-  }).catch(($, e, next) => next(e))
+  }).catch(async ($, e, next) => (await recordHookFailure($, 'turn.complete', next.error), next(e)))
 
   on('command.run', { command: 'mission-start' }, async ($, e) => {
     const now = await $.clock.now()
@@ -226,7 +227,7 @@ export const register: Register = on => {
     const issueUrl = iid === undefined ? undefined : issueUrlFromRemote(repo?.remote ?? null, iid)
 
     return runMutationAndRemember($, missions => withMissingIssueIidNotice(startMission(missions, parsed.name, binding, now, issueUrl, iid), binding))
-  })
+  }).catch(($, e, next) => commandFailureCatch($, 'mission-start', next.error))
 
   on('command.run', { command: 'mission-restore' }, async ($, e) => {
     const parsed = parseRestoreArgs(e.args)
@@ -234,7 +235,7 @@ export const register: Register = on => {
 
     const binding = await currentBinding($)
     return runMutationAndRemember($, missions => withMissingIssueIidNotice(restoreMission(missions, binding, parsed.name), binding))
-  })
+  }).catch(($, e, next) => commandFailureCatch($, 'mission-restore', next.error))
 
   on('command.run', { command: 'mission-rename' }, async ($, e) => {
     const repo = await $.session.repo()
@@ -245,7 +246,7 @@ export const register: Register = on => {
     const issueUrl = iid === undefined ? undefined : issueUrlFromRemote(repo?.remote ?? null, iid)
     const now = await $.clock.now()
     return runMutation($, missions => renameMission(missions, parsed.query, parsed.label, now, issueUrl))
-  })
+  }).catch(($, e, next) => commandFailureCatch($, 'mission-rename', next.error))
 
   on('command.run', { command: 'mission-skip' }, async ($, e) => {
     const parsed = parseSkipArgs(e.args)
@@ -253,23 +254,23 @@ export const register: Register = on => {
 
     const binding = await currentBinding($)
     return runMutation($, missions => skipNode(missions, binding, parsed.nodeId, parsed.reason, NEW_FEATURE_FLOW))
-  })
+  }).catch(($, e, next) => commandFailureCatch($, 'mission-skip', next.error))
 
   on('command.run', { command: 'mission-next' }, async $ => {
     const binding = await currentBinding($)
     const now = await $.clock.now()
     const dirty = await domainDocsDirty($)
     return runMutation($, missions => nextStage(missions, binding, NEW_FEATURE_FLOW, now, dirty))
-  })
+  }).catch(($, e, next) => commandFailureCatch($, 'mission-next', next.error))
 
-  on('command.run', { command: 'mission-cost' }, async ($, e) => ({ text: await missionCostText($, e.args, NEW_FEATURE_FLOW) }))
+  on('command.run', { command: 'mission-cost' }, async ($, e) => ({ text: await missionCostText($, e.args, NEW_FEATURE_FLOW) })).catch(($, e, next) => commandFailureCatch($, 'mission-cost', next.error))
 
-  on('command.run', { command: 'mission-help' }, async $ => ({ text: await missionHelpText($) }))
+  on('command.run', { command: 'mission-help' }, async $ => ({ text: await missionHelpText($) })).catch(($, e, next) => commandFailureCatch($, 'mission-help', next.error))
 
   on('command.run', { command: 'mission-go' }, async $ => {
     const binding = await currentBinding($)
     return { text: await missionGoText($, binding) }
-  })
+  }).catch(($, e, next) => commandFailureCatch($, 'mission-go', next.error))
 
   // 同步到 merged 就順手推進階段（nextStage 本身認得 review 的 mrState，見 model.ts）；
   // 不是 merged 就只回同步結果，階段留在審查。
@@ -282,25 +283,27 @@ export const register: Register = on => {
     const dirty = await domainDocsDirty($)
     const advance = await runMutation($, missions => nextStage(missions, binding, NEW_FEATURE_FLOW, now, dirty))
     return { text: `${sync.text}\n${advance.text}` }
-  })
+  }).catch(($, e, next) => commandFailureCatch($, 'mission-review', next.error))
 
   on('command.run', { command: 'mission-finish' }, async ($, e) => {
     const parsed = parseFinishArgs(e.args)
     const binding = await currentBinding($)
     return finishWithCost($, parsed.name, NEW_FEATURE_FLOW, missions => finishMission(missions, binding, parsed.name, parsed.force, NEW_FEATURE_FLOW))
-  })
+  }).catch(($, e, next) => commandFailureCatch($, 'mission-finish', next.error))
 
   on('command.run', { command: 'mission-list' }, async $ => {
     const binding = await currentBinding($)
     const missions = await loadMissions($)
     return { text: listMissionsText(missions, binding, NEW_FEATURE_FLOW) }
-  })
+  }).catch(($, e, next) => commandFailureCatch($, 'mission-list', next.error))
 
   on('command.run', { command: 'mission-log' }, async $ => {
     const binding = await currentBinding($)
     const missions = await loadMissions($)
-    return { text: missionLogText(missions, binding) }
-  })
+    const failures = await recentHookFailuresText($)
+    const text = failures === undefined ? missionLogText(missions, binding) : `${missionLogText(missions, binding)}\n\n${failures}`
+    return { text }
+  }).catch(($, e, next) => commandFailureCatch($, 'mission-log', next.error))
 
   on('command.run', { command: 'mission-link' }, async ($, e) => {
     const parsed = parseLinkArgs(e.args)
@@ -309,7 +312,7 @@ export const register: Register = on => {
     const binding = await currentBinding($)
     const now = await $.clock.now()
     return runMutation($, missions => linkAsset(missions, binding, parsed.label, parsed.url, now))
-  })
+  }).catch(($, e, next) => commandFailureCatch($, 'mission-link', next.error))
 
   on('command.run', { command: 'mission-unlink' }, async ($, e) => {
     const parsed = parseUnlinkArgs(e.args)
@@ -317,7 +320,7 @@ export const register: Register = on => {
 
     const binding = await currentBinding($)
     return runMutation($, missions => unlinkAsset(missions, binding, parsed.label))
-  })
+  }).catch(($, e, next) => commandFailureCatch($, 'mission-unlink', next.error))
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     const missions = await read($, missionsState)
@@ -385,5 +388,5 @@ export const register: Register = on => {
         {renderRow(elements, plan.next)}
       </Box>
     )
-  })
+  }).catch(async ($, e, next) => (await recordHookFailure($, 'ui.render:AbovePrompt', next.error), next(e)))
 }

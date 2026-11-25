@@ -21,6 +21,7 @@ import { findBoundMission } from './model'
 import { currentBinding, loadMissions, mutate, runStep } from './store'
 
 const SPECS_DIR_NAME = '.claude/specs'
+const GIT_TIMEOUT_MS = 10_000
 
 type Resolved = { path: string; text: string }
 
@@ -139,7 +140,7 @@ export function shaDiffers(recordedSha: string, headSha: string): boolean {
 async function computeOverallStale($: EngineInterface, worktreePath: string | undefined, overall: AcceptanceOverall): Promise<boolean> {
   if (overall.status !== '通過' || worktreePath === undefined || overall.sha === undefined) return false
   try {
-    const result = await $.process.run(['git', '-C', worktreePath, 'rev-parse', 'HEAD'])
+    const result = await $.process.run(['git', '-C', worktreePath, 'rev-parse', 'HEAD'], { timeoutMs: GIT_TIMEOUT_MS })
     if (result.exitCode !== 0) return false
     return shaDiffers(overall.sha, result.stdout.trim())
   } catch {

@@ -23,8 +23,11 @@ import {
 } from './review-stage'
 import { currentBinding, loadMissions, mutate } from './store'
 
+const GLAB_TIMEOUT_MS = 15_000
+const GIT_TIMEOUT_MS = 10_000
+
 async function glabJson($: EngineInterface, argv: readonly string[], cwd: string): Promise<unknown | undefined> {
-  const result = await $.process.run(argv, { cwd })
+  const result = await $.process.run(argv, { cwd, timeoutMs: GLAB_TIMEOUT_MS })
   if (result.exitCode !== 0) return undefined
   return tryParseJson(result.stdout)
 }
@@ -144,13 +147,13 @@ export async function syncReview($: EngineInterface, binding: string, now: numbe
 /** 本機 HEAD 跟遠端上游（`@{u}`）的 HEAD；上游名稱可能跟本機分支名不同，不能用 origin/<本機分支名> 猜。 */
 async function currentHeads($: EngineInterface, cwd: string): Promise<{ local?: string; remote?: string } | undefined> {
   try {
-    const headResult = await $.process.run(['git', 'rev-parse', 'HEAD'], { cwd })
+    const headResult = await $.process.run(['git', 'rev-parse', 'HEAD'], { cwd, timeoutMs: GIT_TIMEOUT_MS })
     if (headResult.exitCode !== 0) return undefined
     const local = headResult.stdout.trim()
 
     // detached HEAD 或沒設上游都會讓這支指令非 0 退出；兩種情況都當「遠端未知」，
     // 不去猜 origin/<本機分支名>——上游名稱可能跟本機分支名不一樣。
-    const upstreamResult = await $.process.run(['git', 'rev-parse', '@{u}'], { cwd })
+    const upstreamResult = await $.process.run(['git', 'rev-parse', '@{u}'], { cwd, timeoutMs: GIT_TIMEOUT_MS })
     return { local, remote: upstreamResult.exitCode === 0 ? upstreamResult.stdout.trim() : undefined }
   } catch {
     return undefined

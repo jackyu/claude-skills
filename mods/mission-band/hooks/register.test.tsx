@@ -3558,6 +3558,55 @@ describe('mission-review command', () => {
     expect(after).toEqual(before)
   })
 
+  // glab 指令本身跑不起來（process.run 直接 reject，不是回非 0 exit）要跟上面那個
+  // 非 0 exit 的案例一樣安全：只回錯誤文字，完全不碰已經存在的任務。
+  test('glab api itself rejecting (not just a non-zero exit) reports an error and does not touch the stored mission', async ($, on) => {
+    mock.clock(on)
+    const storeMap = mockStoreMap(on)
+    setupReview(on)
+    on('process.run', () => {
+      throw new Error('glab: command not found')
+    })
+    const run = (command: string, args = '') => $.command.run({ command, args, origin: { kind: 'composer' }, presentation: PRESENTATION })
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    await startAtReview(storeMap, run)
+    const before = storeMap.get('missions') as Missions
+
+    const result = await run('mission-review')
+    expect(result.text).toContain('同步失敗')
+
+    const after = storeMap.get('missions') as Missions
+    expect(after).toEqual(before)
+  })
+
+  // glab 本身偶爾會卡住（網路、GitLab 掛了），每一次呼叫都要帶 timeoutMs，不然一支卡住
+  // 的呼叫會讓整個 /mission-review 連帶卡住。
+  test('every glab api call made by /mission-review carries a timeoutMs', async ($, on) => {
+    mock.clock(on)
+    const storeMap = mockStoreMap(on)
+    setupReview(on)
+    const seenTimeouts: (number | undefined)[] = []
+    on('process.run', (_, e) => {
+      seenTimeouts.push(e.init?.timeoutMs)
+      const joined = e.argv.join(' ')
+      const json = (value: unknown) => ({ value: { exitCode: 0, stdout: JSON.stringify(value), stderr: '', isStdoutTruncated: false, isStderrTruncated: false } })
+      if (joined === `glab api ${MR_PATH}`) return json({ state: 'opened' })
+      if (joined === `glab api ${MR_PATH}/approvals`) return json({ approved_by: [] })
+      if (joined === `glab api ${MR_PATH}/discussions?per_page=100&page=1`) return json([])
+      if (joined === 'glab api user') return json({ username: 'me' })
+      return { value: { exitCode: 1, stdout: '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+    })
+    const run = (command: string, args = '') => $.command.run({ command, args, origin: { kind: 'composer' }, presentation: PRESENTATION })
+
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+    await startAtReview(storeMap, run)
+    await run('mission-review')
+
+    expect(seenTimeouts.length).toBeGreaterThan(0)
+    for (const timeoutMs of seenTimeouts) expect(timeoutMs).toBeGreaterThan(0)
+  })
+
   test('approvals endpoint failing aborts the whole sync (does not silently write approved:false)', async ($, on) => {
     mock.clock(on)
     const storeMap = mockStoreMap(on)
@@ -4081,5 +4130,81 @@ describe('mission-start setup check reads the Agent skills section from CLAUDE.m
     const result = await $.command.run({ command: 'mission-start', args: 'alpha', origin: { kind: 'composer' }, presentation: PRESENTATION })
     expect(result.text).toContain('還沒設定好')
     expect(result.text).toContain('AGENTS.md')
+  })
+})
+
+// command.run 的 handler 本身出錯（不是回傳錯誤文字，是真的 throw／reject）不能讓整個 hook
+// 掛掉、什麼都沒回：register.tsx 幫每個 command.run 接了 commandFailureCatch，這裡驗證
+// 使用者看到的文字、記下來的 hookFailures、還有 /mission-log 會不會秀出來。
+describe('command.run 出錯時的 catch（hook-failure.ts）', () => {
+  // session.repo 壞掉會讓 mission-start 在還沒碰 store 之前就 throw，跟 clock.now 分開
+  // 控制，這樣才能在同一個測試裡讓「指令本身失敗」跟「recordHookFailure 自己的 clock.now」
+  // 互不干擾。
+  function setupThrowingRepo(on: On, state: { throwRepo: boolean }) {
+    on('session.start', (_, e) => ({ cwd: e.cwd }))
+    on('session.root', () => ({ value: '/repo' }))
+    on('session.repo', () => {
+      if (state.throwRepo) throw new Error('repo 壞了')
+      return { value: null }
+    })
+    on('session.id', () => ({ value: 'sess-1' }))
+    on('command.register', (_, e) => ({ value: { command: e.name } }))
+    on('skill.prompt', (_, e) => ({ text: e.text }))
+    on('tool.call', () => ({ result: {} }))
+    on('turn.complete', (_, e) => ({ text: e.answer }))
+    mock.env(on, { HOME: '/home/x' })
+    on('fs.exists', () => ({ value: true }))
+    on('fs.read', () => ({ value: '# x\n\n## Agent skills\n' }))
+  }
+
+  test('一個 command.run handler 真的 throw 時，回文字帶指令名稱與 kind，並且留一筆 hookFailures 記錄', async ($, on) => {
+    mock.clock(on)
+    const storeMap = mockStoreMap(on)
+    setupThrowingRepo(on, { throwRepo: true })
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+
+    const result = await $.command.run({ command: 'mission-start', args: 'alpha', origin: { kind: 'composer' }, presentation: PRESENTATION })
+    expect(result.text).toContain('/mission-start')
+    expect(result.text).toContain('throw')
+
+    const failures = storeMap.get('hookFailures') as Array<{ hook: string; kind: string }>
+    expect(failures).toHaveLength(1)
+    expect(failures[0]?.hook).toBe('/mission-start')
+    expect(failures[0]?.kind).toBe('throw')
+  })
+
+  test('就算 store 本身也壞了（寫入一律 throw），回使用者的文字依然帶指令名稱與 kind', async ($, on) => {
+    mock.clock(on)
+    setupThrowingRepo(on, { throwRepo: true })
+    on('store.get', () => ({ value: undefined }))
+    on('store.set', () => {
+      throw new Error('store 壞了')
+    })
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+
+    const result = await $.command.run({ command: 'mission-start', args: 'alpha', origin: { kind: 'composer' }, presentation: PRESENTATION })
+    expect(result.text).toContain('/mission-start')
+    expect(result.text).toContain('throw')
+  })
+
+  test('/mission-log 顯示最近的 hook 失敗記錄；沒有記錄時整段省略', async ($, on) => {
+    mock.clock(on)
+    const storeMap = mockStoreMap(on)
+    const state = { throwRepo: false }
+    setupThrowingRepo(on, state)
+    const run = (command: string, args = '') => $.command.run({ command, args, origin: { kind: 'composer' }, presentation: PRESENTATION })
+    await $.session.start({ cwd: '/repo', surface: null, isInteractive: false })
+
+    const before = await run('mission-log')
+    expect(before.text).not.toContain('最近的 hook 失敗')
+
+    state.throwRepo = true
+    await $.command.run({ command: 'mission-start', args: 'alpha', origin: { kind: 'composer' }, presentation: PRESENTATION })
+    expect(storeMap.get('hookFailures')).toBeDefined()
+
+    state.throwRepo = false
+    const after = await run('mission-log')
+    expect(after.text).toContain('最近的 hook 失敗')
+    expect(after.text).toContain('/mission-start')
   })
 })

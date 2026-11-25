@@ -15,6 +15,7 @@ import {
 } from './worktree-detect'
 
 const WORKTREE_DIR_NAMES = ['.claude/worktrees', '.worktrees'] as const
+const GIT_TIMEOUT_MS = 10_000
 
 // handoff.ts 的 /mission-go 也要用同一套「是不是在 worktree 目錄底下」「git 本身認不認」
 // 判斷，所以這兩個 export 出去；放在這個檔案是因為偵測邏輯本來就都在這裡，handoff.ts
@@ -26,7 +27,7 @@ export function isUnderWorktreeDirs(path: string, repoRoot: string): boolean {
 /** 問 git 本身這個路徑的 worktree 根目錄是哪裡；git 失敗或丟例外都回 undefined，不猜。 */
 export async function gitRevParseShowToplevel($: EngineInterface, path: string): Promise<string | undefined> {
   try {
-    const result = await $.process.run(['git', '-C', path, 'rev-parse', '--show-toplevel'])
+    const result = await $.process.run(['git', '-C', path, 'rev-parse', '--show-toplevel'], { timeoutMs: GIT_TIMEOUT_MS })
     return result.exitCode === 0 ? result.stdout.trim() : undefined
   } catch (error) {
     $.ui.log(`mission-band: 確認「${path}」是不是 worktree 根目錄失敗：${String(error)}`)
@@ -44,7 +45,7 @@ async function orcaWorktreePathByName($: EngineInterface, command: string): Prom
   if (name === undefined) return undefined
   const repoRoot = (await $.session.repo())?.root ?? (await $.session.root())
   try {
-    const result = await $.process.run(['git', '-C', repoRoot, 'worktree', 'list', '--porcelain'])
+    const result = await $.process.run(['git', '-C', repoRoot, 'worktree', 'list', '--porcelain'], { timeoutMs: GIT_TIMEOUT_MS })
     if (result.exitCode !== 0) return undefined
     const path = worktreePathForBranchFromPorcelain(result.stdout, name)
     return path !== undefined && isUnderWorktreeDirs(path, repoRoot) ? path : undefined
@@ -139,7 +140,7 @@ export async function domainDocsDirty($: EngineInterface): Promise<boolean> {
   if (repo === null) return false
 
   try {
-    const result = await $.process.run(['git', 'status', '--porcelain', '--', 'GLOSSARY.md', 'docs/adr'], { cwd: repo.root })
+    const result = await $.process.run(['git', 'status', '--porcelain', '--', 'GLOSSARY.md', 'docs/adr'], { cwd: repo.root, timeoutMs: GIT_TIMEOUT_MS })
     return result.exitCode === 0 && result.stdout.trim() !== ''
   } catch (error) {
     $.ui.log(`mission-band: 檢查 GLOSSARY／ADR 是否有未搬動的改動失敗，當作沒有：${String(error)}`)
